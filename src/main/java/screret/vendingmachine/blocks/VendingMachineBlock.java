@@ -128,9 +128,14 @@ public class VendingMachineBlock extends HorizontalBlock {
 
     @Override
     public TileEntity createTileEntity(BlockState state, IBlockReader worldIn) {
-        VendingMachineTile tile = new VendingMachineTile();
-        tile.owner = owner;
-        return tile;
+        if(state.getValue(HALF) == DoubleBlockHalf.LOWER){
+            VendingMachineTile tile = new VendingMachineTile();
+            tile.owner = owner;
+            return tile;
+        }else{
+            return null;
+        }
+
     }
 
     @Override

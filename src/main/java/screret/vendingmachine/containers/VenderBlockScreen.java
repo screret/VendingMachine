@@ -18,8 +18,10 @@ public class VenderBlockScreen extends ContainerScreen<VenderBlockContainer> {
 
     public VenderBlockScreen(VenderBlockContainer container, PlayerInventory inv, ITextComponent name) {
         super(container, inv, name);
-        this.width = 174;
-        this.height = 256;
+        this.imageWidth = 174;
+        this.imageHeight = 222;
+        this.inventoryLabelX = 5;
+        this.inventoryLabelY = 128;
     }
 
     final static int COOK_BAR_XPOS = 49;
@@ -28,6 +30,7 @@ public class VenderBlockScreen extends ContainerScreen<VenderBlockContainer> {
     @Override
     public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
         this.renderBackground(matrixStack);
+        super.render(matrixStack, mouseX, mouseY, partialTicks);
         super.render(matrixStack, mouseX, mouseY, partialTicks);
         this.renderTooltip(matrixStack, mouseX, mouseY);
         // draw the label for the top of the screen
@@ -51,7 +54,6 @@ public class VenderBlockScreen extends ContainerScreen<VenderBlockContainer> {
         int relX = (this.width - this.getXSize()) / 2;
         int relY = (this.height - this.getYSize()) / 2;
         this.blit(matrixStack, relX, relY, 0, 0, this.getXSize(), this.getYSize());
-
 
         int l = 0;
         this.blit(matrixStack, this.leftPos + 81, this.topPos + 33, 176, 14, l + 1, 16);

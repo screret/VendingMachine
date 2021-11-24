@@ -54,21 +54,21 @@ public class VenderBlockContainer extends Container {
         final int SLOT_X_SPACING = 18;
         final int SLOT_Y_SPACING = 18;
 
-        layoutPlayerInventorySlots(8, 84);
+        layoutPlayerInventorySlots(8, 140);
         if (tileEntity != null) {
             final int INPUT_SLOTS_XPOS = 8;
-            final int INPUT_SLOTS_YPOS = 16;
-            final int BOTTLE_SLOT_XPOS = 59;
-            final int BOTTLE_SLOT_YPOS = 34;
+            final int INPUT_SLOTS_YPOS = 18;
+            final int MONEY_SLOT_XPOS = 132;
+            final int MONEY_SLOT_YPOS = 52;
             for(int x = 0; x < 4; x++){
                 for(int y = 0; y < 6; y++) {
-                    this.addSlot(slotHandler(inven, ((x + 1) * (y + 1)) - 2 + 36, INPUT_SLOTS_XPOS + SLOT_X_SPACING * x, INPUT_SLOTS_YPOS + SLOT_Y_SPACING * y));
+                    this.addSlot(slotHandler(inven, x + y + 36, INPUT_SLOTS_XPOS + SLOT_X_SPACING * x, INPUT_SLOTS_YPOS + SLOT_Y_SPACING * y));
                 }
             }
-            this.addSlot(slotHandler(inven, 36, BOTTLE_SLOT_XPOS, BOTTLE_SLOT_YPOS));
+            this.addSlot(slotHandler(inven, 36 + 36, MONEY_SLOT_XPOS, MONEY_SLOT_YPOS));
 
-            final int OUTPUT_SLOTS_XPOS = 113;
-            final int OUTPUT_SLOTS_YPOS = 34;
+            final int OUTPUT_SLOTS_XPOS = 132;
+            final int OUTPUT_SLOTS_YPOS = 88;
             this.addSlot(slotHandler(inven, 37 + 36, OUTPUT_SLOTS_XPOS + SLOT_X_SPACING * 0, OUTPUT_SLOTS_YPOS));
         } else {
             throw new IllegalStateException("TileEntity is null");
