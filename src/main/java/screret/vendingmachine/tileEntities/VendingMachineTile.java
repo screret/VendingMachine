@@ -42,7 +42,7 @@ public class VendingMachineTile extends TileEntity implements INamedContainerPro
     public ItemStackHandler itemSlot = customHandler(1);
     public ItemStackHandler inputSlot = customHandler(36);
     public ItemStackHandler moneySlot =  customHandler(1);
-    
+
     public CombinedInvWrapper combinedInvWrapper = new CombinedInvWrapper(itemSlot, inputSlot, moneySlot);
 
     static Logger LOGGER = LogManager.getLogger();

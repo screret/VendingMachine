@@ -82,11 +82,13 @@ public class VendingMachineBlock extends HorizontalBlock {
             TileEntity tileEntity = world.getBlockEntity(blockPos);
             if(tileEntity == null){
                 tileEntity = world.getBlockEntity(blockPos.below());
+                blockPos = blockPos.below();
             }
             if (tileEntity instanceof VendingMachineTile) {
                 VendingMachineTile finalTileEntity = (VendingMachineTile)tileEntity;
+                BlockPos finalBlockPos = blockPos;
 
-                NetworkHooks.openGui((ServerPlayerEntity) player, finalTileEntity, buffer -> buffer.writeBlockPos(blockPos));
+                NetworkHooks.openGui((ServerPlayerEntity) player, finalTileEntity, buffer -> buffer.writeBlockPos(finalBlockPos));
                 //player.openMenu(provider);
 
             } else {

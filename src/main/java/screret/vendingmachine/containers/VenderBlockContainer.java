@@ -6,6 +6,7 @@ import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.util.IWorldPosCallable;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.items.IItemHandler;
@@ -55,24 +56,20 @@ public class VenderBlockContainer extends Container {
 
         layoutPlayerInventorySlots(8, 84);
         if (tileEntity != null) {
-            final int INPUT_SLOTS_XPOS = 24;
+            final int INPUT_SLOTS_XPOS = 8;
             final int INPUT_SLOTS_YPOS = 16;
             final int BOTTLE_SLOT_XPOS = 59;
             final int BOTTLE_SLOT_YPOS = 34;
-            for(int i = 0; i < tileEntity.inputSlot.getSlots(); i++){
-                this.addSlot(slotHandler(inven, i, INPUT_SLOTS_XPOS + SLOT_X_SPACING * i, INPUT_SLOTS_YPOS + SLOT_Y_SPACING * i));
+            for(int x = 0; x < 4; x++){
+                for(int y = 0; y < 6; y++) {
+                    this.addSlot(slotHandler(inven, ((x + 1) * (y + 1)) - 2 + 36, INPUT_SLOTS_XPOS + SLOT_X_SPACING * x, INPUT_SLOTS_YPOS + SLOT_Y_SPACING * y));
+                }
             }
             this.addSlot(slotHandler(inven, 36, BOTTLE_SLOT_XPOS, BOTTLE_SLOT_YPOS));
 
             final int OUTPUT_SLOTS_XPOS = 113;
             final int OUTPUT_SLOTS_YPOS = 34;
-            this.addSlot(slotHandler(inven, 4, OUTPUT_SLOTS_XPOS + SLOT_X_SPACING * 0, OUTPUT_SLOTS_YPOS));
-
-            String message = "";
-            for(StackTraceElement stackTraceElement : Thread.currentThread().getStackTrace()) {
-                message = message + System.lineSeparator() + stackTraceElement.toString();
-            }
-            LOGGER.info(message);
+            this.addSlot(slotHandler(inven, 37 + 36, OUTPUT_SLOTS_XPOS + SLOT_X_SPACING * 0, OUTPUT_SLOTS_YPOS));
         } else {
             throw new IllegalStateException("TileEntity is null");
         }
@@ -138,19 +135,19 @@ public class VenderBlockContainer extends Container {
         return new SlotItemHandler(handler, index, xPosition, yPosition){
             @Override
             public boolean mayPlace(ItemStack stack) {
-                if (index == 0) {
-                    return false;
-                } else if (index != 36) {
+            if (index != 36 + 36) {
                     return true;
-                } else {
+                } else if(index == 37 + 36) {
                     return stack.copy().getItem() == Items.GOLD_INGOT;
+                }else {
+                return false;
                 }
             }
         };
     }
 
     @Override
-    public boolean stillValid(PlayerEntity p_75145_1_) {
-        return false;
+    public boolean stillValid(PlayerEntity playerEntity) {
+        return playerEntity.position().distanceToSqr(this.tile.getBlockPos().getX(), this.tile.getBlockPos().getY(), this.tile.getBlockPos().getZ()) < 8 * 8;
     }
 }

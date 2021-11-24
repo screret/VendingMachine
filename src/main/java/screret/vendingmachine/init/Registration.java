@@ -52,20 +52,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
 
-//import io.screret.github.juicesandsodas.entities.KoolaidMan;
-
-@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD, modid = VendingMachine.MODID)
 public class Registration {
-
-    public Registration() {
-        final IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
-        Registration.BLOCKS.register(modEventBus);
-        Registration.ITEMS.register(modEventBus);
-        Registration.ENTITIES.register(modEventBus);
-        Registration.TILES.register(modEventBus);
-        Registration.CONTAINERS.register(modEventBus);
-        Registration.RECIPE_SERIALIZERS.register(modEventBus);
-    }
 
     //registries
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, VendingMachine.MODID);

@@ -19,7 +19,7 @@ public class VenderBlockScreen extends ContainerScreen<VenderBlockContainer> {
     public VenderBlockScreen(VenderBlockContainer container, PlayerInventory inv, ITextComponent name) {
         super(container, inv, name);
         this.width = 174;
-        this.height = 222;
+        this.height = 256;
     }
 
     final static int COOK_BAR_XPOS = 49;
