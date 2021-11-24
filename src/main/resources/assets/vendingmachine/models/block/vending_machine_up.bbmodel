@@ -1,0 +1,56 @@
+{
+	"meta": {
+		"format_version": "3.6",
+		"creation_time": 1637657972,
+		"model_format": "java_block",
+		"box_uv": false
+	},
+	"name": "vending_machine_up",
+	"parent": "",
+	"ambientocclusion": true,
+	"front_gui_light": false,
+	"visible_box": [1, 1, 0],
+	"resolution": {
+		"width": 64,
+		"height": 64
+	},
+	"elements": [
+		{
+			"name": "cube",
+			"rescale": false,
+			"from": [0, 0, 0],
+			"to": [16, 17, 16],
+			"autouv": 0,
+			"color": 3,
+			"locked": false,
+			"origin": [0, 0, 0],
+			"faces": {
+				"north": {"uv": [0, 0, 16, 17], "texture": 0},
+				"east": {"uv": [16, 0, 32, 17], "texture": 0},
+				"south": {"uv": [0, 17, 16, 34], "texture": 0},
+				"west": {"uv": [16, 17, 32, 34], "texture": 0},
+				"up": {"uv": [48, 16, 32, 0], "texture": 0},
+				"down": {"uv": [48, 16, 32, 32], "texture": 0}
+			},
+			"uuid": "96abc2ad-9b07-d9bc-c9ef-78fd312bc4cc"
+		}
+	],
+	"outliner": ["96abc2ad-9b07-d9bc-c9ef-78fd312bc4cc"],
+	"textures": [
+		{
+			"path": "C:\\Users\\OMISTAJA\\Desktop\\mc modit\\VendingMachineMod\\src\\main\\resources\\vendingmachine\\textures\\vending_machine_down.png",
+			"name": "vending_machine_down.png",
+			"folder": "",
+			"namespace": "vendingmachine",
+			"id": "0",
+			"particle": true,
+			"render_mode": "normal",
+			"visible": true,
+			"mode": "bitmap",
+			"saved": false,
+			"uuid": "68be0717-2276-6103-355d-3a60d7f7fbe8",
+			"source": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAB2klEQVR4Xu2asUvDQBTGXxwFMeASUAQRig4FR8mg0Elw6BKyKZjFQRAsiogIBXEQpU46VtG/oIu4WKgIFgQXty4uChFU4tJFNJIbJAY1HK9Q7/rddCS5cPflve/3LokxOOqEXk+WombOj9HAzqro369s0+aWKfob6wGVdk9EP9nGs10/Hv/tYP3249sp2fHJ+ybvJzUZIjIgACLACT1vKjVyyuUzfVOgYl9Rodak/NoRHYdLYqGzxh6dTo/Q42Wd5l5N4QGZ/oB83xfnLcuixoNJsjn8Lz1g+O2cSpPdVLMPqNJXFAvMPxfpsDeg5vUNLWRyegsQRUDUIgHiEbDfqNL70wst2s6XAPE80CYCOt4DCsszqSaodR2QmxhKFaB6cacvBVJX/8cFWlAAAjAUQATosBliBIAelSAEYCigvAe4rhsy1k+t3tzIzoX9QgQCIAKQAvAAWeOJXw8TbPFrbtmHAQokHoCsgAYwCAwCg8CgrHEAgzEFUAegDuB97+cWMpz0jca2vQ5ouwDRDxJcFVUeL/4QUXkB3LlDAEQAUgAeABPkOqnK40EBUAAUAAVAAZVdnDt3UAAUAAVAAVCA66QqjwcFQAFQABQABVR2ce7cQQFQABTobAp8AjvYk9BjcfLVAAAAAElFTkSuQmCC",
+			"relative_path": "../../textures/vending_machine_down.png"
+		}
+	]
+}
