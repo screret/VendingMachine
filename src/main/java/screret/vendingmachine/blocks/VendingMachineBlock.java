@@ -85,11 +85,8 @@ public class VendingMachineBlock extends HorizontalBlock {
             }
             if (tileEntity instanceof VendingMachineTile) {
                 VendingMachineTile finalTileEntity = (VendingMachineTile)tileEntity;
-                PacketBuffer buffer = new PacketBuffer(Unpooled.buffer());
-                buffer = buffer.writeBlockPos(blockPos);
-                finalTileEntity.buffer = buffer;
 
-                NetworkHooks.openGui((ServerPlayerEntity) player, finalTileEntity, buffer1 -> buffer1.writeBlockPos(blockPos));
+                NetworkHooks.openGui((ServerPlayerEntity) player, finalTileEntity, buffer -> buffer.writeBlockPos(blockPos));
                 //player.openMenu(provider);
 
             } else {
