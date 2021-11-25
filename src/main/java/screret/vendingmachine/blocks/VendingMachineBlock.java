@@ -1,46 +1,37 @@
 package screret.vendingmachine.blocks;
 
-import io.netty.buffer.Unpooled;
-import net.minecraft.block.*;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
+import net.minecraft.block.HorizontalBlock;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.monster.piglin.PiglinTasks;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.inventory.container.INamedContainerProvider;
 import net.minecraft.item.BlockItemUseContext;
 import net.minecraft.item.ItemStack;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.state.DirectionProperty;
 import net.minecraft.state.EnumProperty;
 import net.minecraft.state.StateContainer;
 import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.state.properties.DoubleBlockHalf;
-import net.minecraft.tags.BlockTags;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
-import net.minecraftforge.event.world.BlockEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.network.NetworkHooks;
-import screret.vendingmachine.containers.VenderBlockContainer;
-import screret.vendingmachine.init.Registration;
 import screret.vendingmachine.tileEntities.VendingMachineTile;
+
+import java.util.UUID;
 
 public class VendingMachineBlock extends HorizontalBlock {
     public static final EnumProperty<DoubleBlockHalf> HALF = BlockStateProperties.DOUBLE_BLOCK_HALF;
 
-    public PlayerEntity owner;
+    public UUID owner;
 
     public VendingMachineBlock(Properties properties) {
         super(properties);
@@ -62,7 +53,7 @@ public class VendingMachineBlock extends HorizontalBlock {
 
     @Override
     public BlockState getStateForPlacement(BlockItemUseContext context) {
-        owner = context.getPlayer();
+        owner = context.getPlayer().getUUID();
         return defaultBlockState().setValue(FACING, context.getHorizontalDirection()).setValue(HALF, DoubleBlockHalf.LOWER);//.with(BlockStateProperties.HORIZONTAL_FACING, context.getNearestLookingDirection().getOpposite());
     }
 
@@ -73,7 +64,14 @@ public class VendingMachineBlock extends HorizontalBlock {
             //owner.addItem(new ItemStack(Registration.VENDER.get()));
             return;
         }
-        world.setBlock(pos.above(), state.setValue(HALF, DoubleBlockHalf.UPPER).setValue(FACING, getHorizontalDirection()), 3);
+        TileEntity tile = world.getBlockEntity(pos);
+        if(tile instanceof VendingMachineTile){
+            VendingMachineTile _tile = (VendingMachineTile)tile;
+            if(_tile.owner == null){
+                _tile.owner = owner;
+            }
+        }
+        world.setBlock(pos.above(), state.setValue(HALF, DoubleBlockHalf.UPPER).setValue(FACING, getHorizontalDirection(world)), 3);
     }
 
     @Override
@@ -87,6 +85,8 @@ public class VendingMachineBlock extends HorizontalBlock {
             if (tileEntity instanceof VendingMachineTile) {
                 VendingMachineTile finalTileEntity = (VendingMachineTile)tileEntity;
                 BlockPos finalBlockPos = blockPos;
+                finalTileEntity.currentPlayer = player.getUUID();
+                LOGGER.info(player.getUUID() + " " + finalTileEntity.owner);
 
                 NetworkHooks.openGui((ServerPlayerEntity) player, finalTileEntity, buffer -> buffer.writeBlockPos(finalBlockPos));
                 //player.openMenu(provider);
@@ -116,21 +116,20 @@ public class VendingMachineBlock extends HorizontalBlock {
     public boolean canSurvive(BlockState state, IWorldReader worldReader, BlockPos pos) {
         BlockPos blockpos = pos.below();
         BlockState blockstate = worldReader.getBlockState(blockpos);
-        return state.getValue(HALF) == DoubleBlockHalf.LOWER ? blockstate.isFaceSturdy(worldReader, blockpos, Direction.UP) : blockstate.is(this);
+        return state.getValue(HALF) == DoubleBlockHalf.LOWER ? state.isFaceSturdy(worldReader, blockpos, Direction.UP) : blockstate.is(this);
     }
 
-    @SubscribeEvent
+    /*@SubscribeEvent
     public void breakBlockEvent(BlockEvent.BreakEvent event) {
-        if (owner != event.getPlayer()) {
+        if (owner != event.getPlayer().getUUID()) {
             event.setCanceled(true);
         }
-    }
+    }*/
 
     @Override
     public TileEntity createTileEntity(BlockState state, IBlockReader worldIn) {
         if(state.getValue(HALF) == DoubleBlockHalf.LOWER){
             VendingMachineTile tile = new VendingMachineTile();
-            tile.owner = owner;
             return tile;
         }else{
             return null;
@@ -147,11 +146,12 @@ public class VendingMachineBlock extends HorizontalBlock {
         return tileentity instanceof INamedContainerProvider ? (INamedContainerProvider)tileentity : null;
     }
 
-    public Direction getHorizontalDirection() {
-        if(owner.getDirection() == Direction.NORTH || owner.getDirection() == Direction.SOUTH){
-            return owner.getDirection().getAxis() == Direction.Axis.Y ? Direction.NORTH : owner.getDirection().getOpposite();
+    public Direction getHorizontalDirection(World world) {
+        PlayerEntity player = world.getPlayerByUUID(owner);
+        if(player.getDirection() == Direction.NORTH || player.getDirection() == Direction.SOUTH){
+            return player.getDirection().getAxis() == Direction.Axis.Y ? Direction.NORTH : player.getDirection().getOpposite();
         }else {
-            return owner.getDirection().getAxis() == Direction.Axis.Y ? Direction.NORTH : owner.getDirection();
+            return player.getDirection().getAxis() == Direction.Axis.Y ? Direction.NORTH : player.getDirection();
         }
     }
 }

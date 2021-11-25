@@ -84,6 +84,6 @@ public class Registration {
         if(tile == null){
             tile = (VendingMachineTile) world.getBlockEntity(pos.below());
         }
-        return new VenderBlockContainer(windowId, inv, tile.combinedInvWrapper, tile);
+        return new VenderBlockContainer(windowId, inv, tile.inputSlot, tile.itemSlot, tile.moneySlot, tile);
     }));
 }

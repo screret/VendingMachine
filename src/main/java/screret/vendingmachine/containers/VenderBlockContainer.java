@@ -5,24 +5,21 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.util.IWorldPosCallable;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.SlotItemHandler;
-import net.minecraftforge.items.wrapper.InvWrapper;
+import net.minecraftforge.items.wrapper.PlayerInvWrapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import screret.vendingmachine.init.Registration;
 import screret.vendingmachine.tileEntities.VendingMachineTile;
 
-import javax.annotation.Nonnull;
-
 public class VenderBlockContainer extends Container {
 
     private final IItemHandler playerInventory;
-    private final IItemHandler inventory;
+    private final PlayerInventory realPlayerInv;
+    private final IItemHandler inputInventory;
+    private final IItemHandler moneyInventory;
+    private final IItemHandler outputInventory;
 
     private final VendingMachineTile tile;
 
@@ -42,14 +39,17 @@ public class VenderBlockContainer extends Container {
 
     public static final int INV_SIZE = 6;
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    public static final Logger LOGGER = LogManager.getLogger();
 
 
-    public VenderBlockContainer(int windowID, PlayerInventory playerInventory, IItemHandler inven, VendingMachineTile tileEntity) {
+    public VenderBlockContainer(int windowID, PlayerInventory playerInventory, IItemHandler inputInventory, IItemHandler outputInv, IItemHandler moneyInv, VendingMachineTile tileEntity) {
         super(Registration.VENDER_CONT.get(), windowID);
-        this.playerInventory = new InvWrapper(playerInventory);
+        this.playerInventory = new PlayerInvWrapper(playerInventory);
+        this.realPlayerInv = playerInventory;
         this.tile = tileEntity;
-        this.inventory = inven;
+        this.inputInventory = inputInventory;
+        this.moneyInventory = moneyInv;
+        this.outputInventory = outputInv;
 
         final int SLOT_X_SPACING = 18;
         final int SLOT_Y_SPACING = 18;
@@ -58,18 +58,18 @@ public class VenderBlockContainer extends Container {
         if (tileEntity != null) {
             final int INPUT_SLOTS_XPOS = 8;
             final int INPUT_SLOTS_YPOS = 18;
-            final int MONEY_SLOT_XPOS = 132;
-            final int MONEY_SLOT_YPOS = 52;
-            for(int x = 0; x < 4; x++){
+            final int MONEY_SLOT_XPOS = 134;
+            final int MONEY_SLOT_YPOS = 36;
+            for(int x = 0; x < 5; x++){
                 for(int y = 0; y < 6; y++) {
-                    this.addSlot(slotHandler(inven, x + y + 36, INPUT_SLOTS_XPOS + SLOT_X_SPACING * x, INPUT_SLOTS_YPOS + SLOT_Y_SPACING * y));
+                    this.addSlot(new SlotItemHandler(this.inputInventory, y + x, INPUT_SLOTS_XPOS + SLOT_X_SPACING * x, INPUT_SLOTS_YPOS + SLOT_Y_SPACING * y));
                 }
             }
-            this.addSlot(slotHandler(inven, 36 + 36, MONEY_SLOT_XPOS, MONEY_SLOT_YPOS));
+            this.addSlot(new SlotItemHandler(this.moneyInventory, 42, MONEY_SLOT_XPOS, MONEY_SLOT_YPOS));
 
-            final int OUTPUT_SLOTS_XPOS = 132;
-            final int OUTPUT_SLOTS_YPOS = 88;
-            this.addSlot(slotHandler(inven, 37 + 36, OUTPUT_SLOTS_XPOS + SLOT_X_SPACING * 0, OUTPUT_SLOTS_YPOS));
+            final int OUTPUT_SLOTS_XPOS = 134;
+            final int OUTPUT_SLOTS_YPOS = 90;
+            this.addSlot(new SlotItemHandler(this.outputInventory, 42, OUTPUT_SLOTS_XPOS, OUTPUT_SLOTS_YPOS));
         } else {
             throw new IllegalStateException("TileEntity is null");
         }
@@ -129,21 +129,6 @@ public class VenderBlockContainer extends Container {
         // Hotbar
         topRow += 58;
         addSlotRange(playerInventory, 0, leftCol, topRow, 9, 18);
-    }
-
-    public SlotItemHandler slotHandler(IItemHandler handler, int index, int xPosition, int yPosition){
-        return new SlotItemHandler(handler, index, xPosition, yPosition){
-            @Override
-            public boolean mayPlace(ItemStack stack) {
-            if (index != 36 + 36) {
-                    return true;
-                } else if(index == 37 + 36) {
-                    return stack.copy().getItem() == Items.GOLD_INGOT;
-                }else {
-                return false;
-                }
-            }
-        };
     }
 
     @Override

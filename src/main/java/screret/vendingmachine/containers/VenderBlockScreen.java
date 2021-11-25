@@ -5,6 +5,7 @@ import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
+import org.apache.logging.log4j.Logger;
 import org.lwjgl.opengl.GL11;
 import screret.vendingmachine.VendingMachine;
 
@@ -33,6 +34,7 @@ public class VenderBlockScreen extends ContainerScreen<VenderBlockContainer> {
         super.render(matrixStack, mouseX, mouseY, partialTicks);
         super.render(matrixStack, mouseX, mouseY, partialTicks);
         this.renderTooltip(matrixStack, mouseX, mouseY);
+
         // draw the label for the top of the screen
         final int LABEL_XPOS = 5;
         final int LABEL_YPOS = 5;
@@ -54,8 +56,5 @@ public class VenderBlockScreen extends ContainerScreen<VenderBlockContainer> {
         int relX = (this.width - this.getXSize()) / 2;
         int relY = (this.height - this.getYSize()) / 2;
         this.blit(matrixStack, relX, relY, 0, 0, this.getXSize(), this.getYSize());
-
-        int l = 0;
-        this.blit(matrixStack, this.leftPos + 81, this.topPos + 33, 176, 14, l + 1, 16);
     }
 }
