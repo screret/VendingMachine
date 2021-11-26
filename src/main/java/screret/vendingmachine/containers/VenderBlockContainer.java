@@ -42,12 +42,12 @@ public class VenderBlockContainer extends Container {
     public static final Logger LOGGER = LogManager.getLogger();
 
 
-    public VenderBlockContainer(int windowID, PlayerInventory playerInventory, IItemHandler inputInventory, IItemHandler outputInv, IItemHandler moneyInv, VendingMachineTile tileEntity) {
+    public VenderBlockContainer(int windowID, PlayerInventory playerInventory, IItemHandler inputInv, IItemHandler outputInv, IItemHandler moneyInv, VendingMachineTile tileEntity) {
         super(Registration.VENDER_CONT.get(), windowID);
         this.playerInventory = new PlayerInvWrapper(playerInventory);
         this.realPlayerInv = playerInventory;
         this.tile = tileEntity;
-        this.inputInventory = inputInventory;
+        this.inputInventory = inputInv;
         this.moneyInventory = moneyInv;
         this.outputInventory = outputInv;
 

@@ -35,6 +35,7 @@ public class VendingMachineBlock extends HorizontalBlock {
 
     public VendingMachineBlock(Properties properties) {
         super(properties);
+        //HALF = BlockStateProperties.DOUBLE_BLOCK_HALF;
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(HALF, DoubleBlockHalf.LOWER));
 //        Minecraft.getInstance().getTextureManager().bindTexture(new ResourceLocation("minecraft", "textures/block/oak_planks.png"));
 //        Minecraft.getInstance().getTextureManager().bindTexture(new ResourceLocation("minecraft", "textures/block/glass.png"));
@@ -116,15 +117,8 @@ public class VendingMachineBlock extends HorizontalBlock {
     public boolean canSurvive(BlockState state, IWorldReader worldReader, BlockPos pos) {
         BlockPos blockpos = pos.below();
         BlockState blockstate = worldReader.getBlockState(blockpos);
-        return state.getValue(HALF) == DoubleBlockHalf.LOWER ? state.isFaceSturdy(worldReader, blockpos, Direction.UP) : blockstate.is(this);
+        return blockstate.getValue(HALF) == DoubleBlockHalf.LOWER ? blockstate.isFaceSturdy(worldReader, blockpos, Direction.UP) : blockstate.is(this);
     }
-
-    /*@SubscribeEvent
-    public void breakBlockEvent(BlockEvent.BreakEvent event) {
-        if (owner != event.getPlayer().getUUID()) {
-            event.setCanceled(true);
-        }
-    }*/
 
     @Override
     public TileEntity createTileEntity(BlockState state, IBlockReader worldIn) {

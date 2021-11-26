@@ -5,6 +5,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.inventory.IInventory;
+import net.minecraft.inventory.InventoryHelper;
+import net.minecraft.inventory.ItemStackHelper;
 import net.minecraft.inventory.container.INamedContainerProvider;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -14,6 +17,7 @@ import net.minecraft.network.play.server.SUpdateTileEntityPacket;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.wrapper.CombinedInvWrapper;
 import org.apache.logging.log4j.LogManager;
@@ -30,8 +34,6 @@ public class VendingMachineTile extends TileEntity implements INamedContainerPro
     public ItemStackHandler itemSlot = customHandlerOutput(1);
     public ItemStackHandler inputSlot = customHandlerItems(36);
     public ItemStackHandler moneySlot =  customHandlerMoney(1);
-
-    public CombinedInvWrapper combinedInvWrapper = new CombinedInvWrapper(itemSlot, inputSlot, moneySlot);
 
     static Logger LOGGER = LogManager.getLogger();
 
@@ -57,7 +59,6 @@ public class VendingMachineTile extends TileEntity implements INamedContainerPro
         parentNBTTagCompound.put("Inputslot", inputSlot.serializeNBT());
         parentNBTTagCompound.put("MoneySlot", moneySlot.serializeNBT());
         parentNBTTagCompound.put("ItemSlot", itemSlot.serializeNBT());
-        combinedInvWrapper = new CombinedInvWrapper(itemSlot, inputSlot, moneySlot);
         return parentNBTTagCompound;
     }
 
@@ -69,15 +70,15 @@ public class VendingMachineTile extends TileEntity implements INamedContainerPro
         inputSlot.deserializeNBT(parentNBTTagCompound.getCompound("Inputslot"));
         moneySlot.deserializeNBT(parentNBTTagCompound.getCompound("MoneySlot"));
         itemSlot.deserializeNBT(parentNBTTagCompound.getCompound("ItemSlot"));
-        combinedInvWrapper = new CombinedInvWrapper(itemSlot, inputSlot, moneySlot);
         //LOGGER.debug(world.getRecipeManager().getRecipesForType(BlenderRecipeSerializer.BLENDING));
     }
 
     public void dropContents(){
         Random random = new Random();
         for(int i = 0; i < NUMBER_OF_SLOTS; i++){
-            ItemEntity item = new ItemEntity(getLevel(), random.nextDouble(), random.nextDouble(), random.nextDouble(), combinedInvWrapper.getStackInSlot(i));
-            item.spawnAtLocation(combinedInvWrapper.getStackInSlot(i));
+            InventoryHelper.dropContents(getLevel(), this.worldPosition, (IInventory)inputSlot);
+            InventoryHelper.dropContents(getLevel(), this.worldPosition, (IInventory)moneySlot);
+            InventoryHelper.dropContents(getLevel(), this.worldPosition, (IInventory)itemSlot);
         }
     }
 
@@ -102,7 +103,7 @@ public class VendingMachineTile extends TileEntity implements INamedContainerPro
         return new ItemStackHandler(size) {
             @Override
             public boolean isItemValid(int slot, @Nonnull ItemStack stack) {
-                LOGGER.info(currentPlayer + " " + getLevel().getPlayerByUUID(owner));
+                LOGGER.info(currentPlayer + " " + owner);
                 return currentPlayer == owner;
             }
         };
