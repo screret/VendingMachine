@@ -86,8 +86,8 @@ public class VendingMachineBlock extends HorizontalBlock {
             if (tileEntity instanceof VendingMachineTile) {
                 VendingMachineTile finalTileEntity = (VendingMachineTile)tileEntity;
                 BlockPos finalBlockPos = blockPos;
-                finalTileEntity.currentPlayer = player.getUUID();
-                LOGGER.info(player.getUUID() + " " + finalTileEntity.owner);
+                //finalTileEntity.currentPlayer = player.getUUID();
+                finalTileEntity.isAllowedToTakeItems = player.getUUID().equals(finalTileEntity.owner);
 
                 NetworkHooks.openGui((ServerPlayerEntity) player, finalTileEntity, buffer -> buffer.writeBlockPos(finalBlockPos));
                 //player.openMenu(provider);
@@ -95,8 +95,7 @@ public class VendingMachineBlock extends HorizontalBlock {
             } else {
                 throw new IllegalStateException("Our named container provider is missing!");
             }
-            LOGGER.info("opened a Vending Machine");
-            return ActionResultType.SUCCESS;
+            return ActionResultType.CONSUME;
         }else{
             return ActionResultType.SUCCESS;
         }
@@ -117,13 +116,14 @@ public class VendingMachineBlock extends HorizontalBlock {
     public boolean canSurvive(BlockState state, IWorldReader worldReader, BlockPos pos) {
         BlockPos blockpos = pos.below();
         BlockState blockstate = worldReader.getBlockState(blockpos);
-        return blockstate.getValue(HALF) == DoubleBlockHalf.LOWER ? blockstate.isFaceSturdy(worldReader, blockpos, Direction.UP) : blockstate.is(this);
+        return state.getValue(HALF) == DoubleBlockHalf.LOWER ? blockstate.isFaceSturdy(worldReader, blockpos, Direction.UP) : blockstate.is(this);
     }
 
     @Override
     public TileEntity createTileEntity(BlockState state, IBlockReader worldIn) {
         if(state.getValue(HALF) == DoubleBlockHalf.LOWER){
             VendingMachineTile tile = new VendingMachineTile();
+            tile.owner = owner;
             return tile;
         }else{
             return null;

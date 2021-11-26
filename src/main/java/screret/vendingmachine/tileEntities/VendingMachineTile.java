@@ -26,6 +26,7 @@ import screret.vendingmachine.containers.VenderBlockContainer;
 import screret.vendingmachine.init.Registration;
 
 import javax.annotation.Nonnull;
+import java.util.Objects;
 import java.util.Random;
 import java.util.UUID;
 
@@ -38,7 +39,8 @@ public class VendingMachineTile extends TileEntity implements INamedContainerPro
     static Logger LOGGER = LogManager.getLogger();
 
     public UUID owner;
-    public UUID currentPlayer;
+
+    public boolean isAllowedToTakeItems = false;
 
     public static final int NUMBER_OF_SLOTS = 38;
 
@@ -103,8 +105,25 @@ public class VendingMachineTile extends TileEntity implements INamedContainerPro
         return new ItemStackHandler(size) {
             @Override
             public boolean isItemValid(int slot, @Nonnull ItemStack stack) {
-                LOGGER.info(currentPlayer + " " + owner);
-                return currentPlayer == owner;
+                LOGGER.info("Current player who has the GUI open is the owner: " + isAllowedToTakeItems);
+                return isAllowedToTakeItems;
+            }
+
+            @Override
+            public int getSlotLimit(int slot)
+            {
+                return 1024;
+            }
+
+            @Override
+            @Nonnull
+            public ItemStack extractItem(int slot, int amount, boolean simulate)
+            {
+                if(!isAllowedToTakeItems) {
+                    return ItemStack.EMPTY;
+                } else {
+                    return super.extractItem(slot, amount, simulate);
+                }
             }
         };
     }
@@ -114,6 +133,11 @@ public class VendingMachineTile extends TileEntity implements INamedContainerPro
             @Override
             public boolean isItemValid(int slot, @Nonnull ItemStack stack) {
                 return stack.copy().getItem() == Items.GOLD_INGOT;
+            }
+            @Override
+            public int getSlotLimit(int slot)
+            {
+                return 1024;
             }
         };
     }

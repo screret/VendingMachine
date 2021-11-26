@@ -16,28 +16,14 @@ import screret.vendingmachine.tileEntities.VendingMachineTile;
 public class VenderBlockContainer extends Container {
 
     private final IItemHandler playerInventory;
-    private final PlayerInventory realPlayerInv;
     private final IItemHandler inputInventory;
     private final IItemHandler moneyInventory;
     private final IItemHandler outputInventory;
 
     private final VendingMachineTile tile;
 
-    private static final int HOTBAR_SLOT_COUNT = 9;
-	private static final int PLAYER_INVENTORY_ROW_COUNT = 3;
-	private static final int PLAYER_INVENTORY_COLUMN_COUNT = 9;
-	private static final int PLAYER_INVENTORY_SLOT_COUNT = PLAYER_INVENTORY_COLUMN_COUNT * PLAYER_INVENTORY_ROW_COUNT;
-	private static final int VANILLA_SLOT_COUNT = HOTBAR_SLOT_COUNT + PLAYER_INVENTORY_SLOT_COUNT;
-
-	private static final int VANILLA_FIRST_SLOT_INDEX = 0;
-	private static final int TE_INVENTORY_FIRST_SLOT_INDEX = VANILLA_FIRST_SLOT_INDEX + VANILLA_SLOT_COUNT;
-	private static final int TE_INVENTORY_SLOT_COUNT = VendingMachineTile.NUMBER_OF_SLOTS;  // must match TileEntityInventoryBasic.NUMBER_OF_SLOTS
-
-    public static final int TITLE_INVENTORY_YPOS = 20;  // the ContainerScreenBasic needs to know these so it can tell where to draw the Titles
-    public static final int PLAYER_INVENTORY_YPOS = 84;
-    public static final int PLAYER_INVENTORY_XPOS = 8;
-
-    public static final int INV_SIZE = 6;
+    public static final int INPUT_SLOTS_X_AMOUNT = 4;
+    public static final int INPUT_SLOTS_Y_AMOUNT = 5;
 
     public static final Logger LOGGER = LogManager.getLogger();
 
@@ -45,7 +31,6 @@ public class VenderBlockContainer extends Container {
     public VenderBlockContainer(int windowID, PlayerInventory playerInventory, IItemHandler inputInv, IItemHandler outputInv, IItemHandler moneyInv, VendingMachineTile tileEntity) {
         super(Registration.VENDER_CONT.get(), windowID);
         this.playerInventory = new PlayerInvWrapper(playerInventory);
-        this.realPlayerInv = playerInventory;
         this.tile = tileEntity;
         this.inputInventory = inputInv;
         this.moneyInventory = moneyInv;
@@ -60,16 +45,17 @@ public class VenderBlockContainer extends Container {
             final int INPUT_SLOTS_YPOS = 18;
             final int MONEY_SLOT_XPOS = 134;
             final int MONEY_SLOT_YPOS = 36;
-            for(int x = 0; x < 5; x++){
-                for(int y = 0; y < 6; y++) {
-                    this.addSlot(new SlotItemHandler(this.inputInventory, y + x, INPUT_SLOTS_XPOS + SLOT_X_SPACING * x, INPUT_SLOTS_YPOS + SLOT_Y_SPACING * y));
+            for(int x = 0; x < INPUT_SLOTS_X_AMOUNT + 1; x++){
+                for(int y = 0; y < INPUT_SLOTS_Y_AMOUNT + 1; y++) {
+                    int slotNumber = y * INPUT_SLOTS_Y_AMOUNT + x;
+                    this.addSlot(new SlotItemHandler(this.inputInventory, slotNumber, INPUT_SLOTS_XPOS + SLOT_X_SPACING * x, INPUT_SLOTS_YPOS + SLOT_Y_SPACING * y));
                 }
             }
-            this.addSlot(new SlotItemHandler(this.moneyInventory, 42, MONEY_SLOT_XPOS, MONEY_SLOT_YPOS));
+            this.addSlot(new SlotItemHandler(this.moneyInventory, 0, MONEY_SLOT_XPOS, MONEY_SLOT_YPOS));
 
             final int OUTPUT_SLOTS_XPOS = 134;
             final int OUTPUT_SLOTS_YPOS = 90;
-            this.addSlot(new SlotItemHandler(this.outputInventory, 42, OUTPUT_SLOTS_XPOS, OUTPUT_SLOTS_YPOS));
+            this.addSlot(new SlotItemHandler(this.outputInventory, 0, OUTPUT_SLOTS_XPOS, OUTPUT_SLOTS_YPOS));
         } else {
             throw new IllegalStateException("TileEntity is null");
         }
