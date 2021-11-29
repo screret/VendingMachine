@@ -1,7 +1,7 @@
 {
 	"meta": {
-		"format_version": "3.6",
-		"creation_time": 1637657972,
+		"format_version": "4.0",
+		"creation_time": 1638010929,
 		"model_format": "java_block",
 		"box_uv": false
 	},
@@ -10,27 +10,46 @@
 	"ambientocclusion": true,
 	"front_gui_light": false,
 	"visible_box": [1, 1, 0],
+	"variable_placeholders": "",
 	"resolution": {
-		"width": 64,
-		"height": 64
+		"width": 32,
+		"height": 32
 	},
 	"elements": [
 		{
 			"name": "cube",
 			"rescale": false,
+			"locked": false,
 			"from": [0, 0, 0],
 			"to": [16, 17, 16],
 			"autouv": 0,
 			"color": 3,
-			"locked": false,
 			"origin": [0, 0, 0],
 			"faces": {
-				"north": {"uv": [0, 0, 16, 17], "texture": 0},
-				"east": {"uv": [16, 0, 32, 17], "texture": 0},
-				"south": {"uv": [0, 17, 16, 34], "texture": 0},
-				"west": {"uv": [16, 17, 32, 34], "texture": 0},
-				"up": {"uv": [48, 16, 32, 0], "texture": 0},
-				"down": {"uv": [48, 16, 32, 32], "texture": 0}
+				"north": {
+					"uv": [0, 0, 16, 16],
+					"texture": 0
+				},
+				"east": {
+					"uv": [16, 0, 32, 16],
+					"texture": 0
+				},
+				"south": {
+					"uv": [0, 16, 16, 32],
+					"texture": 0
+				},
+				"west": {
+					"uv": [16, 0, 32, 16],
+					"texture": 0
+				},
+				"up": {
+					"uv": [16, 0, 32, 16],
+					"texture": 0
+				},
+				"down": {
+					"uv": [16, 16, 32, 32],
+					"texture": 0
+				}
 			},
 			"uuid": "96abc2ad-9b07-d9bc-c9ef-78fd312bc4cc"
 		}
@@ -38,19 +57,19 @@
 	"outliner": ["96abc2ad-9b07-d9bc-c9ef-78fd312bc4cc"],
 	"textures": [
 		{
-			"path": "C:\\Users\\OMISTAJA\\Desktop\\mc modit\\VendingMachineMod\\src\\main\\resources\\vendingmachine\\textures\\vending_machine_down.png",
-			"name": "vending_machine_down.png",
-			"folder": "",
+			"path": "C:\\Users\\OMISTAJA\\Desktop\\mc modit\\VendingMachineMod\\src\\main\\resources\\assets\\vendingmachine\\textures\\block\\vending_machine_up.png",
+			"name": "vending_machine_up.png",
+			"folder": "block",
 			"namespace": "vendingmachine",
 			"id": "0",
 			"particle": true,
 			"render_mode": "normal",
 			"visible": true,
 			"mode": "bitmap",
-			"saved": false,
+			"saved": true,
 			"uuid": "68be0717-2276-6103-355d-3a60d7f7fbe8",
-			"source": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAB2klEQVR4Xu2asUvDQBTGXxwFMeASUAQRig4FR8mg0Elw6BKyKZjFQRAsiogIBXEQpU46VtG/oIu4WKgIFgQXty4uChFU4tJFNJIbJAY1HK9Q7/rddCS5cPflve/3LokxOOqEXk+WombOj9HAzqro369s0+aWKfob6wGVdk9EP9nGs10/Hv/tYP3249sp2fHJ+ybvJzUZIjIgACLACT1vKjVyyuUzfVOgYl9Rodak/NoRHYdLYqGzxh6dTo/Q42Wd5l5N4QGZ/oB83xfnLcuixoNJsjn8Lz1g+O2cSpPdVLMPqNJXFAvMPxfpsDeg5vUNLWRyegsQRUDUIgHiEbDfqNL70wst2s6XAPE80CYCOt4DCsszqSaodR2QmxhKFaB6cacvBVJX/8cFWlAAAjAUQATosBliBIAelSAEYCigvAe4rhsy1k+t3tzIzoX9QgQCIAKQAvAAWeOJXw8TbPFrbtmHAQokHoCsgAYwCAwCg8CgrHEAgzEFUAegDuB97+cWMpz0jca2vQ5ouwDRDxJcFVUeL/4QUXkB3LlDAEQAUgAeABPkOqnK40EBUAAUAAVAAZVdnDt3UAAUAAVAAVCA66QqjwcFQAFQABQABVR2ce7cQQFQABTobAp8AjvYk9BjcfLVAAAAAElFTkSuQmCC",
-			"relative_path": "../../textures/vending_machine_down.png"
+			"relative_path": "../../../textures/block/vending_machine_up.png",
+			"source": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAoNJREFUWEdjlNMM+c8wgIBx1AGDIgSKSmIJpoK+nsUE1ZCjAJwGBtwBSUkeBB0/b94OgmrIUUBSCPQ1R8DteP78OUP3tIPk2Imih2QHNDY2MqSlpYENoZoDiI2C0ix7sMWdrPMYyn8nUc8BA54IiXXARqvj4BC4e5QXTBcx6lAnDRAbBRTbhsUAcCK8ZqQElprjZM3QeAbiOxCoN/nMsH5RH5h9/5Uow9efuWC2Xl8BJCQqlSl2E4YDVj7khxsaLv8RxQEU24YrBIiNAsFmX7ARF1ZfBtPylx5Q7CZGHx+f/9++fUMxiIuLiwEkJiIiAhaPj49nWLhwIViMmZmZ4e/fv2BxEJudnZ0iRzA6OTmBGyQgg37+/IliGMgBIMuNl2ownI2+wTB9+nQMy0COpQSAHQCyXHC+BMP7xBcojoCFwCSWdoa8P5XgEEAHVHEAyFCJZfJgs19EPWTg5UXkBJDYTO4+hvSvRfCgR3YExQ6IiYmBtwn/9bCCzWYq+c3AwsLC8P79ezAf2QFUTwMgB3z9+pWBm5sbbBnMEV/T38E9SrcQgNkIcgQ2B8DkKU35yFHIiBwFyA4AsUGOAPkeBEBpgG4OQI6KvqIauOWCgoLgdCEmJgZ3zMePHynJhQxYQwBk4ufPn+G+L+prgUfJr1+/GGRkZBh+//7NwMrKykAVByAnQhi7518j2Gcz1BYz3Mp4iOJLUHkBcgQIUMUB2MIQ5IAFeqvBUnfv3oUrefLkCdxyqjggLCzsP6ysNzIyYki4FAq3DJsD0B1LcQhs3br1P6isRwYwi0FiP378YHj69CnOhEaxA9BDAJtNoCiAJTqYPNUSIcgBhPIRPz+ikULtKAAAoY9D4Fchc30AAAAASUVORK5CYII="
 		}
 	]
 }

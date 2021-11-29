@@ -31,8 +31,6 @@ import java.util.UUID;
 public class VendingMachineBlock extends HorizontalBlock {
     public static final EnumProperty<DoubleBlockHalf> HALF = BlockStateProperties.DOUBLE_BLOCK_HALF;
 
-    public UUID owner;
-
     public VendingMachineBlock(Properties properties) {
         super(properties);
         //HALF = BlockStateProperties.DOUBLE_BLOCK_HALF;
@@ -54,25 +52,25 @@ public class VendingMachineBlock extends HorizontalBlock {
 
     @Override
     public BlockState getStateForPlacement(BlockItemUseContext context) {
-        owner = context.getPlayer().getUUID();
-        return defaultBlockState().setValue(FACING, context.getHorizontalDirection()).setValue(HALF, DoubleBlockHalf.LOWER);//.with(BlockStateProperties.HORIZONTAL_FACING, context.getNearestLookingDirection().getOpposite());
+        return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite()).setValue(HALF, DoubleBlockHalf.LOWER);//.with(BlockStateProperties.HORIZONTAL_FACING, context.getNearestLookingDirection().getOpposite());
     }
 
     @Override
     public void setPlacedBy(World world, BlockPos pos, BlockState state, LivingEntity entity, ItemStack stack) {
         if(world.getBlockState(pos.above()).getBlock() != Blocks.AIR){
-            world.setBlock(pos, Blocks.AIR.defaultBlockState(), 0);
-            //owner.addItem(new ItemStack(Registration.VENDER.get()));
+            world.removeBlockEntity(pos);
+            world.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
             return;
         }
         TileEntity tile = world.getBlockEntity(pos);
         if(tile instanceof VendingMachineTile){
             VendingMachineTile _tile = (VendingMachineTile)tile;
             if(_tile.owner == null){
-                _tile.owner = owner;
+                _tile.owner = entity.getUUID();
             }
         }
-        world.setBlock(pos.above(), state.setValue(HALF, DoubleBlockHalf.UPPER).setValue(FACING, getHorizontalDirection(world)), 3);
+        world.setBlock(pos.above(), state.setValue(HALF, DoubleBlockHalf.UPPER).setValue(FACING, state.getValue(FACING)), 3);
+        world.blockUpdated(pos, Blocks.AIR);
     }
 
     @Override
@@ -87,7 +85,7 @@ public class VendingMachineBlock extends HorizontalBlock {
                 VendingMachineTile finalTileEntity = (VendingMachineTile)tileEntity;
                 BlockPos finalBlockPos = blockPos;
                 //finalTileEntity.currentPlayer = player.getUUID();
-                finalTileEntity.isAllowedToTakeItems = player.getUUID().equals(finalTileEntity.owner);
+
 
                 NetworkHooks.openGui((ServerPlayerEntity) player, finalTileEntity, buffer -> buffer.writeBlockPos(finalBlockPos));
                 //player.openMenu(provider);
@@ -103,32 +101,48 @@ public class VendingMachineBlock extends HorizontalBlock {
 
     @Override
     public void onRemove(BlockState state, World worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
-        TileEntity tileEntity = worldIn.getBlockEntity(pos);
-        if(tileEntity == null){
-            tileEntity = worldIn.getBlockEntity(pos.below());
+        if(state.getValue(HALF) == DoubleBlockHalf.LOWER){
+            TileEntity tileEntity = worldIn.getBlockEntity(pos);
+            if(tileEntity == null){
+                tileEntity = worldIn.getBlockEntity(pos.below());
+            }
+            ((VendingMachineTile)tileEntity).dropContents();
+            worldIn.removeBlockEntity(pos);
+            super.onRemove(state, worldIn, pos, newState, isMoving);
         }
-        ((VendingMachineTile)tileEntity).dropContents();
-        worldIn.removeBlockEntity(pos);
-        super.onRemove(state, worldIn, pos, newState, isMoving);
     }
 
-    @Override
+    /*@Override
     public boolean canSurvive(BlockState state, IWorldReader worldReader, BlockPos pos) {
-        BlockPos blockpos = pos.below();
-        BlockState blockstate = worldReader.getBlockState(blockpos);
-        return state.getValue(HALF) == DoubleBlockHalf.LOWER ? blockstate.isFaceSturdy(worldReader, blockpos, Direction.UP) : blockstate.is(this);
-    }
+        if (state.getValue(HALF) == DoubleBlockHalf.UPPER) {
+            BlockState blockstate = worldReader.getBlockState(pos.below());
+            return blockstate.is(this) && blockstate.getValue(HALF) == DoubleBlockHalf.LOWER;
+        } else {
+            BlockState blockstate = worldReader.getBlockState(pos.above());
+            if (!blockstate.is(this)) return true;
+            return blockstate.is(this) && blockstate.getValue(HALF) == DoubleBlockHalf.UPPER;
+        }
+    }*/
 
     @Override
     public TileEntity createTileEntity(BlockState state, IBlockReader worldIn) {
-        if(state.getValue(HALF) == DoubleBlockHalf.LOWER){
-            VendingMachineTile tile = new VendingMachineTile();
-            tile.owner = owner;
-            return tile;
-        }else{
-            return null;
-        }
+        return new VendingMachineTile();
+    }
 
+    @Override
+    public void playerWillDestroy(World world, BlockPos pos, BlockState state, PlayerEntity playerEntity) {
+        BlockPos blockpos = pos.below();
+        BlockState blockState = world.getBlockState(blockpos);
+        if(state.getBlock() == this && state.getValue(HALF) == DoubleBlockHalf.UPPER) {
+            world.setBlock(blockpos, Blocks.AIR.defaultBlockState(), 3);
+            world.levelEvent(playerEntity, 2001, blockpos, Block.getId(blockState));
+        } else if(state.getBlock() == this && state.getValue(HALF) == DoubleBlockHalf.LOWER) {
+            blockpos = pos.above();
+            blockState = world.getBlockState(blockpos);
+            world.setBlock(blockpos, Blocks.AIR.defaultBlockState(), 3);
+            world.levelEvent(playerEntity, 2001, blockpos, Block.getId(blockState));
+        }
+        super.playerWillDestroy(world, pos, state, playerEntity);
     }
 
     @Override
@@ -138,14 +152,5 @@ public class VendingMachineBlock extends HorizontalBlock {
             tileentity = world.getBlockEntity(pos.below());
         }
         return tileentity instanceof INamedContainerProvider ? (INamedContainerProvider)tileentity : null;
-    }
-
-    public Direction getHorizontalDirection(World world) {
-        PlayerEntity player = world.getPlayerByUUID(owner);
-        if(player.getDirection() == Direction.NORTH || player.getDirection() == Direction.SOUTH){
-            return player.getDirection().getAxis() == Direction.Axis.Y ? Direction.NORTH : player.getDirection().getOpposite();
-        }else {
-            return player.getDirection().getAxis() == Direction.Axis.Y ? Direction.NORTH : player.getDirection();
-        }
     }
 }
