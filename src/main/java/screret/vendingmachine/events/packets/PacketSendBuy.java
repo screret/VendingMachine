@@ -1,51 +1,43 @@
 package screret.vendingmachine.events.packets;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.inventory.container.Slot;
-import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.PacketBuffer;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.DistExecutor;
+import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.network.NetworkEvent;
-import net.minecraftforge.items.SlotItemHandler;
-import screret.vendingmachine.containers.OwnedStackHandler;
-import screret.vendingmachine.containers.VenderBlockContainer;
+import screret.vendingmachine.tileEntities.VendingMachineTile;
 
-import java.util.UUID;
 import java.util.function.Supplier;
 
 public class PacketSendBuy {
-    private static SlotItemHandler slot;
+    private final int slot;
+    private final BlockPos pos;
 
     public PacketSendBuy(PacketBuffer buf) {
-        ((OwnedStackHandler)slot.getItemHandler()).deserializeNBT(buf.readAnySizeNbt());
+        pos = buf.readBlockPos();
+        slot = buf.readInt();
     }
 
-    public PacketSendBuy(SlotItemHandler slot) {
+    public PacketSendBuy(BlockPos pos, int slot) {
+        this.pos = pos;
         this.slot = slot;
     }
 
     public static void encode(PacketSendBuy packet, PacketBuffer buf) {
-        buf.writeNbt(((OwnedStackHandler)packet.slot.getItemHandler()).serializeNBT());
+        buf.writeBlockPos(packet.pos);
+        buf.writeInt(packet.slot);
     }
 
     public static void handle(final PacketSendBuy packet, Supplier<NetworkEvent.Context> context) {
+        ServerPlayerEntity playerEntity = context.get().getSender();
+
         NetworkEvent.Context ctx = context.get();
         ctx.enqueueWork(() -> {
-            //((VenderBlockContainer)ctx.getSender().containerMenu).buy(slot);
-            DistExecutor.safeRunWhenOn(Dist.DEDICATED_SERVER, () -> openScreen(slot, context.get().getSender()));
+            VendingMachineTile tile = (VendingMachineTile)playerEntity.getLevel().getBlockEntity(packet.pos);
+
+           tile.buy(packet.slot);
+            //DistExecutor.safeRunWhenOn(Dist.DEDICATED_SERVER, () -> openScreen(slot, context.get().getSender()));
         });
 
         ctx.setPacketHandled(true);
-    }
-
-    public static DistExecutor.SafeRunnable openScreen(SlotItemHandler slot, ServerPlayerEntity player) {
-        return new DistExecutor.SafeRunnable() {
-            @Override
-            public void run() {
-                ((VenderBlockContainer)player.containerMenu).buy(slot);
-            }
-        };
     }
 }

@@ -27,11 +27,16 @@ import net.minecraftforge.items.SlotItemHandler;
 import net.minecraftforge.items.wrapper.CombinedInvWrapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import screret.vendingmachine.blocks.VendingMachineBlock;
+import screret.vendingmachine.configs.VendingMachineConfig;
+import screret.vendingmachine.containers.ItemHandlerMoney;
 import screret.vendingmachine.containers.OwnedStackHandler;
 import screret.vendingmachine.containers.VenderBlockContainer;
+import screret.vendingmachine.containers.VenderPriceEditorContainer;
 import screret.vendingmachine.init.Registration;
 
 import javax.annotation.Nonnull;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
@@ -39,13 +44,14 @@ import java.util.UUID;
 public class VendingMachineTile extends TileEntity implements INamedContainerProvider {
 
     public ItemStackHandler outputSlot = customHandlerOutput(1);
-    public OwnedStackHandler inputSlot = new OwnedStackHandler(36);
-    public ItemStackHandler moneySlot =  customHandlerMoney(1);
+    public OwnedStackHandler inputSlot = new OwnedStackHandler(30);
+    public ItemHandlerMoney moneySlot =  new ItemHandlerMoney(1);
 
     static Logger LOGGER = LogManager.getLogger();
 
     public UUID owner;
-    public UUID currentPlayer;
+
+    public HashMap<ItemStack, Integer> priceHashMap = new HashMap<ItemStack, Integer>();
 
     private final LazyOptional<IItemHandler> inputSlotholder = LazyOptional.of(() -> inputSlot);
 
@@ -61,10 +67,9 @@ public class VendingMachineTile extends TileEntity implements INamedContainerPro
     public CompoundNBT save(CompoundNBT parentNBTTagCompound) {
         super.save(parentNBTTagCompound); // The super call is required to save and load the tileEntity's location
         parentNBTTagCompound.putUUID("Owner", owner);
-        parentNBTTagCompound.put("Inputslot", inputSlot.serializeNBT());
+        parentNBTTagCompound.put("InputSlot", inputSlot.serializeNBT());
         parentNBTTagCompound.put("MoneySlot", moneySlot.serializeNBT());
-        parentNBTTagCompound.put("ItemSlot", outputSlot.serializeNBT());
-        parentNBTTagCompound.merge(inputSlot.serializeNBT());
+        parentNBTTagCompound.put("OutputSlot", outputSlot.serializeNBT());
         return parentNBTTagCompound;
     }
 
@@ -73,10 +78,9 @@ public class VendingMachineTile extends TileEntity implements INamedContainerPro
     public void load(BlockState blockState, CompoundNBT parentNBTTagCompound) {
         super.load(blockState, parentNBTTagCompound); // The super call is required to save and load the tiles location
         owner = parentNBTTagCompound.getUUID("Owner");
-        inputSlot.deserializeNBT(parentNBTTagCompound.getCompound("Inputslot"));
+        inputSlot.deserializeNBT(parentNBTTagCompound.getCompound("InputSlot"));
         moneySlot.deserializeNBT(parentNBTTagCompound.getCompound("MoneySlot"));
-        outputSlot.deserializeNBT(parentNBTTagCompound.getCompound("ItemSlot"));
-        inputSlot.deserializeNBT(parentNBTTagCompound);
+        outputSlot.deserializeNBT(parentNBTTagCompound.getCompound("OutputSlot"));
         //LOGGER.debug(world.getRecipeManager().getRecipesForType(BlenderRecipeSerializer.BLENDING));
     }
 
@@ -105,24 +109,6 @@ public class VendingMachineTile extends TileEntity implements INamedContainerPro
         load(this.getBlockState(), packet.getTag());
     }
 
-    public ItemStackHandler customHandlerMoney(int size){
-        return new ItemStackHandler(size) {
-            @Override
-            public boolean isItemValid(int slot, @Nonnull ItemStack stack) {
-                return stack.copy().getItem() == Items.GOLD_INGOT;
-            }
-            @Override
-            public int getSlotLimit(int slot)
-            {
-                return 1024;
-            }
-            @Override
-            protected int getStackLimit(int slot, @Nonnull ItemStack stack) {
-                return 1024;
-            }
-        };
-    }
-
     public ItemStackHandler customHandlerOutput(int size){
         return new ItemStackHandler(size) {
             @Override
@@ -142,17 +128,29 @@ public class VendingMachineTile extends TileEntity implements INamedContainerPro
     @Override
     public VenderBlockContainer createMenu(int windowID, PlayerInventory playerInventory, PlayerEntity playerEntity) {
         this.container = new VenderBlockContainer(windowID, playerInventory, this.inputSlot, this.outputSlot, this.moneySlot, this);
-        this.currentPlayer = playerEntity.getUUID();
         return this.container;
     }
 
-    public void buy(SlotItemHandler stack) {
-        if(stack.getItem() != ItemStack.EMPTY) {
-            outputSlot.insertItem(0, stack.getItem().copy(), false);
-            stack.remove(outputSlot.getSlotLimit(0));
-            moneySlot.extractItem(0, 1, false);
+    public PriceEditorContainerProvider priceEditorContainerProvider = new PriceEditorContainerProvider(this);
+
+    public void buy(int slotIndex) {
+        if(!container.isAllowedToTakeItems) {
+            ItemStack money = moneySlot.getStackInSlot(0);
+            ItemStack stack = inputSlot.getStackInSlot(slotIndex);
+            int price = VendingMachineConfig.DECRYPTED_PRICES.getOrDefault(stack.getItem(), 4);
+            ItemStack stack1 = new ItemStack(stack.getItem(), Math.min(stack.getCount(), 64));
+            if (!stack.isEmpty() && price < money.getCount()) {
+                LOGGER.info("bought " + stack.getCount() + " " + stack.getItem());
+                outputSlot.setStackInSlot(0, stack1);
+                inputSlot.extractItem(slotIndex, 64, false);
+                moneySlot.extractItem(0, 1, false);
+                LOGGER.info("set item in slot 0 to item " + stack1.getItem() + " (" + stack1.getCount() + ")");
+            } else if (price > money.getCount()) {
+                LOGGER.warn("you don't have enough money.");
+                this.getLevel().getPlayerByUUID(this.container.currentPlayer).sendMessage(new TranslationTextComponent("vendingmachine.notenoughmoney"), this.container.currentPlayer);
+
+            }
         }
-        LOGGER.info("bought " + stack.getItem());
     }
 
 }

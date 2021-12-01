@@ -70,7 +70,7 @@ public class VendingMachineBlock extends HorizontalBlock {
             }
         }
         world.setBlock(pos.above(), state.setValue(HALF, DoubleBlockHalf.UPPER).setValue(FACING, state.getValue(FACING)), 3);
-        world.blockUpdated(pos, Blocks.AIR);
+        world.blockUpdated(pos, this);
     }
 
     @Override
@@ -111,18 +111,6 @@ public class VendingMachineBlock extends HorizontalBlock {
             super.onRemove(state, worldIn, pos, newState, isMoving);
         }
     }
-
-    /*@Override
-    public boolean canSurvive(BlockState state, IWorldReader worldReader, BlockPos pos) {
-        if (state.getValue(HALF) == DoubleBlockHalf.UPPER) {
-            BlockState blockstate = worldReader.getBlockState(pos.below());
-            return blockstate.is(this) && blockstate.getValue(HALF) == DoubleBlockHalf.LOWER;
-        } else {
-            BlockState blockstate = worldReader.getBlockState(pos.above());
-            if (!blockstate.is(this)) return true;
-            return blockstate.is(this) && blockstate.getValue(HALF) == DoubleBlockHalf.UPPER;
-        }
-    }*/
 
     @Override
     public TileEntity createTileEntity(BlockState state, IBlockReader worldIn) {

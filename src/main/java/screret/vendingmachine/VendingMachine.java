@@ -1,5 +1,6 @@
 package screret.vendingmachine;
 
+import javafx.beans.property.ObjectProperty;
 import net.minecraft.block.Block;
 import net.minecraft.client.gui.ScreenManager;
 import net.minecraft.item.ItemGroup;
@@ -9,7 +10,9 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.InterModComms;
+import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.InterModEnqueueEvent;
@@ -20,7 +23,10 @@ import net.minecraftforge.fml.network.NetworkRegistry;
 import net.minecraftforge.fml.network.simple.SimpleChannel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import screret.vendingmachine.containers.VenderBlockScreen;
+import screret.vendingmachine.configs.VendingMachineConfig;
+import screret.vendingmachine.containers.gui.VenderBlockPriceScreen;
+import screret.vendingmachine.containers.gui.VenderBlockScreen;
+import screret.vendingmachine.events.packets.OpenGUIPacket;
 import screret.vendingmachine.events.packets.PacketAllowItemTake;
 import screret.vendingmachine.events.packets.PacketSendBuy;
 import screret.vendingmachine.init.Registration;
@@ -35,7 +41,7 @@ import java.util.stream.Collectors;
 public class VendingMachine {
     public static final String MODID = "vendingmachine";
 
-    public static final ItemGroup MOD_TAB = new ItemGroup("Vending Machine") {
+    public static final ItemGroup MOD_TAB = new ItemGroup("vendingmachine") {
         @Override
         public ItemStack makeIcon() {
             return new ItemStack(Registration.VENDER_ITEM.get());
@@ -67,21 +73,24 @@ public class VendingMachine {
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
 
+        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, VendingMachineConfig.spec);
+
         Registration.BLOCKS.register(FMLJavaModLoadingContext.get().getModEventBus());
         Registration.ITEMS.register(FMLJavaModLoadingContext.get().getModEventBus());
         Registration.CONTAINERS.register(FMLJavaModLoadingContext.get().getModEventBus());
         Registration.TILES.register(FMLJavaModLoadingContext.get().getModEventBus());
-
     }
 
     private void setup(final FMLCommonSetupEvent event)
     {
         NETWORK_HANDLER.registerMessage(0, PacketSendBuy.class, PacketSendBuy::encode, PacketSendBuy::new, PacketSendBuy::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
         NETWORK_HANDLER.registerMessage(1, PacketAllowItemTake.class, PacketAllowItemTake::encode, PacketAllowItemTake::new, PacketAllowItemTake::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        NETWORK_HANDLER.registerMessage(2, OpenGUIPacket.class, OpenGUIPacket::encode, OpenGUIPacket::new, OpenGUIPacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
     }
 
     private void doClientStuff(final FMLClientSetupEvent event) {
         event.enqueueWork(() -> ScreenManager.register(Registration.VENDER_CONT.get(), VenderBlockScreen::new));
+        event.enqueueWork(() -> ScreenManager.register(Registration.VENDER_CONT_PRICES.get(), VenderBlockPriceScreen::new));
         LOGGER.debug("Screens Registered");
     }
 

@@ -1,0 +1,9 @@
+{
+  "gui.vendingmachine.vendingmachine": "Vending Machine",
+  "gui.vendingmachine.buybutton": "Buy item",
+  "gui.vendingmachine.buytestbutton": "Buy test mode",
+  "gui.vendingmachine.changepricesbutton": "Change prices",
+  "gui.vendingmachine.mainbutton": "Main page",
+  "block.vendingmachine.vending_machine": "Vending machine",
+  "itemgroup.vendingmachine": "Vending machines"
+}

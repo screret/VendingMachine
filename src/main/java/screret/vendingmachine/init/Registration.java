@@ -54,4 +54,14 @@ public class Registration {
         }
         return new VenderBlockContainer(windowId, inv, tile.inputSlot, tile.outputSlot, tile.moneySlot, tile);
     }));
+
+    public static final RegistryObject<ContainerType<VenderBlockContainer>> VENDER_CONT_PRICES = CONTAINERS.register("container_vending_machine_prices", () -> IForgeContainerType.create((windowId, inv, buffer) -> {
+        BlockPos pos = buffer.readBlockPos();
+        World world = inv.player.getCommandSenderWorld();
+        VendingMachineTile tile = (VendingMachineTile) world.getBlockEntity(pos);
+        if(tile == null){
+            tile = (VendingMachineTile) world.getBlockEntity(pos.below());
+        }
+        return new VenderBlockContainer(windowId, inv, tile.inputSlot, tile.outputSlot, tile.moneySlot, tile);
+    }));
 }
