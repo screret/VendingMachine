@@ -54,8 +54,11 @@ public class VenderBlockScreen extends ContainerScreen<VenderBlockContainer> {
 
         this.addButton(new Button(relX + 110, relY + 108, 53, 18, new TranslationTextComponent("gui.vendingmachine.buybutton"), onBuyButtonPress));
         this.addButton(new Button(relX + 133, relY + 64, 18, 9, new TranslationTextComponent("gui.vendingmachine.buytestbutton"), onTestButtonPress));
-        this.addButton(new VenderTabButton(relX + this.imageWidth, relY, 32, 28, new TranslationTextComponent("gui.vendingmachine.tab_price"), onTabButtonPress(true), true, true));
-        this.addButton(new VenderTabButton(relX + this.imageWidth, relY + 28, 32, 28, new TranslationTextComponent("gui.vendingmachine.tab_price"), onTabButtonPress(false), false, false));
+
+        if(menu.currentPlayer.equals(menu.getTile().owner)){
+            this.addButton(new VenderTabButton(relX + this.imageWidth, relY + 2, 32, 28, new TranslationTextComponent("gui.vendingmachine.tab_price"), onTabButtonPress(true), true, true));
+            this.addButton(new VenderTabButton(relX + this.imageWidth, relY + 30, 32, 28, new TranslationTextComponent("gui.vendingmachine.tab_price"), onTabButtonPress(false), false, false));
+        }
     }
 
     @Override

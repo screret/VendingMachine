@@ -159,7 +159,7 @@ public class VenderBlockContainer extends Container {
 
     public boolean checkPlayerAllowedToChangeInv(UUID currentPlayer){
         isAllowedToTakeItems = currentPlayer.equals(tile.owner) && !buyTestMode_REMOVE_LATER;
-        if(tile.getLevel().getPlayerByUUID(tile.owner) != null){
+        if(tile.owner != null && tile.getLevel().getPlayerByUUID(tile.owner) != null){
             String _ownerName = ITextComponent.Serializer.fromJsonLenient(tile.getLevel().getPlayerByUUID(tile.owner).getDisplayName().getString()).getString();
             String _openerName = ITextComponent.Serializer.fromJsonLenient(tile.getLevel().getPlayerByUUID(currentPlayer).getDisplayName().getString()).getString();
             LOGGER.info("Current player who has the GUI open is the owner: " + isAllowedToTakeItems + "\n owner: " + _ownerName + "(" + tile.owner + ")" + "\n opener: " + _openerName + "(" + currentPlayer + ")");

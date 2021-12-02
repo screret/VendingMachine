@@ -1,35 +1,45 @@
 package screret.vendingmachine.containers.gui;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.audio.SimpleSound;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
+import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.network.play.server.SOpenWindowPacket;
+import net.minecraft.item.Item;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.SoundEvents;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.registry.Registry;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraftforge.fml.network.NetworkHooks;
+import net.minecraftforge.fml.client.gui.widget.Slider;
 import org.lwjgl.opengl.GL11;
 import screret.vendingmachine.VendingMachine;
+import screret.vendingmachine.configs.VendingMachineConfig;
 import screret.vendingmachine.containers.VenderBlockContainer;
+import screret.vendingmachine.containers.VenderPriceEditorContainer;
+import screret.vendingmachine.events.packets.AddPricePacket;
 import screret.vendingmachine.events.packets.OpenGUIPacket;
-import screret.vendingmachine.events.packets.PacketAllowItemTake;
-import screret.vendingmachine.events.packets.PacketSendBuy;
-import screret.vendingmachine.init.Registration;
 import screret.vendingmachine.tileEntities.VendingMachineTile;
 
-import java.io.StringReader;
-
-public class VenderBlockPriceScreen extends ContainerScreen<VenderBlockContainer> {
+public class VenderBlockPriceScreen extends ContainerScreen<VenderPriceEditorContainer> {
     int relX, relY;
 
-    public int tab;
+    private boolean scrolling;
+    private float scrollOffs;
+    private int startIndex;
 
-    private ResourceLocation widgets = new ResourceLocation(VendingMachine.MODID, "textures/gui/widgets.png");
-    private ResourceLocation gui = new ResourceLocation(VendingMachine.MODID, "textures/gui/vending_machine_gui.png");
+    private boolean displayPrices;
+    private int currentPrice = 4;
 
-    public VenderBlockPriceScreen(VenderBlockContainer container, PlayerInventory inv, ITextComponent name) {
+    private boolean displayAddMenu;
+
+    private ResourceLocation gui = new ResourceLocation(VendingMachine.MODID, "textures/gui/vending_machine_prices_gui.png");
+
+    public VenderBlockPriceScreen(VenderPriceEditorContainer container, PlayerInventory inv, ITextComponent name) {
         super(container, inv, name);
         this.imageWidth = 174;
         this.imageHeight = 222;
@@ -42,6 +52,11 @@ public class VenderBlockPriceScreen extends ContainerScreen<VenderBlockContainer
     final static int COOK_BAR_XPOS = 49;
     final static  int COOK_BAR_YPOS = 60;
 
+    private Button addPriceMenuButton1;
+    private Button addPriceMenuButton2;
+    private TextFieldWidget itemNameInput;
+    private Slider itemPriceInput;
+
     @Override
     public void init(){
         super.init();
@@ -49,8 +64,10 @@ public class VenderBlockPriceScreen extends ContainerScreen<VenderBlockContainer
         relX = (this.width - this.getXSize()) / 2;
         relY = (this.height - this.getYSize()) / 2;
 
-        this.addButton(new VenderTabButton(relX + this.imageWidth, relY, 32, 28, new TranslationTextComponent("gui.vendingmachine.tab_price"), onTabButtonPress(true), true, false));
-        this.addButton(new VenderTabButton(relX + this.imageWidth, relY + 28, 32, 28, new TranslationTextComponent("gui.vendingmachine.tab_price"), onTabButtonPress(false), false, true));
+        this.addButton(new Button(relX + 148, relY + 32, 16, 16, new TranslationTextComponent("gui.vendingmachine.addprice"), onAddPress()));
+
+        this.addButton(new VenderTabButton(relX + this.imageWidth, relY + 2, 32, 28, new TranslationTextComponent("gui.vendingmachine.tab_price"), onTabButtonPress(true), true, false));
+        this.addButton(new VenderTabButton(relX + this.imageWidth, relY + 30, 32, 28, new TranslationTextComponent("gui.vendingmachine.tab_price"), onTabButtonPress(false), false, true));
     }
 
     @Override
@@ -58,10 +75,6 @@ public class VenderBlockPriceScreen extends ContainerScreen<VenderBlockContainer
         this.renderBackground(matrixStack);
         super.render(matrixStack, mouseX, mouseY, partialTicks);
         this.renderTooltip(matrixStack, mouseX, mouseY);
-
-        if(menu.selectedSlot != null && !menu.isAllowedToTakeItems){
-            fillGradient(matrixStack, relX + menu.selectedSlot.x, relY + menu.selectedSlot.y, relX + menu.selectedSlot.x + 16, relY + menu.selectedSlot.y + 16, 0x7500FF00, 0x75009900);
-        }
     }
 
     public void tick() {
@@ -75,23 +88,146 @@ public class VenderBlockPriceScreen extends ContainerScreen<VenderBlockContainer
         relX = (this.width - this.getXSize()) / 2;
         relY = (this.height - this.getYSize()) / 2;
         this.blit(matrixStack, relX, relY, 0, 0, this.getXSize(), this.getYSize());
+        this.renderButtons(matrixStack, mouseX, mouseY, relX + 11, relY + 21, this.startIndex + 24);
+        if(displayAddMenu){
+            this.renderAddMenu(matrixStack, mouseX, mouseY);
+        }
     }
 
-    public Button.IPressable onTestButtonPress = new Button.IPressable() {
-        @Override
-        public void onPress(Button button) {
-            VendingMachine.NETWORK_HANDLER.sendToServer(new PacketAllowItemTake(menu.getTile().getBlockPos(), menu.currentPlayer, !menu.buyTestMode_REMOVE_LATER));
-            menu.buyTestMode_REMOVE_LATER = !menu.buyTestMode_REMOVE_LATER;
-            menu.checkPlayerAllowedToChangeInv(menu.currentPlayer);
-        }
-    };
+    private void renderButtons(MatrixStack matrixStack, int mouseX, int mouseY, int start, int end, int lastPos) {
+        for(int i = this.startIndex; i < lastPos && i < VendingMachineConfig.DECRYPTED_PRICES.size(); ++i) {
+            int j = i - this.startIndex;
+            int l = j / 4;
+            int i1 = end + l * 18 + 2;
+            int j1 = 222;
+            if (i == this.menu.selectedItemIndex) {
+                j1 += 18;
+            } /*else if (mouseX >= start && mouseY >= i1 && mouseX < start + 16 && mouseY < i1 + 18) {
+                j1 += 36;
+            }*/
 
-    public final Button.IPressable onBuyButtonPress = button -> {
-        //menu.getTile().buy(menu.selectedSlot.getSlotIndex());
-        if(menu.selectedSlot != null) {
-            VendingMachine.NETWORK_HANDLER.sendToServer(new PacketSendBuy(menu.getTile().getBlockPos(), menu.selectedSlot.getSlotIndex()));
+            this.blit(matrixStack, start, i1 - 1, 0, j1, 111, 18);
         }
-    }; //VendingMachine.SIMPLE_CHANNEL.sendToServer(new PacketSendBuy(menu.selectedSlot)); };
+    }
+
+    public void renderAddMenu(MatrixStack matrixStack, int mouseX, int mouseY){
+        this.minecraft.getTextureManager().bind(gui);
+        this.blit(matrixStack, relX + 28, relY + 50, 176, 62, 80, 52);
+    }
+
+    public void removeAddMenu(){
+        displayAddMenu = false;
+        addPriceMenuButton1.visible = false;
+        addPriceMenuButton2.visible = false;
+        itemNameInput.visible = false;
+        itemNameInput.setValue("");
+        itemPriceInput.visible = false;
+    }
+
+    public void addAddMenu(){
+        if(itemNameInput == null){
+            itemNameInput = new TextFieldWidget(minecraft.font, relX + 32, relY + 54, 64, 16, new TranslationTextComponent("gui.vendingmachine.inputtemplate"));
+            this.addButton(itemNameInput);
+            this.setInitialFocus(itemNameInput);
+        } else {
+            itemNameInput.setVisible(true);
+            itemNameInput.visible = true;
+        }
+        itemNameInput.setFocus(true);
+        itemNameInput.active = true;
+        itemNameInput.setEditable(true);
+
+        if(itemPriceInput == null){
+            itemPriceInput = new Slider(relX + 32, relY + 70, 64, 16, new TranslationTextComponent("gui.vendingmachine.priceslider"), new StringTextComponent("1"), 1, 64, 4, false, true, emptyPressable);
+            this.addButton(itemPriceInput);
+        } else {
+            itemPriceInput.visible = true;
+        }
+
+        if(addPriceMenuButton1 == null){
+            addPriceMenuButton1 = new Button(relX + 38, relY + 86, 32, 16, new TranslationTextComponent("gui.vendingmachine.addprice"), onAddedPress(Registry.ITEM.get(new ResourceLocation(itemNameInput.getValue())), Math.round(Math.round(itemPriceInput.sliderValue))));
+            this.addButton(addPriceMenuButton1);
+        } else {
+            addPriceMenuButton1.visible = true;
+        }
+
+        if(addPriceMenuButton2 == null){
+            addPriceMenuButton2 = new Button(relX + 76, relY + 86, 32, 16, new TranslationTextComponent("gui.vendingmachine.cancel"), hideAddMenu);
+            this.addButton(addPriceMenuButton2);
+        }else {
+            addPriceMenuButton2.visible = true;
+        }
+
+        VenderBlockContainer.LOGGER.info(menu.getTile().priceHashMap);
+    }
+
+    public boolean mouseDragged(double p_231045_1_, double p_231045_3_, int p_231045_5_, double p_231045_6_, double p_231045_8_) {
+        if (this.scrolling && this.isScrollBarActive()) {
+            int i = this.topPos + 14;
+            int j = i + 54;
+            this.scrollOffs = ((float)p_231045_3_ - (float)i - 7.5F) / ((float)(j - i) - 15.0F);
+            this.scrollOffs = MathHelper.clamp(this.scrollOffs, 0.0F, 1.0F);
+            this.startIndex = (int)((double)(this.scrollOffs * (float)this.getOffscreenRows()) + 0.5D) * 4;
+            return true;
+        } else {
+            return super.mouseDragged(p_231045_1_, p_231045_3_, p_231045_5_, p_231045_6_, p_231045_8_);
+        }
+    }
+
+    @Override
+    public boolean mouseClicked(double p_231044_1_, double p_231044_3_, int p_231044_5_) {
+        this.scrolling = false;
+        if (this.displayPrices) {
+            int i = this.leftPos + 52;
+            int j = this.topPos + 14;
+            int k = this.startIndex + 12;
+
+            for(int l = this.startIndex; l < k; ++l) {
+                int i1 = l - this.startIndex;
+                double d0 = p_231044_1_ - (double)(i + i1 % 4 * 16);
+                double d1 = p_231044_3_ - (double)(j + i1 / 4 * 18);
+                if (d0 >= 0.0D && d1 >= 0.0D && d0 < 16.0D && d1 < 18.0D && this.menu.clickMenuButton(this.minecraft.player, l)) {
+                    Minecraft.getInstance().getSoundManager().play(SimpleSound.forUI(SoundEvents.UI_STONECUTTER_SELECT_RECIPE, 1.0F));
+                    this.minecraft.gameMode.handleInventoryButtonClick((this.menu).containerId, l);
+                    return true;
+                }
+            }
+
+            i = this.leftPos + 119;
+            j = this.topPos + 9;
+            if (p_231044_1_ >= (double)i && p_231044_1_ < (double)(i + 12) && p_231044_3_ >= (double)j && p_231044_3_ < (double)(j + 54)) {
+                this.scrolling = true;
+            }
+        }
+
+        return super.mouseClicked(p_231044_1_, p_231044_3_, p_231044_5_);
+    }
+
+    private boolean isScrollBarActive() {
+        return this.displayPrices && VendingMachineConfig.DECRYPTED_PRICES.size() > 12;
+    }
+
+    protected int getOffscreenRows() {
+        return (VendingMachineConfig.DECRYPTED_PRICES.size() + 4 - 1) / 4 - 3;
+    }
+
+    private void containerChanged() {
+        this.displayPrices = this.menu.hasPricesSet();
+        if (!this.displayPrices) {
+            this.scrollOffs = 0.0F;
+            this.startIndex = 0;
+        }
+
+    }
+
+    @Override
+    public boolean keyPressed(int p_keyPressed_1_, int p_keyPressed_2_, int p_keyPressed_3_) {
+        if (itemNameInput.isFocused()) {
+            return itemNameInput.keyPressed(p_keyPressed_1_, p_keyPressed_2_, p_keyPressed_3_);
+        }else{
+            return super.keyPressed(p_keyPressed_1_, p_keyPressed_2_, p_keyPressed_3_);
+        }
+    }
 
     public Button.IPressable onTabButtonPress(boolean isMain){
         return new Button.IPressable() {
@@ -105,4 +241,40 @@ public class VenderBlockPriceScreen extends ContainerScreen<VenderBlockContainer
             }
         };
     }
+
+    public Button.IPressable onAddPress(){
+        return new Button.IPressable() {
+            @Override
+            public void onPress(Button button) {
+                displayAddMenu = true;
+                addAddMenu();
+            }
+        };
+    }
+
+    public Button.IPressable onAddedPress(Item item, int price){
+        return new Button.IPressable() {
+            @Override
+            public void onPress(Button button) {
+                VendingMachineTile tile = menu.getTile();
+                VendingMachine.NETWORK_HANDLER.sendToServer(new AddPricePacket(tile.getBlockPos(), item, price));
+                removeAddMenu();
+                tile.priceHashMap.put(item, price);
+            }
+        };
+    }
+
+    public Button.IPressable emptyPressable = new Button.IPressable() {
+        @Override
+        public void onPress(Button button) {
+
+        }
+    };
+
+    public Button.IPressable hideAddMenu = new Button.IPressable() {
+        @Override
+        public void onPress(Button button) {
+            removeAddMenu();
+        }
+    };
 }

@@ -5,5 +5,6 @@
   "gui.vendingmachine.changepricesbutton": "Change prices",
   "gui.vendingmachine.mainbutton": "Main page",
   "block.vendingmachine.vending_machine": "Vending machine",
-  "itemgroup.vendingmachine": "Vending machines"
+  "itemgroup.vendingmachine": "Vending machines",
+  "msg.vendingmachine.notenoughmoney": "§6You appear to not have inserted enough money to the machine."
 }

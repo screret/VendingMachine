@@ -36,11 +36,15 @@ public class VenderTabButton extends Button {
     }
 
     public ItemRenderer itemRenderer;
+    ItemStack stack = new ItemStack(Registration.VENDER_ITEM.get());
 
     @Override
     public void renderButton(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
         Minecraft minecraft = Minecraft.getInstance();
         itemRenderer = minecraft.getItemRenderer();
+
+        int itemX = x + 4;
+        int itemY = y + 5;
 
         FontRenderer fontrenderer = minecraft.font;
         minecraft.getTextureManager().bind(GUI_LOCATION);
@@ -51,28 +55,29 @@ public class VenderTabButton extends Button {
         RenderSystem.enableDepthTest();
 
         if (!selected && !buttonIsMain) {
-            this.blit(matrixStack, this.x - 4, this.y, 208, 28, this.xSize, this.ySize);
+            this.blit(matrixStack, this.x, this.y, 208, 28, this.xSize, this.ySize);
             this.renderBg(matrixStack, minecraft, mouseX, mouseY);
             int j = getFGColor();
-            itemRenderer.blitOffset = 1f;
-            drawCenteredString(matrixStack, fontrenderer, this.getMessage(), this.x + this.width / 2, this.y + (this.height - 8) / 2, j | MathHelper.ceil(this.alpha * 255.0F) << 24);
+            //drawCenteredString(matrixStack, fontrenderer, this.getMessage(), this.x + this.width / 2, this.y + (this.height - 8) / 2, j | MathHelper.ceil(this.alpha * 255.0F) << 24);
         } else if(!buttonIsMain) {
-            this.blit(matrixStack, this.x - 4, this.y, 176, 28, this.xSize, this.ySize);
+            this.blit(matrixStack, this.x, this.y, 176, 28, this.xSize, this.ySize);
             this.renderBg(matrixStack, minecraft, mouseX, mouseY);
             int j = getFGColor();
-            drawCenteredString(matrixStack, fontrenderer, this.getMessage(), this.x + this.width / 2, this.y + (this.height - 8) / 2, j | MathHelper.ceil(this.alpha * 255.0F) << 24);
+            //drawCenteredString(matrixStack, fontrenderer, this.getMessage(), this.x + this.width / 2, this.y + (this.height - 8) / 2, j | MathHelper.ceil(this.alpha * 255.0F) << 24);
         } else if (selected) {
-            this.blit(matrixStack, this.x - 4, this.y, 176, 0, this.xSize, this.ySize);
+            this.blit(matrixStack, this.x, this.y, 176, 0, this.xSize, this.ySize);
             this.renderBg(matrixStack, minecraft, mouseX, mouseY);
             int j = getFGColor();
-            itemRenderer.renderAndDecorateItem(new ItemStack(Registration.VENDER_ITEM.get()), this.x + 4, this.y + 5);
-            drawCenteredString(matrixStack, fontrenderer, this.getMessage(), this.x + this.width / 2, this.y + (this.height - 8) / 2, j | MathHelper.ceil(this.alpha * 255.0F) << 24);
+            itemRenderer.renderAndDecorateItem(stack, this.x + 4, this.y + 5);
+            this.itemRenderer.renderGuiItemDecorations(minecraft.font, stack, itemX, itemY);
+            //drawCenteredString(matrixStack, fontrenderer, this.getMessage(), this.x + this.width / 2, this.y + (this.height - 8) / 2, j | MathHelper.ceil(this.alpha * 255.0F) << 24);
         } else {
-            this.blit(matrixStack, this.x - 4, this.y, 208, 0, this.xSize, this.ySize);
+            this.blit(matrixStack, this.x, this.y, 208, 0, this.xSize, this.ySize);
             this.renderBg(matrixStack, minecraft, mouseX, mouseY);
             int j = getFGColor();
             itemRenderer.renderAndDecorateItem(new ItemStack(Registration.VENDER_ITEM.get()), this.x + 4, this.y + 5);
-            drawCenteredString(matrixStack, fontrenderer, this.getMessage(), this.x + this.width / 2, this.y + (this.height - 8) / 2, j | MathHelper.ceil(this.alpha * 255.0F) << 24);
+            this.itemRenderer.renderGuiItemDecorations(minecraft.font, stack, itemX, itemY);
+            //drawCenteredString(matrixStack, fontrenderer, this.getMessage(), this.x + this.width / 2, this.y + (this.height - 8) / 2, j | MathHelper.ceil(this.alpha * 255.0F) << 24);
         }
     }
 }

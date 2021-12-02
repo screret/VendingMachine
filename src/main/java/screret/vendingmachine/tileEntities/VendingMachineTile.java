@@ -1,44 +1,37 @@
 package screret.vendingmachine.tileEntities;
 
+import com.google.gson.*;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.block.BlockState;
-import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.inventory.container.INamedContainerProvider;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.JsonToNBT;
 import net.minecraft.nbt.ListNBT;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SUpdateTileEntityPacket;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.registry.Registry;
 import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.World;
-import net.minecraftforge.common.util.Constants;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
-import net.minecraftforge.items.SlotItemHandler;
 import net.minecraftforge.items.wrapper.CombinedInvWrapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import screret.vendingmachine.blocks.VendingMachineBlock;
 import screret.vendingmachine.configs.VendingMachineConfig;
 import screret.vendingmachine.containers.ItemHandlerMoney;
 import screret.vendingmachine.containers.OwnedStackHandler;
 import screret.vendingmachine.containers.VenderBlockContainer;
-import screret.vendingmachine.containers.VenderPriceEditorContainer;
 import screret.vendingmachine.init.Registration;
 
 import javax.annotation.Nonnull;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Random;
+import java.util.Map;
 import java.util.UUID;
 
 public class VendingMachineTile extends TileEntity implements INamedContainerProvider {
@@ -51,13 +44,7 @@ public class VendingMachineTile extends TileEntity implements INamedContainerPro
 
     public UUID owner;
 
-    public HashMap<ItemStack, Integer> priceHashMap = new HashMap<ItemStack, Integer>();
-
-    private final LazyOptional<IItemHandler> inputSlotholder = LazyOptional.of(() -> inputSlot);
-
-    public static final int NUMBER_OF_SLOTS = 38;
-
-    protected ItemStack failedMatch = ItemStack.EMPTY;
+    public HashMap<Item, Integer> priceHashMap = new HashMap<>();
 
     public VendingMachineTile() {
         super(Registration.VENDER_TILE.get());
@@ -66,11 +53,30 @@ public class VendingMachineTile extends TileEntity implements INamedContainerPro
     @Override
     public CompoundNBT save(CompoundNBT parentNBTTagCompound) {
         super.save(parentNBTTagCompound); // The super call is required to save and load the tileEntity's location
-        parentNBTTagCompound.putUUID("Owner", owner);
+        if(owner != null){
+            parentNBTTagCompound.putUUID("Owner", owner);
+        }
         parentNBTTagCompound.put("InputSlot", inputSlot.serializeNBT());
         parentNBTTagCompound.put("MoneySlot", moneySlot.serializeNBT());
         parentNBTTagCompound.put("OutputSlot", outputSlot.serializeNBT());
+        parentNBTTagCompound.put("Prices", savePrices());
         return parentNBTTagCompound;
+    }
+
+    protected CompoundNBT savePrices() {
+        CompoundNBT nbt = new CompoundNBT();
+        JsonObject array = new JsonObject();
+        for (Map.Entry<Item, Integer> entry : priceHashMap.entrySet()){
+            array.add(Registry.ITEM.getKey(entry.getKey()).toString(), new JsonPrimitive(entry.getValue()));
+        }
+
+        try {
+            nbt = JsonToNBT.parseTag(array.toString());
+        } catch (CommandSyntaxException e) {
+            e.printStackTrace();
+        }
+
+        return nbt;
     }
 
     // This is where you load the data that you saved in write
@@ -81,7 +87,20 @@ public class VendingMachineTile extends TileEntity implements INamedContainerPro
         inputSlot.deserializeNBT(parentNBTTagCompound.getCompound("InputSlot"));
         moneySlot.deserializeNBT(parentNBTTagCompound.getCompound("MoneySlot"));
         outputSlot.deserializeNBT(parentNBTTagCompound.getCompound("OutputSlot"));
+        priceHashMap = loadPrices(parentNBTTagCompound.get("Prices").getAsString());
         //LOGGER.debug(world.getRecipeManager().getRecipesForType(BlenderRecipeSerializer.BLENDING));
+    }
+
+    protected HashMap<Item, Integer> loadPrices(String array){
+        HashMap<Item, Integer> map = new HashMap<>();
+
+        JsonParser parser = new JsonParser();
+        JsonObject array1 = parser.parse(array).getAsJsonObject();
+
+        for (Map.Entry<String, JsonElement> entry : array1.entrySet()){
+            map.put(Registry.ITEM.get(new ResourceLocation(entry.getKey())), entry.getValue().getAsInt());
+        }
+        return map;
     }
 
     public void dropContents(){
@@ -147,7 +166,7 @@ public class VendingMachineTile extends TileEntity implements INamedContainerPro
                 LOGGER.info("set item in slot 0 to item " + stack1.getItem() + " (" + stack1.getCount() + ")");
             } else if (price > money.getCount()) {
                 LOGGER.warn("you don't have enough money.");
-                this.getLevel().getPlayerByUUID(this.container.currentPlayer).sendMessage(new TranslationTextComponent("vendingmachine.notenoughmoney"), this.container.currentPlayer);
+                this.getLevel().getPlayerByUUID(this.container.currentPlayer).sendMessage(new TranslationTextComponent("msg.svendingmachine.notenoughmoney"), this.container.currentPlayer);
 
             }
         }
