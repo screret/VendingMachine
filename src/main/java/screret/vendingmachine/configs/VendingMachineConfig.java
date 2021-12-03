@@ -20,10 +20,10 @@ public class VendingMachineConfig extends ForgeConfigSpec.Builder {
 
         public General(ForgeConfigSpec.Builder builder)
         {
-            itemDefaultPrices.add("minecraft.dirt:1");
+            itemDefaultPrices.add("minecraft:dirt 1");
 
             builder.comment("Item Prices").push("item_prices");
-            this.itemPrices = builder.comment("Item prices. Format is \"namespace.item:price\"")
+            this.itemPrices = builder.comment("Item prices. Format is \"namespace:item price\"")
                     .worldRestart()
                     .define("item_prices", itemDefaultPrices);
             this.allowPriceEditing = builder.comment("Set to true if players can edit item prices per-machine.")
@@ -34,16 +34,16 @@ public class VendingMachineConfig extends ForgeConfigSpec.Builder {
         }
     }
 
-    public static HashMap<Item, Integer> DECRYPTED_PRICES = new HashMap<>();
+    public static HashMap<Item, Integer> DECRYPTED_PRICES = decryptPrices();
 
-    public HashMap<Item, Integer> decryptPrices(){
+    public static HashMap<Item, Integer> decryptPrices(){
         HashMap<Item, Integer> map = new HashMap<>();
 
         for (String string : GENERAL.itemPrices.get()){
-            String value = string.split(":")[0];
-            String key = string.split(":")[1];
+            String key = string.split(" ")[0];
+            String value = string.split(" ")[1];
 
-            String[] keyParts = key.split("\\.");
+            String[] keyParts = key.split(":");
             map.put(Registry.ITEM.get(new ResourceLocation(keyParts[0], keyParts[1])), Integer.decode(value));
         }
 

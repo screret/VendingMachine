@@ -34,7 +34,7 @@ public class VenderBlockScreen extends ContainerScreen<VenderBlockContainer> {
 
     public VenderBlockScreen(VenderBlockContainer container, PlayerInventory inv, ITextComponent name) {
         super(container, inv, name);
-        this.imageWidth = 174;
+        this.imageWidth = 176;
         this.imageHeight = 222;
         this.inventoryLabelX = 5;
         this.inventoryLabelY = 128;

@@ -2,7 +2,9 @@ package screret.vendingmachine.containers;
 
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.container.Container;
+import net.minecraft.inventory.container.StonecutterContainer;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.SlotItemHandler;
 import net.minecraftforge.items.wrapper.PlayerInvWrapper;
@@ -13,18 +15,20 @@ public class VenderPriceEditorContainer extends Container {
     private final PlayerInvWrapper playerInventory;
     final VendingMachineTile tile;
 
-    public int selectedItemIndex;
+    private Runnable slotUpdateListener = () -> { };
+
+    public int selectedItemIndex = -1;
 
     public VenderPriceEditorContainer(int windowID, PlayerInventory inv, VendingMachineTile tile) {
         super(Registration.VENDER_CONT_PRICES.get(), windowID);
         this.tile = tile;
         this.playerInventory = new PlayerInvWrapper(inv);
 
-        layoutPlayerInventorySlots(8, 140);
+        //layoutPlayerInventorySlots(8, 140);
     }
 
     public boolean hasPricesSet(){
-        return tile.priceHashMap.size() > 0;
+        return tile.getPrices().size() > 0;
     }
 
     public VendingMachineTile getTile(){
@@ -33,19 +37,27 @@ public class VenderPriceEditorContainer extends Container {
 
     @Override
     public boolean clickMenuButton(PlayerEntity playerEntity, int index) {
-        if (this.isValidItemIndex(index)) {
+        if (this.isValidPriceIndex(index)) {
             this.selectedItemIndex = index;
         }
         return true;
     }
 
-    private boolean isValidItemIndex(int index) {
-        return index >= 0 && index < this.tile.priceHashMap.size();
+    private boolean isValidPriceIndex(int index) {
+        return index >= 0 && index < this.tile.getPrices().size();
     }
 
     @Override
     public boolean stillValid(PlayerEntity playerEntity) {
         return playerEntity.position().distanceToSqr(this.tile.getBlockPos().getX(), this.tile.getBlockPos().getY(), this.tile.getBlockPos().getZ()) < 8 * 8;
+    }
+
+    public void registerUpdateListener(Runnable runnable) {
+        this.slotUpdateListener = runnable;
+    }
+
+    public void updateGUI(){
+        this.slotUpdateListener.run();
     }
 
     private int addSlotRange(IItemHandler handler, int index, int x, int y, int amount, int dx) {

@@ -1,6 +1,5 @@
 package screret.vendingmachine;
 
-import javafx.beans.property.ObjectProperty;
 import net.minecraft.block.Block;
 import net.minecraft.client.gui.ScreenManager;
 import net.minecraft.item.ItemGroup;
@@ -26,7 +25,7 @@ import org.apache.logging.log4j.Logger;
 import screret.vendingmachine.configs.VendingMachineConfig;
 import screret.vendingmachine.containers.gui.VenderBlockPriceScreen;
 import screret.vendingmachine.containers.gui.VenderBlockScreen;
-import screret.vendingmachine.events.packets.AddPricePacket;
+import screret.vendingmachine.events.packets.ChangePricePacket;
 import screret.vendingmachine.events.packets.OpenGUIPacket;
 import screret.vendingmachine.events.packets.PacketAllowItemTake;
 import screret.vendingmachine.events.packets.PacketSendBuy;
@@ -75,6 +74,7 @@ public class VendingMachine {
         MinecraftForge.EVENT_BUS.register(this);
 
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, VendingMachineConfig.spec);
+        VendingMachineConfig.DECRYPTED_PRICES = VendingMachineConfig.decryptPrices();
 
         Registration.BLOCKS.register(FMLJavaModLoadingContext.get().getModEventBus());
         Registration.ITEMS.register(FMLJavaModLoadingContext.get().getModEventBus());
@@ -87,7 +87,7 @@ public class VendingMachine {
         NETWORK_HANDLER.registerMessage(0, PacketSendBuy.class, PacketSendBuy::encode, PacketSendBuy::new, PacketSendBuy::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
         NETWORK_HANDLER.registerMessage(1, PacketAllowItemTake.class, PacketAllowItemTake::encode, PacketAllowItemTake::new, PacketAllowItemTake::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
         NETWORK_HANDLER.registerMessage(2, OpenGUIPacket.class, OpenGUIPacket::encode, OpenGUIPacket::new, OpenGUIPacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
-        NETWORK_HANDLER.registerMessage(3, AddPricePacket.class, AddPricePacket::encode, AddPricePacket::new, AddPricePacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        NETWORK_HANDLER.registerMessage(3, ChangePricePacket.class, ChangePricePacket::encode, ChangePricePacket::new, ChangePricePacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
     }
 
     private void doClientStuff(final FMLClientSetupEvent event) {

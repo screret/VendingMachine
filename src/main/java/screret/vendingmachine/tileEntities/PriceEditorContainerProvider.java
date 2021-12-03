@@ -6,10 +6,13 @@ import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.INamedContainerProvider;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
+import screret.vendingmachine.containers.VenderBlockContainer;
 import screret.vendingmachine.containers.VenderPriceEditorContainer;
 
 public class PriceEditorContainerProvider implements INamedContainerProvider {
     final VendingMachineTile tile;
+
+    VenderPriceEditorContainer container;
 
     public PriceEditorContainerProvider(VendingMachineTile tile){
         this.tile = tile;
@@ -22,6 +25,7 @@ public class PriceEditorContainerProvider implements INamedContainerProvider {
 
     @Override
     public Container createMenu(int windowID, PlayerInventory playerInventory, PlayerEntity playerEntity) {
-        return new VenderPriceEditorContainer(windowID, playerInventory, tile);
+        container = new VenderPriceEditorContainer(windowID, playerInventory, tile);
+        return container;
     }
 }

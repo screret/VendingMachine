@@ -11,7 +11,6 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.JsonToNBT;
-import net.minecraft.nbt.ListNBT;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SUpdateTileEntityPacket;
 import net.minecraft.tileentity.TileEntity;
@@ -21,6 +20,7 @@ import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.wrapper.CombinedInvWrapper;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import screret.vendingmachine.configs.VendingMachineConfig;
@@ -40,11 +40,11 @@ public class VendingMachineTile extends TileEntity implements INamedContainerPro
     public OwnedStackHandler inputSlot = new OwnedStackHandler(30);
     public ItemHandlerMoney moneySlot =  new ItemHandlerMoney(1);
 
-    static Logger LOGGER = LogManager.getLogger();
+    public static Logger LOGGER = LogManager.getLogger();
 
     public UUID owner;
 
-    public HashMap<Item, Integer> priceHashMap = new HashMap<>();
+    private Map<Item, Integer> priceMap = new HashMap<>();
 
     public VendingMachineTile() {
         super(Registration.VENDER_TILE.get());
@@ -64,19 +64,36 @@ public class VendingMachineTile extends TileEntity implements INamedContainerPro
     }
 
     protected CompoundNBT savePrices() {
-        CompoundNBT nbt = new CompoundNBT();
-        JsonObject array = new JsonObject();
-        for (Map.Entry<Item, Integer> entry : priceHashMap.entrySet()){
-            array.add(Registry.ITEM.getKey(entry.getKey()).toString(), new JsonPrimitive(entry.getValue()));
+        if(VendingMachineConfig.GENERAL.allowPriceEditing.get()){
+            CompoundNBT nbt = new CompoundNBT();
+            JsonObject array = new JsonObject();
+            for (Map.Entry<Item, Integer> entry : priceMap.entrySet()){
+                array.add(ForgeRegistries.ITEMS.getKey(entry.getKey()).toString(), new JsonPrimitive(entry.getValue()));
+            }
+
+            try {
+                nbt = JsonToNBT.parseTag(array.toString());
+            } catch (CommandSyntaxException e) {
+                e.printStackTrace();
+            }
+
+            return nbt;
+        }else{
+            CompoundNBT nbt = new CompoundNBT();
+            JsonArray array = new JsonArray();
+            for (String entry : VendingMachineConfig.GENERAL.itemPrices.get()){
+                array.add(entry);
+            }
+
+            try {
+                nbt = JsonToNBT.parseTag(array.toString());
+            } catch (CommandSyntaxException e) {
+                e.printStackTrace();
+            }
+
+            return nbt;
         }
 
-        try {
-            nbt = JsonToNBT.parseTag(array.toString());
-        } catch (CommandSyntaxException e) {
-            e.printStackTrace();
-        }
-
-        return nbt;
     }
 
     // This is where you load the data that you saved in write
@@ -87,18 +104,18 @@ public class VendingMachineTile extends TileEntity implements INamedContainerPro
         inputSlot.deserializeNBT(parentNBTTagCompound.getCompound("InputSlot"));
         moneySlot.deserializeNBT(parentNBTTagCompound.getCompound("MoneySlot"));
         outputSlot.deserializeNBT(parentNBTTagCompound.getCompound("OutputSlot"));
-        priceHashMap = loadPrices(parentNBTTagCompound.get("Prices").getAsString());
+        priceMap = loadPrices(parentNBTTagCompound.get("Prices").getAsString());
         //LOGGER.debug(world.getRecipeManager().getRecipesForType(BlenderRecipeSerializer.BLENDING));
     }
 
-    protected HashMap<Item, Integer> loadPrices(String array){
-        HashMap<Item, Integer> map = new HashMap<>();
+    protected Map<Item, Integer> loadPrices(String array){
+        Map<Item, Integer> map = new HashMap<>();
 
         JsonParser parser = new JsonParser();
         JsonObject array1 = parser.parse(array).getAsJsonObject();
 
         for (Map.Entry<String, JsonElement> entry : array1.entrySet()){
-            map.put(Registry.ITEM.get(new ResourceLocation(entry.getKey())), entry.getValue().getAsInt());
+            map.put(ForgeRegistries.ITEMS.getValue(new ResourceLocation(entry.getKey())), entry.getValue().getAsInt());
         }
         return map;
     }
@@ -166,10 +183,25 @@ public class VendingMachineTile extends TileEntity implements INamedContainerPro
                 LOGGER.info("set item in slot 0 to item " + stack1.getItem() + " (" + stack1.getCount() + ")");
             } else if (price > money.getCount()) {
                 LOGGER.warn("you don't have enough money.");
-                this.getLevel().getPlayerByUUID(this.container.currentPlayer).sendMessage(new TranslationTextComponent("msg.svendingmachine.notenoughmoney"), this.container.currentPlayer);
+                this.getLevel().getPlayerByUUID(this.container.currentPlayer).sendMessage(new TranslationTextComponent("msg.vendingmachine.notenoughmoney"), this.container.currentPlayer);
 
             }
         }
     }
 
+    public void addPrice(ItemStack item, int price){
+        priceMap.put(item.getItem(), price);
+        this.setChanged();
+        LOGGER.info(item + " " + price);
+        LOGGER.info(priceMap.entrySet());
+    }
+
+    public void removePrice(ItemStack item){
+        priceMap.remove(item.getItem());
+        this.setChanged();
+    }
+
+    public Map<Item, Integer> getPrices(){
+        return priceMap;
+    }
 }
