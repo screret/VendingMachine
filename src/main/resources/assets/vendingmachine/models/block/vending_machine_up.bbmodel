@@ -1,19 +1,19 @@
 {
 	"meta": {
 		"format_version": "4.0",
-		"creation_time": 1638010929,
+		"creation_time": 1638704719,
 		"model_format": "java_block",
 		"box_uv": false
 	},
-	"name": "vending_machine_up",
+	"name": "vending_machine_up_blue",
 	"parent": "",
 	"ambientocclusion": true,
 	"front_gui_light": false,
 	"visible_box": [1, 1, 0],
 	"variable_placeholders": "",
 	"resolution": {
-		"width": 32,
-		"height": 32
+		"width": 16,
+		"height": 16
 	},
 	"elements": [
 		{
@@ -21,33 +21,33 @@
 			"rescale": false,
 			"locked": false,
 			"from": [0, 0, 0],
-			"to": [16, 17, 16],
+			"to": [16, 16, 16],
 			"autouv": 0,
 			"color": 3,
 			"origin": [0, 0, 0],
 			"faces": {
 				"north": {
-					"uv": [0, 0, 16, 16],
-					"texture": 0
+					"uv": [8, 0, 16, 8],
+					"texture": 2
 				},
 				"east": {
-					"uv": [16, 0, 32, 16],
-					"texture": 0
+					"uv": [8, 8, 16, 16],
+					"texture": 2
 				},
 				"south": {
-					"uv": [0, 16, 16, 32],
-					"texture": 0
+					"uv": [0, 0, 16, 16],
+					"texture": 1
 				},
 				"west": {
-					"uv": [16, 0, 32, 16],
-					"texture": 0
+					"uv": [8, 8, 16, 16],
+					"texture": 2
 				},
 				"up": {
-					"uv": [16, 0, 32, 16],
-					"texture": 0
+					"uv": [8, 8, 16, 16],
+					"texture": 2
 				},
 				"down": {
-					"uv": [16, 16, 32, 32],
+					"uv": [0, 0, 16, 16],
 					"texture": 0
 				}
 			},
@@ -57,8 +57,8 @@
 	"outliner": ["96abc2ad-9b07-d9bc-c9ef-78fd312bc4cc"],
 	"textures": [
 		{
-			"path": "C:\\Users\\OMISTAJA\\Desktop\\mc modit\\VendingMachineMod\\src\\main\\resources\\assets\\vendingmachine\\textures\\block\\vending_machine_up.png",
-			"name": "vending_machine_up.png",
+			"path": "C:\\Users\\OMISTAJA\\Desktop\\mc modit\\VendingMachineMod\\src\\main\\resources\\assets\\vendingmachine\\textures\\block\\vending_machine_bottom.png",
+			"name": "vending_machine_bottom.png",
 			"folder": "block",
 			"namespace": "vendingmachine",
 			"id": "0",
@@ -67,9 +67,39 @@
 			"visible": true,
 			"mode": "bitmap",
 			"saved": true,
-			"uuid": "68be0717-2276-6103-355d-3a60d7f7fbe8",
-			"relative_path": "../../../textures/block/vending_machine_up.png",
-			"source": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAoNJREFUWEdjlNMM+c8wgIBx1AGDIgSKSmIJpoK+nsUE1ZCjAJwGBtwBSUkeBB0/b94OgmrIUUBSCPQ1R8DteP78OUP3tIPk2Imih2QHNDY2MqSlpYENoZoDiI2C0ix7sMWdrPMYyn8nUc8BA54IiXXARqvj4BC4e5QXTBcx6lAnDRAbBRTbhsUAcCK8ZqQElprjZM3QeAbiOxCoN/nMsH5RH5h9/5Uow9efuWC2Xl8BJCQqlSl2E4YDVj7khxsaLv8RxQEU24YrBIiNAsFmX7ARF1ZfBtPylx5Q7CZGHx+f/9++fUMxiIuLiwEkJiIiAhaPj49nWLhwIViMmZmZ4e/fv2BxEJudnZ0iRzA6OTmBGyQgg37+/IliGMgBIMuNl2ownI2+wTB9+nQMy0COpQSAHQCyXHC+BMP7xBcojoCFwCSWdoa8P5XgEEAHVHEAyFCJZfJgs19EPWTg5UXkBJDYTO4+hvSvRfCgR3YExQ6IiYmBtwn/9bCCzWYq+c3AwsLC8P79ezAf2QFUTwMgB3z9+pWBm5sbbBnMEV/T38E9SrcQgNkIcgQ2B8DkKU35yFHIiBwFyA4AsUGOAPkeBEBpgG4OQI6KvqIauOWCgoLgdCEmJgZ3zMePHynJhQxYQwBk4ufPn+G+L+prgUfJr1+/GGRkZBh+//7NwMrKykAVByAnQhi7518j2Gcz1BYz3Mp4iOJLUHkBcgQIUMUB2MIQ5IAFeqvBUnfv3oUrefLkCdxyqjggLCzsP6ysNzIyYki4FAq3DJsD0B1LcQhs3br1P6isRwYwi0FiP378YHj69CnOhEaxA9BDAJtNoCiAJTqYPNUSIcgBhPIRPz+ikULtKAAAoY9D4Fchc30AAAAASUVORK5CYII="
+			"uuid": "33e657ac-636b-2c41-d71a-6f2fcb8fbf06",
+			"relative_path": "../../../textures/block/vending_machine_bottom.png",
+			"source": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAB5JREFUOE9jDAsL+89AAWAcNYBhNAwYRsOAYViEAQD9HCAh9Qtd3AAAAABJRU5ErkJggg=="
+		},
+		{
+			"path": "C:\\Users\\OMISTAJA\\Desktop\\mc modit\\VendingMachineMod\\src\\main\\resources\\assets\\vendingmachine\\textures\\block\\vending_machine_top_back.png",
+			"name": "vending_machine_top_back.png",
+			"folder": "block",
+			"namespace": "vendingmachine",
+			"id": "2",
+			"particle": false,
+			"render_mode": "normal",
+			"visible": true,
+			"mode": "bitmap",
+			"saved": true,
+			"uuid": "16cd558f-019f-a053-2080-5150542f7d90",
+			"relative_path": "../../../textures/block/vending_machine_top_back.png",
+			"source": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAYFJREFUOE+Nkr9LAmEYxx/zDsFD5EDE4aAtmhrsP3B2zaEEc7KpQVqCliBokRtarKkkamm+P6OlKQIHQcGpG+REvfTi+9D79r7XGT6L9z4/Pu/3+fqmqtVqNJ1OSY1sNkvIFQoFTjcaDer1epxLp9O0XC45j+9UpVKJcMhkMjSfzzUQABjef9ql16N36na7Wh0HBmDYvi+R3xxrEKHgxrim069zVhAPqaD0vM218eGAcrmc1ndnudQK2lK6WkzV63VeAbHqmPy7dRaSYRjk+z6fVcAfDwAIgoAsy9IgQetTXrSxAlVJEkDU4ZkIbYX4KoDgdgQ82Big+uG2L+SwbdvsS7FY/F8BqpPJRN7edq9IrLRYLMhxHArDkEzTJF5BNVF8d1aXfMvtziN9nAy0vxXvBRBEogcoAPCw98JN/X5fAobDoRxmQK1Wi8RbL5fLdPx2IJuTAJoUADzPi/DW1RCDyM1mMxqNRvG5XxPjCpI6sYIwTdSliQCsxf8U8vn82pZv0vzC58XYy7AAAAAASUVORK5CYII="
+		},
+		{
+			"path": "C:\\Users\\OMISTAJA\\Desktop\\mc modit\\VendingMachineMod\\src\\main\\resources\\assets\\vendingmachine\\textures\\block\\vending_machine_blue.png",
+			"name": "vending_machine_blue.png",
+			"folder": "block",
+			"namespace": "vendingmachine",
+			"id": "3",
+			"particle": false,
+			"render_mode": "normal",
+			"visible": true,
+			"mode": "bitmap",
+			"saved": true,
+			"uuid": "19ba61e5-c9f2-d178-e7e9-37890e6247bf",
+			"relative_path": "../../../textures/block/vending_machine_blue.png",
+			"source": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAhdJREFUWEdjlNMM+Z/Eq8sAAgLpBgwy3eVg9pPSTobmVgEwu7b6A0Nfz2IGNekPDC9evACLSUhIMNx6CpGnBDAOOQcg+5Z6IZDkQTAU583bQVANOQrAUbDR6jhD0cFvDP6VCxgW/S8EmxPH2M+wzVuD4eWREwyJHwXAaQAXKCqJJWg3Lv1gByj/3svQZ8/FcNBqGsNG4QawYf5vGxjm839g+Hb6HEO2mhNtHQAKARAAOQA5BKbe2sfw9807hjyrELwOSKIgCiG5gAIDQA4nNgr6miPgUfX8+XOG7mkHGcAOINYAStMAyAGNjY0MaWlpYKPgDnCyUySYiPYduo9TDbEhWJplDzajk3UeQ/nvJIQDCNpOQAElIQiOAno5AJbY7x7lBVtZxKgDSQOUOoDYKMBmD1UccM1ICWz2HCdrhsYzEN+BQL3JZ4b1i/rA7PuvRBm+/swFs/X6CsD03Upl6oQAsgNWPuSHOyBc/iOKA2gWAsRGgWCzL9gNF1ZfBtPylx6QHgLNFRBDQKC2YzOlyQe/A7QVvjJcfcCNYgnIAXYKCxgOPUigrQNAlv+YOI2BIz8LxREHZ7wFWw5yhH2GMG1DQHljN8Nd/1IUS0AOmLLJiCHH7xztHACyGJxN0CwHiYEcAANUDwGYxbgspzi8sRjA6HjrPkpJiM3XtLAYZibYAfS2FNlDVCmKKQmhUQeMhsBoCAx4CAAAJtgUcPAgj74AAAAASUVORK5CYII="
 		}
 	]
 }

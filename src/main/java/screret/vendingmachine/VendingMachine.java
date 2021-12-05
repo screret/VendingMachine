@@ -44,7 +44,7 @@ public class VendingMachine {
     public static final ItemGroup MOD_TAB = new ItemGroup("vendingmachine") {
         @Override
         public ItemStack makeIcon() {
-            return new ItemStack(Registration.VENDER_ITEM.get());
+            return new ItemStack(Registration.VENDER_ITEM_BLUE.get());
         }
     };
 
@@ -56,9 +56,6 @@ public class VendingMachine {
             PROTOCOL_VERSION::equals,
             PROTOCOL_VERSION::equals
     );
-
-    // Directly reference a log4j logger.
-    private static final Logger LOGGER = LogManager.getLogger();
 
     public VendingMachine() {
         // Register the setup method for modloading
@@ -93,21 +90,18 @@ public class VendingMachine {
     private void doClientStuff(final FMLClientSetupEvent event) {
         event.enqueueWork(() -> ScreenManager.register(Registration.VENDER_CONT.get(), VenderBlockScreen::new));
         event.enqueueWork(() -> ScreenManager.register(Registration.VENDER_CONT_PRICES.get(), VenderBlockPriceScreen::new));
-        LOGGER.debug("Screens Registered");
     }
 
     private void enqueueIMC(final InterModEnqueueEvent event)
     {
         // some example code to dispatch IMC to another mod
-        InterModComms.sendTo(MODID, "helloworld", () -> { LOGGER.info("Hello world from the MDK"); return "Hello world";});
+
     }
 
     private void processIMC(final InterModProcessEvent event)
     {
         // some example code to receive and process InterModComms from other mods
-        LOGGER.info("Got IMC {}", event.getIMCStream().
-                map(m->m.getMessageSupplier().get()).
-                collect(Collectors.toList()));
+
     }
     // You can use SubscribeEvent and let the Event Bus discover methods to call
     /*@SubscribeEvent
@@ -115,15 +109,4 @@ public class VendingMachine {
         // do something when the server starts
         LOGGER.info("HELLO from server starting");
     }*/
-
-    // You can use EventBusSubscriber to automatically subscribe events on the contained class (this is subscribing to the MOD
-    // Event bus for receiving Registry Events)
-    @Mod.EventBusSubscriber(bus=Mod.EventBusSubscriber.Bus.MOD)
-    public static class RegistryEvents {
-        @SubscribeEvent
-        public static void onBlocksRegistry(final RegistryEvent.Register<Block> blockRegistryEvent) {
-            // register a new block here
-            LOGGER.info("HELLO from Register Block");
-        }
-    }
 }

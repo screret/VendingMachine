@@ -9,9 +9,11 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.container.INamedContainerProvider;
 import net.minecraft.item.BlockItemUseContext;
+import net.minecraft.item.DyeColor;
 import net.minecraft.item.ItemStack;
 import net.minecraft.state.EnumProperty;
 import net.minecraft.state.StateContainer;
+import net.minecraft.state.properties.AttachFace;
 import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.state.properties.DoubleBlockHalf;
 import net.minecraft.tileentity.TileEntity;
@@ -30,19 +32,18 @@ import java.util.UUID;
 
 public class VendingMachineBlock extends HorizontalBlock {
     public static final EnumProperty<DoubleBlockHalf> HALF = BlockStateProperties.DOUBLE_BLOCK_HALF;
+    private static final EnumProperty<DyeColor> COLOR = EnumProperty.create("color", DyeColor.class);
+    private final DyeColor color;
 
-    public VendingMachineBlock(Properties properties) {
+    public VendingMachineBlock(DyeColor color, Properties properties) {
         super(properties);
-        //HALF = BlockStateProperties.DOUBLE_BLOCK_HALF;
-        this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(HALF, DoubleBlockHalf.LOWER));
-//        Minecraft.getInstance().getTextureManager().bindTexture(new ResourceLocation("minecraft", "textures/block/oak_planks.png"));
-//        Minecraft.getInstance().getTextureManager().bindTexture(new ResourceLocation("minecraft", "textures/block/glass.png"));
-//        Minecraft.getInstance().getTextureManager().bindTexture(new ResourceLocation("minecraft", "textures/block/iron_block.png"));
+        this.color = color;
+        this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(HALF, DoubleBlockHalf.LOWER).setValue(COLOR, color));
     }
 
     @Override
     protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> builder){
-        builder.add(FACING, HALF);
+        builder.add(FACING, HALF, COLOR);
     }
 
     @Override
@@ -52,7 +53,7 @@ public class VendingMachineBlock extends HorizontalBlock {
 
     @Override
     public BlockState getStateForPlacement(BlockItemUseContext context) {
-        return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite()).setValue(HALF, DoubleBlockHalf.LOWER);//.with(BlockStateProperties.HORIZONTAL_FACING, context.getNearestLookingDirection().getOpposite());
+        return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite()).setValue(HALF, DoubleBlockHalf.LOWER).setValue(COLOR, color);
     }
 
     @Override
@@ -84,11 +85,8 @@ public class VendingMachineBlock extends HorizontalBlock {
             if (tileEntity instanceof VendingMachineTile) {
                 VendingMachineTile finalTileEntity = (VendingMachineTile)tileEntity;
                 BlockPos finalBlockPos = blockPos;
-                //finalTileEntity.currentPlayer = player.getUUID();
-
 
                 NetworkHooks.openGui((ServerPlayerEntity) player, finalTileEntity, buffer -> buffer.writeBlockPos(finalBlockPos));
-                //player.openMenu(provider);
 
             } else {
                 throw new IllegalStateException("Our named container provider is missing!");

@@ -8,7 +8,6 @@ import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.client.renderer.ItemRenderer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.ITextComponent;
 import screret.vendingmachine.VendingMachine;
 import screret.vendingmachine.init.Registration;
@@ -36,7 +35,7 @@ public class VenderTabButton extends Button {
     }
 
     public ItemRenderer itemRenderer;
-    ItemStack stack = new ItemStack(Registration.VENDER_ITEM.get());
+    ItemStack stack = new ItemStack(Registration.VENDER_ITEM_BLUE.get());
 
     @Override
     public void renderButton(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
@@ -75,7 +74,7 @@ public class VenderTabButton extends Button {
             this.blit(matrixStack, this.x, this.y, 208, 0, this.xSize, this.ySize);
             this.renderBg(matrixStack, minecraft, mouseX, mouseY);
             int j = getFGColor();
-            itemRenderer.renderAndDecorateItem(new ItemStack(Registration.VENDER_ITEM.get()), this.x + 4, this.y + 5);
+            itemRenderer.renderAndDecorateItem(new ItemStack(Registration.VENDER_ITEM_BLUE.get()), this.x + 4, this.y + 5);
             this.itemRenderer.renderGuiItemDecorations(minecraft.font, stack, itemX, itemY);
             //drawCenteredString(matrixStack, fontrenderer, this.getMessage(), this.x + this.width / 2, this.y + (this.height - 8) / 2, j | MathHelper.ceil(this.alpha * 255.0F) << 24);
         }

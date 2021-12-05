@@ -11,20 +11,24 @@ import java.util.function.Supplier;
 public class PacketSendBuy {
     private final int slot;
     private final BlockPos pos;
+    private final int amount;
 
     public PacketSendBuy(PacketBuffer buf) {
         pos = buf.readBlockPos();
         slot = buf.readInt();
+        amount = buf.readInt();
     }
 
-    public PacketSendBuy(BlockPos pos, int slot) {
+    public PacketSendBuy(BlockPos pos, int slot, int amount) {
         this.pos = pos;
         this.slot = slot;
+        this.amount = amount;
     }
 
     public static void encode(PacketSendBuy packet, PacketBuffer buf) {
         buf.writeBlockPos(packet.pos);
         buf.writeInt(packet.slot);
+        buf.writeInt(packet.amount);
     }
 
     public static void handle(final PacketSendBuy packet, Supplier<NetworkEvent.Context> context) {
@@ -34,7 +38,7 @@ public class PacketSendBuy {
         ctx.enqueueWork(() -> {
             VendingMachineTile tile = (VendingMachineTile)playerEntity.getLevel().getBlockEntity(packet.pos);
 
-           tile.buy(packet.slot);
+           tile.buy(packet.slot, packet.amount);
             //DistExecutor.safeRunWhenOn(Dist.DEDICATED_SERVER, () -> openScreen(slot, context.get().getSender()));
         });
 

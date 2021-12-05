@@ -7,7 +7,6 @@ import net.minecraft.inventory.container.ClickType;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
@@ -15,6 +14,7 @@ import net.minecraftforge.items.SlotItemHandler;
 import net.minecraftforge.items.wrapper.PlayerInvWrapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import screret.vendingmachine.configs.VendingMachineConfig;
 import screret.vendingmachine.init.Registration;
 import screret.vendingmachine.tileEntities.VendingMachineTile;
 
@@ -27,7 +27,7 @@ public class VenderBlockContainer extends Container {
 
     private final PlayerInvWrapper playerInventory;
     public final OwnedStackHandler inputInventory;
-    private final ItemHandlerMoney moneyInventory;
+    private final ItemStackHandlerMoney moneyInventory;
     private final IItemHandler outputInventory;
 
     public boolean isAllowedToTakeItems = false;
@@ -49,7 +49,7 @@ public class VenderBlockContainer extends Container {
     private int quickcraftType = -1;
     private final Set<Slot> quickcraftSlots = Sets.newHashSet();
 
-    public VenderBlockContainer(int windowID, PlayerInventory playerInventory, OwnedStackHandler inputInv, IItemHandler outputInv, ItemHandlerMoney moneyInv, VendingMachineTile tileEntity) {
+    public VenderBlockContainer(int windowID, PlayerInventory playerInventory, OwnedStackHandler inputInv, IItemHandler outputInv, ItemStackHandlerMoney moneyInv, VendingMachineTile tileEntity) {
         super(Registration.VENDER_CONT.get(), windowID);
         this.playerInventory = new PlayerInvWrapper(playerInventory);
         this.tile = tileEntity;
@@ -88,7 +88,7 @@ public class VenderBlockContainer extends Container {
     public ItemStack quickMoveStack(PlayerEntity playerEntity, int slotId) {
         ItemStack itemstack = ItemStack.EMPTY;
         SlotItemHandler slot = (SlotItemHandler) this.slots.get(slotId);
-        if(!isAllowedToTakeItems && !slot.getItemHandler().isItemValid(0, new ItemStack(Items.GOLD_INGOT))) { return ItemStack.EMPTY; }
+        if((slot.getItemHandler() != playerInventory && slot.getItemHandler() != moneyInventory) && !isAllowedToTakeItems && !slot.getItemHandler().isItemValid(0, new ItemStack(VendingMachineConfig.PAYMENT_ITEM))) { return ItemStack.EMPTY; }
         if (slot != null && slot.hasItem()) {
             ItemStack itemstack1 = slot.getItem();
             itemstack = slot.getItem();
@@ -140,15 +140,18 @@ public class VenderBlockContainer extends Container {
     public ItemStack clicked(int slotId, int dragType, ClickType clickTypeIn, PlayerEntity player) {
         if (slotId > INPUT_SLOTS_X_AMOUNT_PLUS_1 * INPUT_SLOTS_Y_AMOUNT_PLUS_1) {
             SlotItemHandler slot = (SlotItemHandler) this.slots.get(slotId);
-            if (slot.getItemHandler() == inputInventory) {
-                if(!isAllowedToTakeItems && clickTypeIn == ClickType.PICKUP) {
+            if(!isAllowedToTakeItems) {
+                if (slot.getItemHandler() == inputInventory) {
                     selectedSlot = slot;
                     ItemStack playerCarried = player.inventory.getCarried();
                     if(!playerCarried.isEmpty()){
-                        player.inventory.setCarried(ItemStack.EMPTY);
+                        /*player.inventory.setCarried(ItemStack.EMPTY);
                         for (int i = 0; i < playerInventory.getSlots(); i++){
-                            playerInventory.setStackInSlot(i, playerInventory.getStackInSlot(i).isEmpty() ? playerCarried : playerInventory.getStackInSlot(i));
-                        }
+                            if(playerInventory.getStackInSlot(i).isEmpty()){
+                                playerInventory.setStackInSlot(i, playerCarried);
+                                break;
+                            }
+                        }*/
                     }
                     return ItemStack.EMPTY;
                 }
@@ -184,6 +187,10 @@ public class VenderBlockContainer extends Container {
         int i = slot;
         if (simulate) {
             i = slot2 - 1;
+        }
+
+        if(!isAllowedToTakeItems){
+            return false;
         }
 
         if (stack.isStackable()) {
@@ -367,10 +374,11 @@ public class VenderBlockContainer extends Container {
                     return ItemStack.EMPTY;
                 }
 
-                Slot slot5 = this.slots.get(slotId);
+                SlotItemHandler slot5 = (SlotItemHandler) this.slots.get(slotId);
                 if (slot5 == null || !slot5.mayPickup(playerEntity)) {
                     return ItemStack.EMPTY;
                 }
+
 
                 for(ItemStack itemstack8 = this.quickMoveStack(playerEntity, slotId); !itemstack8.isEmpty() && ItemStack.isSame(slot5.getItem(), itemstack8); itemstack8 = this.quickMoveStack(playerEntity, slotId)) {
                     itemstack = itemstack8.copy();

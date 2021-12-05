@@ -1,0 +1,26 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "pattern": [
+        "#x#",
+        "#y#",
+		"#z#"
+    ],
+    "key": {
+        "#": {
+            "item": "minecraft:iron_ingot"
+        },
+		"x": {
+            "item": "minecraft:redstone"
+        },
+		"y": {
+            "item": "minecraft:glass"
+        },
+		"z": {
+            "item": "minecraft:red_dye"
+        }
+    },
+    "result": {
+        "item": "vendingmachine:vending_machine_red",
+        "count": 1
+    }
+}

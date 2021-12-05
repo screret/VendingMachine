@@ -1,0 +1,105 @@
+{
+	"meta": {
+		"format_version": "4.0",
+		"creation_time": 1638704679,
+		"model_format": "java_block",
+		"box_uv": false
+	},
+	"name": "vending_machine_down_blue",
+	"parent": "",
+	"ambientocclusion": true,
+	"front_gui_light": false,
+	"visible_box": [1, 1, 0],
+	"variable_placeholders": "",
+	"resolution": {
+		"width": 16,
+		"height": 16
+	},
+	"elements": [
+		{
+			"name": "cube",
+			"rescale": false,
+			"locked": false,
+			"from": [0, 0, 0],
+			"to": [16, 16, 16],
+			"autouv": 0,
+			"color": 3,
+			"origin": [0, 0, 0],
+			"faces": {
+				"north": {
+					"uv": [0, 0, 8, 8],
+					"texture": 2
+				},
+				"east": {
+					"uv": [0, 8, 8, 16],
+					"texture": 2
+				},
+				"south": {
+					"uv": [0, 0, 16, 16],
+					"texture": 1
+				},
+				"west": {
+					"uv": [8, 8, 16, 16],
+					"texture": 2
+				},
+				"up": {
+					"uv": [0, 0, 16, 16],
+					"texture": 0
+				},
+				"down": {
+					"uv": [0, 0, 16, 16],
+					"texture": 0
+				}
+			},
+			"uuid": "7d49c515-c4e7-c548-bc0d-9793f76d58f2"
+		}
+	],
+	"outliner": ["7d49c515-c4e7-c548-bc0d-9793f76d58f2"],
+	"textures": [
+		{
+			"path": "C:\\Users\\OMISTAJA\\Desktop\\mc modit\\VendingMachineMod\\src\\main\\resources\\assets\\vendingmachine\\textures\\block\\vending_machine_bottom.png",
+			"name": "vending_machine_bottom.png",
+			"folder": "block",
+			"namespace": "vendingmachine",
+			"id": "1",
+			"particle": false,
+			"render_mode": "normal",
+			"visible": true,
+			"mode": "bitmap",
+			"saved": true,
+			"uuid": "f94f11ea-5aa8-1f14-1646-8a2445f90dfa",
+			"relative_path": "../../../textures/block/vending_machine_bottom.png",
+			"source": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAB5JREFUOE9jDAsL+89AAWAcNYBhNAwYRsOAYViEAQD9HCAh9Qtd3AAAAABJRU5ErkJggg=="
+		},
+		{
+			"path": "C:\\Users\\OMISTAJA\\Desktop\\mc modit\\VendingMachineMod\\src\\main\\resources\\assets\\vendingmachine\\textures\\block\\vending_machine_down_back.png",
+			"name": "vending_machine_down_back.png",
+			"folder": "block",
+			"namespace": "vendingmachine",
+			"id": "4",
+			"particle": false,
+			"render_mode": "normal",
+			"visible": true,
+			"mode": "bitmap",
+			"saved": true,
+			"uuid": "7722c420-be93-4115-7a6a-255673f06ab3",
+			"relative_path": "../../../textures/block/vending_machine_down_back.png",
+			"source": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAaJJREFUOE+NU0FLAmEQHZF1RSHyEATrzT3lf7BTeBG8GXRZEDx4iYjECPRgFIlC1qG7RyG6Ryf9AevJTnYzSBNERWlxxZhZvmF326I5ffu+eW/evOXzpdPpzXq9Biy/3w94DoVCoGkaNJtNwsfjMWHL5ZK+RSHmS6VSGwcKAPl8Hnb36vDxekYiKGAvWZbBMAyCPAVQuVj9hGpxhx0IASTXej0oxOMk4imAq5QbM6icbDkmz+dzuO/3CTtWVcuBVwZugUgkAqZpwnmnQ6SbRIKF/+3gqtt1kBeLBYTDYfBlMhkOUQSDne4VUMA+WVj4UwCbMAf3dMTfy5dWBrlcjh2MRiPAfSeTCV2iC3n/zWFdEBFUKiVLYLVagSRJMBgMIBAIEAGnGu0YndHFrNbg4JDIKwgHSMb/a6/HbBbaRxpD28VTCg6LQ7SvgCLRaJQJ/cIFnetSFm5LikPc0wGSBQkbkk8t6js4fGbySysJuq7zW6EMcPLX3QM3qbVrOiuKAsFgkHG7EIL4VjjE4XDI9kWosZgVort+OPDsAoDpdPrbFePfnv7U4ho4lO0AAAAASUVORK5CYII="
+		},
+		{
+			"path": "C:\\Users\\OMISTAJA\\Desktop\\mc modit\\VendingMachineMod\\src\\main\\resources\\assets\\vendingmachine\\textures\\block\\vending_machine_blue.png",
+			"name": "vending_machine_blue.png",
+			"folder": "block",
+			"namespace": "vendingmachine",
+			"id": "2",
+			"particle": true,
+			"render_mode": "normal",
+			"visible": true,
+			"mode": "bitmap",
+			"saved": true,
+			"uuid": "01742479-96d9-9cb8-f9fa-0c303022b1bb",
+			"relative_path": "../../../textures/block/vending_machine_blue.png",
+			"source": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAhdJREFUWEdjlNMM+Z/Eq8sAAgLpBgwy3eVg9pPSTobmVgEwu7b6A0Nfz2IGNekPDC9evACLSUhIMNx6CpGnBDAOOQcg+5Z6IZDkQTAU583bQVANOQrAUbDR6jhD0cFvDP6VCxgW/S8EmxPH2M+wzVuD4eWREwyJHwXAaQAXKCqJJWg3Lv1gByj/3svQZ8/FcNBqGsNG4QawYf5vGxjm839g+Hb6HEO2mhNtHQAKARAAOQA5BKbe2sfw9807hjyrELwOSKIgCiG5gAIDQA4nNgr6miPgUfX8+XOG7mkHGcAOINYAStMAyAGNjY0MaWlpYKPgDnCyUySYiPYduo9TDbEhWJplDzajk3UeQ/nvJIQDCNpOQAElIQiOAno5AJbY7x7lBVtZxKgDSQOUOoDYKMBmD1UccM1ICWz2HCdrhsYzEN+BQL3JZ4b1i/rA7PuvRBm+/swFs/X6CsD03Upl6oQAsgNWPuSHOyBc/iOKA2gWAsRGgWCzL9gNF1ZfBtPylx6QHgLNFRBDQKC2YzOlyQe/A7QVvjJcfcCNYgnIAXYKCxgOPUigrQNAlv+YOI2BIz8LxREHZ7wFWw5yhH2GMG1DQHljN8Nd/1IUS0AOmLLJiCHH7xztHACyGJxN0CwHiYEcAANUDwGYxbgspzi8sRjA6HjrPkpJiM3XtLAYZibYAfS2FNlDVCmKKQmhUQeMhsBoCAx4CAAAJtgUcPAgj74AAAAASUVORK5CYII="
+		}
+	]
+}
