@@ -7,7 +7,7 @@
   "gui.vendingmachine.inputtemplate": "minecraft:dirt",
   "block.vendingmachine.vending_machine_white": "White vending machine",
   "block.vendingmachine.vending_machine_orange": "Orange vending machine",
-  "block.vendingmachine.vending_machine_magenta": "Pink vending machine",
+  "block.vendingmachine.vending_machine_magenta": "Magenta vending machine",
   "block.vendingmachine.vending_machine_light_blue": "Light blue vending machine",
   "block.vendingmachine.vending_machine_yellow": "Yellow vending machine",
   "block.vendingmachine.vending_machine_lime": "Lime vending machine",
@@ -22,6 +22,7 @@
   "block.vendingmachine.vending_machine_red": "Red vending machine",
   "block.vendingmachine.vending_machine_black": "Black vending machine",
   "itemGroup.vendingmachine": "Vending machines",
-  "msg.vendingmachine.notenoughmoney": "§6You appear to not have inserted enough money to the machine.",
-  "msg.vendingmachine.buy": "§6Bought %1$s §6for %2$s §2%3$s."
+  "msg.vendingmachine.notenoughmoney": "§cYou appear to not have inserted enough money to the machine. \n§6You get what you can pay for.",
+  "msg.vendingmachine.buy": "§6Bought %1$s §6for %2$s %3$s.",
+  "msg.vendingmachine.price": "§6Price: %1$s."
 }

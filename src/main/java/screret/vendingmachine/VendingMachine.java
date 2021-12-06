@@ -25,10 +25,7 @@ import org.apache.logging.log4j.Logger;
 import screret.vendingmachine.configs.VendingMachineConfig;
 import screret.vendingmachine.containers.gui.VenderBlockPriceScreen;
 import screret.vendingmachine.containers.gui.VenderBlockScreen;
-import screret.vendingmachine.events.packets.ChangePricePacket;
-import screret.vendingmachine.events.packets.OpenGUIPacket;
-import screret.vendingmachine.events.packets.PacketAllowItemTake;
-import screret.vendingmachine.events.packets.PacketSendBuy;
+import screret.vendingmachine.events.packets.*;
 import screret.vendingmachine.init.Registration;
 
 import java.util.Optional;
@@ -85,6 +82,7 @@ public class VendingMachine {
         NETWORK_HANDLER.registerMessage(1, PacketAllowItemTake.class, PacketAllowItemTake::encode, PacketAllowItemTake::new, PacketAllowItemTake::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
         NETWORK_HANDLER.registerMessage(2, OpenGUIPacket.class, OpenGUIPacket::encode, OpenGUIPacket::new, OpenGUIPacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
         NETWORK_HANDLER.registerMessage(3, ChangePricePacket.class, ChangePricePacket::encode, ChangePricePacket::new, ChangePricePacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        NETWORK_HANDLER.registerMessage(4, DropMoneyOnClosePacket.class, DropMoneyOnClosePacket::encode, DropMoneyOnClosePacket::new, DropMoneyOnClosePacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
     }
 
     private void doClientStuff(final FMLClientSetupEvent event) {

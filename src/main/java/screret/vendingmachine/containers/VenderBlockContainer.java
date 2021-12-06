@@ -75,7 +75,7 @@ public class VenderBlockContainer extends Container {
             currentPlayer = playerInventory.player.getUUID();
             checkPlayerAllowedToChangeInv(currentPlayer);
 
-            this.addSlot(new SlotItemHandler(this.moneyInventory, 0, MONEY_SLOT_XPOS, MONEY_SLOT_YPOS));
+            this.addSlot(MyHandler(this.moneyInventory, 0, MONEY_SLOT_XPOS, MONEY_SLOT_YPOS));
 
             final int OUTPUT_SLOTS_XPOS = 134;
             final int OUTPUT_SLOTS_YPOS = 90;
@@ -162,11 +162,11 @@ public class VenderBlockContainer extends Container {
 
     public boolean checkPlayerAllowedToChangeInv(UUID currentPlayer){
         isAllowedToTakeItems = currentPlayer.equals(tile.owner) && !buyTestMode_REMOVE_LATER;
-        if(tile.owner != null && tile.getLevel().getPlayerByUUID(tile.owner) != null){
+        /*if(tile.owner != null && tile.getLevel().getPlayerByUUID(tile.owner) != null){
             String _ownerName = ITextComponent.Serializer.fromJsonLenient(tile.getLevel().getPlayerByUUID(tile.owner).getDisplayName().getString()).getString();
             String _openerName = ITextComponent.Serializer.fromJsonLenient(tile.getLevel().getPlayerByUUID(currentPlayer).getDisplayName().getString()).getString();
-            LOGGER.info("Current player who has the GUI open is the owner: " + isAllowedToTakeItems + "\n owner: " + _ownerName + "(" + tile.owner + ")" + "\n opener: " + _openerName + "(" + currentPlayer + ")");
-        }
+            LOGGER.info("Current player who has the GUI open is the owner: " + isAllowedToTakeItems + "\n owner: " + _ownerName + " (" + tile.owner + ")" + "\n opener: " + _openerName + " (" + currentPlayer + ")");
+        }*/
         if(!isAllowedToTakeItems){
             selectedSlot = null;
         }
@@ -203,7 +203,7 @@ public class VenderBlockContainer extends Container {
                     break;
                 }
 
-                Slot slot1 = this.slots.get(i);
+                SlotItemHandler slot1 = (SlotItemHandler) this.slots.get(i);
                 ItemStack itemstack = slot1.getItem();
                 if (!itemstack.isEmpty() && consideredTheSameItem(stack, itemstack)) {
                     int j = itemstack.getCount() + stack.getCount();
@@ -245,7 +245,7 @@ public class VenderBlockContainer extends Container {
                     break;
                 }
 
-                Slot slot1 = this.slots.get(i);
+                SlotItemHandler slot1 = (SlotItemHandler) this.slots.get(i);
                 ItemStack itemstack1 = slot1.getItem();
                 if (itemstack1.isEmpty() && slot1.mayPlace(stack)) {
                     if (stack.getCount() > slot1.getMaxStackSize()) {
@@ -388,7 +388,7 @@ public class VenderBlockContainer extends Container {
                     return ItemStack.EMPTY;
                 }
 
-                Slot slot6 = this.slots.get(slotId);
+                SlotItemHandler slot6 = (SlotItemHandler) this.slots.get(slotId);
                 if (slot6 != null) {
                     ItemStack itemstack9 = slot6.getItem();
                     ItemStack itemstack11 = playerinventory.getCarried();

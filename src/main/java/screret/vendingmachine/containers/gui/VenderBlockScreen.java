@@ -1,17 +1,21 @@
 package screret.vendingmachine.containers.gui;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
+import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.client.gui.widget.button.Button;
+import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.server.SOpenWindowPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
@@ -87,6 +91,26 @@ public class VenderBlockScreen extends ContainerScreen<VenderBlockContainer> {
         relX = (this.width - this.getXSize()) / 2;
         relY = (this.height - this.getYSize()) / 2;
         this.blit(matrixStack, relX, relY, 0, 0, this.getXSize(), this.getYSize());
+    }
+
+    private ItemStack lastItem;
+    private TranslationTextComponent itemPrice = new TranslationTextComponent("msg.vendingmachine.price");
+    private TranslationTextComponent lastItemPrice = new TranslationTextComponent("msg.vendingmachine.price");
+
+    @Override
+    protected void renderTooltip(MatrixStack matrixStack, ItemStack itemStack, int x, int y) {
+        itemPrice = new TranslationTextComponent("msg.vendingmachine.price", this.menu.getTile().getPrices().get(itemStack.getItem()));
+        FontRenderer font = itemStack.getItem().getFontRenderer(itemStack);
+        net.minecraftforge.fml.client.gui.GuiUtils.preItemToolTip(itemStack);
+        if(lastItem != null){
+            this.getTooltipFromItem(lastItem).remove(lastItemPrice);
+        }
+        this.getTooltipFromItem(itemStack).add(itemPrice);
+        this.renderWrappedToolTip(matrixStack, this.getTooltipFromItem(itemStack), x, y, (font == null ? this.font : font));
+        net.minecraftforge.fml.client.gui.GuiUtils.postItemToolTip();
+
+        lastItemPrice = itemPrice;
+        lastItem = itemStack;
     }
 
     public Button.IPressable onTestButtonPress = new Button.IPressable() {

@@ -2,6 +2,7 @@ package screret.vendingmachine.configs;
 
 import net.minecraft.entity.passive.PandaEntity;
 import net.minecraft.item.Item;
+import net.minecraft.item.Items;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.registry.Registry;
 import net.minecraftforge.common.ForgeConfigSpec;
@@ -56,17 +57,21 @@ public class VendingMachineConfig extends ForgeConfigSpec.Builder {
             String value = string.split(" ")[1];
 
             String[] keyParts = key.split(":");
-            map.put(Registry.ITEM.get(new ResourceLocation(keyParts[0], keyParts[1])), Integer.decode(value));
+            if(ResourceLocation.isValidResourceLocation(key)) {
+                map.put(ForgeRegistries.ITEMS.getValue(new ResourceLocation(keyParts[0], keyParts[1])), Integer.decode(value));
+            }
         }
 
-        DECRYPTED_PRICES = map;
         return map;
     }
 
     public static Item PAYMENT_ITEM = getPaymentItem();
 
     public static Item getPaymentItem(){
-        return ForgeRegistries.ITEMS.getValue(new ResourceLocation(GENERAL.paymentItem.get()));
+        if(ResourceLocation.isValidResourceLocation(GENERAL.paymentItem.get())) {
+            return ForgeRegistries.ITEMS.getValue(new ResourceLocation(GENERAL.paymentItem.get()));
+        }
+        return Items.AIR;
     }
 
 }

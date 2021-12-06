@@ -3,6 +3,7 @@ package screret.vendingmachine.tileEntities;
 import com.google.gson.*;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.block.BlockState;
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -15,14 +16,17 @@ import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SUpdateTileEntityPacket;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.wrapper.CombinedInvWrapper;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import screret.vendingmachine.VendingMachine;
+import screret.vendingmachine.blocks.VendingMachineBlock;
 import screret.vendingmachine.configs.VendingMachineConfig;
 import screret.vendingmachine.containers.ItemStackHandlerMoney;
 import screret.vendingmachine.containers.ItemStackHandlerOutput;
@@ -30,7 +34,6 @@ import screret.vendingmachine.containers.OwnedStackHandler;
 import screret.vendingmachine.containers.VenderBlockContainer;
 import screret.vendingmachine.init.Registration;
 
-import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -129,6 +132,13 @@ public class VendingMachineTile extends TileEntity implements INamedContainerPro
         }
     }
 
+    public void dropMoney(){
+        BlockPos pos = getBlockPos().relative(this.getBlockState().getValue(VendingMachineBlock.FACING));
+        ItemEntity entity = new ItemEntity(getLevel(), pos.getX(), pos.getY(), pos.getZ());
+        entity.spawnAtLocation(moneySlot.getStackInSlot(0));
+        moneySlot.setStackInSlot(0, ItemStack.EMPTY);
+    }
+
     @Override
     public CompoundNBT getUpdateTag(){
         CompoundNBT nbt = this.save(new CompoundNBT());
@@ -167,11 +177,17 @@ public class VendingMachineTile extends TileEntity implements INamedContainerPro
             int price = VendingMachineConfig.GENERAL.allowPriceEditing.get() ? this.priceMap.getOrDefault(stack.getItem(), 4) : VendingMachineConfig.DECRYPTED_PRICES.getOrDefault(stack.getItem(), 4);
             ItemStack stack1 = new ItemStack(stack.getItem(), Math.min(stack.getCount(), amount));
             if (!stack.isEmpty() && price * amount < money.getCount()) {
-                outputSlot.insertItem(0, stack1, false);
-                inputSlot.extractItem(slotIndex, Math.min(money.getCount(), amount), false);
+                outputSlot.setStackInSlot(0, new ItemStack(stack1.getItem(), stack1.getCount() + outputSlot.getStackInSlot(0).getCount()));
+                inputSlot.extractItem(slotIndex, Math.min(money.getCount() * price, amount), false);
                 moneySlot.extractItem(0, amount * price, false);
-                this.getLevel().getPlayerByUUID(this.container.currentPlayer).sendMessage(new TranslationTextComponent("msg.vendingmachine.buy", stack1.toString(), amount * price, VendingMachineConfig.PAYMENT_ITEM), this.container.currentPlayer);
+                this.getLevel().getPlayerByUUID(this.container.currentPlayer).sendMessage(new TranslationTextComponent("msg.vendingmachine.buy", stack1.toString(), amount * price, new StringTextComponent(VendingMachineConfig.PAYMENT_ITEM.toString()).withStyle(TextFormatting.DARK_GREEN)), this.container.currentPlayer);
             } else if (price * amount > money.getCount()) {
+                amount = money.getCount() / price;
+                stack1 = new ItemStack(stack.getItem(), amount);
+                outputSlot.setStackInSlot(0, new ItemStack(stack1.getItem(), stack1.getCount() + outputSlot.getStackInSlot(0).getCount()));
+                inputSlot.extractItem(slotIndex, Math.min(money.getCount() * price, amount), false);
+                moneySlot.extractItem(0, amount * price, false);
+
                 this.getLevel().getPlayerByUUID(this.container.currentPlayer).sendMessage(new TranslationTextComponent("msg.vendingmachine.notenoughmoney"), this.container.currentPlayer);
             }
         }
@@ -180,7 +196,6 @@ public class VendingMachineTile extends TileEntity implements INamedContainerPro
     public void addPrice(ItemStack item, int price){
         priceMap.put(item.getItem(), price);
         this.setChanged();
-        LOGGER.info(item + " " + price);
         LOGGER.info(priceMap.entrySet());
     }
 

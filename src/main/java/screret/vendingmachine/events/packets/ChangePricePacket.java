@@ -53,7 +53,6 @@ public class ChangePricePacket {
                 } else {
                     DistExecutor.unsafeRunWhenOn(Dist.DEDICATED_SERVER, () -> () -> finalTile.removePrice(packet.item));
                 }
-                finalTile.addPrice(packet.item, packet.price);
             }
         });
 

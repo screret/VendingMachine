@@ -25,6 +25,7 @@ import screret.vendingmachine.configs.VendingMachineConfig;
 import screret.vendingmachine.containers.VenderBlockContainer;
 import screret.vendingmachine.containers.VenderPriceEditorContainer;
 import screret.vendingmachine.events.packets.ChangePricePacket;
+import screret.vendingmachine.events.packets.DropMoneyOnClosePacket;
 import screret.vendingmachine.events.packets.OpenGUIPacket;
 import screret.vendingmachine.tileEntities.VendingMachineTile;
 
@@ -302,6 +303,12 @@ public class VenderBlockPriceScreen extends ContainerScreen<VenderPriceEditorCon
         }else{
             return super.keyPressed(key, p_keyPressed_2_, p_keyPressed_3_);
         }
+    }
+
+    @Override
+    public void onClose() {
+        super.onClose();
+        VendingMachine.NETWORK_HANDLER.sendToServer(new DropMoneyOnClosePacket(this.menu.getTile().getBlockPos()));
     }
 
     public void renderOthers(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {

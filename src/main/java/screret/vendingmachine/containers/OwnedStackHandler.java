@@ -55,7 +55,6 @@ public class OwnedStackHandler extends ItemStackHandler {
                 return stack;
 
             limit -= existing.getCount();
-            LOGGER.info(limit);
         }
 
         if (limit <= 0)
