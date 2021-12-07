@@ -6,6 +6,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.BaseComponent;
 import net.minecraft.network.chat.Component;
@@ -79,14 +80,14 @@ public class VenderBlockPriceScreen extends AbstractContainerScreen<VenderPriceE
         addPriceButton = new VenderCustomizableButton(gui, leftPos + 148, topPos + 32, 16, 16, 192, 15, onAddPress);
         delPriceButton = new VenderCustomizableButton(gui, leftPos + 148, topPos + 76, 16, 16, 176, 15, onRemovedPress);
 
-        this.addRenderableWidget(addPriceButton);
-        this.addRenderableWidget(delPriceButton);
+        this.addWidget(addPriceButton);
+        this.addWidget(delPriceButton);
 
         mainPageButton = new VenderTabButton(leftPos + this.imageWidth, topPos + 2, 32, 28, new TranslatableComponent("gui.vendingmachine.tab_price"), onTabButtonPress(true), true, false);
         thisPageButton = new VenderTabButton(leftPos + this.imageWidth, topPos + 30, 32, 28, new TranslatableComponent("gui.vendingmachine.tab_price"), onTabButtonPress(false), false, true);
 
-        this.addRenderableWidget(mainPageButton);
-        this.addRenderableWidget(thisPageButton);
+        this.addWidget(mainPageButton);
+        this.addWidget(thisPageButton);
     }
 
     @Override
@@ -97,7 +98,9 @@ public class VenderBlockPriceScreen extends AbstractContainerScreen<VenderPriceE
         this.renderOthers(PoseStack, mouseX, mouseY, partialTicks);
         this.renderButtons(PoseStack, mouseX, mouseY, leftPos + 12, topPos + 21, this.startIndex + 9, partialTicks);
 
-        this.minecraft.getTextureManager().bindForSetup(gui);
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderSystem.setShaderTexture(0, this.gui);
         int k = (int)(147.0F * this.scrollOffs);
         this.blit(PoseStack, leftPos + 127, topPos + 21 + k, 176 + (this.isScrollBarActive() ? 0 : 12), 0, 12, 15);
 
@@ -113,10 +116,11 @@ public class VenderBlockPriceScreen extends AbstractContainerScreen<VenderPriceE
 
     @Override
     protected void renderBg(PoseStack PoseStack, float partialTicks, int mouseX, int mouseY) {
-        GL11.glColor4f(1, 1, 1, 1);
         mainPageButton.renderButton(PoseStack, mouseX, mouseY, partialTicks);
         thisPageButton.renderButton(PoseStack, mouseX, mouseY, partialTicks);
-        this.minecraft.getTextureManager().bindForSetup(gui);
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderSystem.setShaderTexture(0, this.gui);
         this.blit(PoseStack, leftPos, topPos, 0, 0, this.getXSize(), this.getYSize());
     }
 
@@ -135,7 +139,9 @@ public class VenderBlockPriceScreen extends AbstractContainerScreen<VenderPriceE
                 j1 += 34;
             }
 
-            this.minecraft.getTextureManager().bindForSetup(gui);
+            RenderSystem.setShader(GameRenderer::getPositionTexShader);
+            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+            RenderSystem.setShaderTexture(0, this.gui);
             this.blit(PoseStack, startX, i1, j2, j1, 112, 18);
             Component itemName = ((Item)stacks[i]).getDescription();
             drawCenteredString(PoseStack, minecraft.font, itemName, startX + 56, i1 + 5, getFGColor());
@@ -145,7 +151,9 @@ public class VenderBlockPriceScreen extends AbstractContainerScreen<VenderPriceE
     }
 
     public void renderAddMenu(PoseStack PoseStack, int mouseX, int mouseY, float partialTicks){
-        this.minecraft.getTextureManager().bindForSetup(gui);
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderSystem.setShaderTexture(0, this.gui);
         this.blit(PoseStack, leftPos + 22, topPos + 50, 112, 202, 92, 54);
 
         itemNameInput.render(PoseStack, mouseX, mouseY, partialTicks);
@@ -180,7 +188,7 @@ public class VenderBlockPriceScreen extends AbstractContainerScreen<VenderPriceE
     public void createAddMenu(){
         if(itemNameInput == null){
             itemNameInput = new EditBox(this.minecraft.font, leftPos + 32, topPos + 54, 64, 16, new TranslatableComponent("gui.vendingmachine.inputtemplate"));
-            this.addRenderableWidget(itemNameInput);
+            this.addWidget(itemNameInput);
         } else {
             itemPriceInput.x = leftPos + 32;
             itemPriceInput.y = topPos + 54;
@@ -191,7 +199,7 @@ public class VenderBlockPriceScreen extends AbstractContainerScreen<VenderPriceE
 
         if(itemPriceInput == null){
             itemPriceInput = new Slider(leftPos + 32, topPos + 70, 64, 16, new TranslatableComponent("gui.vendingmachine.priceslider"), new TextComponent("1"), 1, 64, 4, false, true, emptyPressable);
-            this.addRenderableWidget(itemPriceInput);
+            this.addWidget(itemPriceInput);
         } else {
             itemPriceInput.visible = true;
             itemPriceInput.x = leftPos + 32;
@@ -201,7 +209,7 @@ public class VenderBlockPriceScreen extends AbstractContainerScreen<VenderPriceE
 
         if(addPriceMenuButton1 == null){
             addPriceMenuButton1 = new Button(leftPos + 32, topPos + 86, 32, 16, new TranslatableComponent("gui.vendingmachine.addprice"), onAddedPress);
-            this.addRenderableWidget(addPriceMenuButton1);
+            this.addWidget(addPriceMenuButton1);
         } else {
             addPriceMenuButton1.visible = true;
             addPriceMenuButton1.x = leftPos + 32;
@@ -210,7 +218,7 @@ public class VenderBlockPriceScreen extends AbstractContainerScreen<VenderPriceE
 
         if(addPriceMenuButton2 == null){
             addPriceMenuButton2 = new Button(leftPos + 72, topPos + 86, 32, 16, new TranslatableComponent("gui.vendingmachine.cancel"), hideAddMenu);
-            this.addRenderableWidget(addPriceMenuButton2);
+            this.addWidget(addPriceMenuButton2);
         }else {
             addPriceMenuButton2.visible = true;
             addPriceMenuButton2.x = leftPos + 72;

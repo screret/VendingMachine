@@ -57,7 +57,10 @@ public class Registration {
     }
 
     //tile entities
-    public static final RegistryObject<BlockEntityType<VendingMachineTile>> VENDER_TILE = TILES.register("vending_machine_tile", () -> BlockEntityType.Builder.of(VendingMachineTile::new, VENDER_BLUE.get(), VENDER_RED.get()).build(null));
+    public static final RegistryObject<BlockEntityType<VendingMachineTile>> VENDER_TILE = TILES.register("vending_machine_tile", () ->
+            BlockEntityType.Builder.of(VendingMachineTile::new,
+                    VENDER_BLUE.get(), VENDER_RED.get(), VENDER_WHITE.get(), VENDER_GRAY.get(), VENDER_LIGHT_GRAY.get(), VENDER_BLACK.get(), VENDER_ORANGE.get(), VENDER_MAGENTA.get(), VENDER_LIGHT_BLUE.get(), VENDER_YELLOW.get(), VENDER_LIME.get(), VENDER_PINK.get(), VENDER_CYAN.get(), VENDER_BROWN.get(), VENDER_PURPLE.get(), VENDER_GREEN.get()
+                    ).build(null));
 
 
 

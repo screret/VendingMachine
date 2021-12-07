@@ -1,14 +1,15 @@
 package screret.vendingmachine.containers.gui;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
-import org.lwjgl.opengl.GL11;
 import screret.vendingmachine.VendingMachine;
 import screret.vendingmachine.configs.VendingMachineConfig;
 import screret.vendingmachine.containers.VenderBlockContainer;
@@ -18,8 +19,6 @@ import screret.vendingmachine.events.packets.PacketSendBuy;
 import screret.vendingmachine.tileEntities.VendingMachineTile;
 
 public class VenderBlockScreen extends AbstractContainerScreen<VenderBlockContainer> {
-    int relX, relY;
-
     private ResourceLocation widgets = new ResourceLocation(VendingMachine.MODID, "textures/gui/widgets.png");
     private ResourceLocation gui = new ResourceLocation(VendingMachine.MODID, "textures/gui/vending_machine_gui.png");
 
@@ -29,8 +28,6 @@ public class VenderBlockScreen extends AbstractContainerScreen<VenderBlockContai
         this.imageHeight = 222;
         this.inventoryLabelX = 5;
         this.inventoryLabelY = 128;
-        relX = (this.width - this.getXSize()) / 2;
-        relY = (this.height - this.getYSize()) / 2;
     }
 
     final static int COOK_BAR_XPOS = 49;
@@ -40,36 +37,37 @@ public class VenderBlockScreen extends AbstractContainerScreen<VenderBlockContai
     public void init(){
         super.init();
 
-        relX = (this.width - this.getXSize()) / 2;
-        relY = (this.height - this.getYSize()) / 2;
+        leftPos = (this.width - this.getXSize()) / 2;
+        topPos = (this.height - this.getYSize()) / 2;
 
-        this.addRenderableWidget(new Button(relX + 110, relY + 108, 53, 18, new TranslatableComponent("gui.vendingmachine.buybutton"), onBuyButtonPress));
-        this.addRenderableWidget(new Button(relX + 133, relY + 64, 18, 9, new TranslatableComponent("gui.vendingmachine.buytestbutton"), onTestButtonPress));
+        this.addRenderableWidget(new Button(leftPos + 110, topPos + 108, 53, 18, new TranslatableComponent("gui.vendingmachine.buybutton"), onBuyButtonPress));
+        this.addRenderableWidget(new Button(leftPos + 133, topPos + 64, 18, 9, new TranslatableComponent("gui.vendingmachine.buytestbutton"), onTestButtonPress));
 
         if(menu.currentPlayer.equals(menu.getTile().owner)){
-            this.addRenderableWidget(new VenderTabButton(relX + this.imageWidth, relY + 12, 32, 28, new TranslatableComponent("gui.vendingmachine.tab_price"), onTabButtonPress(true), true, true));
-            this.addRenderableWidget(new VenderTabButton(relX + this.imageWidth, relY + 40, 32, 28, new TranslatableComponent("gui.vendingmachine.tab_price"), onTabButtonPress(false), false, false));
+            this.addRenderableWidget(new VenderTabButton(leftPos + this.imageWidth, topPos + 12, 32, 28, new TranslatableComponent("gui.vendingmachine.tab_price"), onTabButtonPress(true), true, true));
+            this.addRenderableWidget(new VenderTabButton(leftPos + this.imageWidth, topPos + 40, 32, 28, new TranslatableComponent("gui.vendingmachine.tab_price"), onTabButtonPress(false), false, false));
         }
     }
 
     @Override
-    public void render(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
-        this.renderBackground(matrixStack);
-        super.render(matrixStack, mouseX, mouseY, partialTicks);
-        this.renderTooltip(matrixStack, mouseX, mouseY);
+    public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
+        this.renderBackground(poseStack);
+        super.render(poseStack, mouseX, mouseY, partialTicks);
+        this.renderTooltip(poseStack, mouseX, mouseY);
 
         if(menu.selectedSlot != null && !menu.isAllowedToTakeItems){
-            fillGradient(matrixStack, relX + menu.selectedSlot.x, relY + menu.selectedSlot.y, relX + menu.selectedSlot.x + 16, relY + menu.selectedSlot.y + 16, 0x7500FF00, 0x75009900);
+            fillGradient(poseStack, leftPos + menu.selectedSlot.x, topPos + menu.selectedSlot.y, leftPos + menu.selectedSlot.x + 16, topPos + menu.selectedSlot.y + 16, 0x7500FF00, 0x75009900);
         }
     }
 
     @Override
-    protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
-        GL11.glColor4f(1, 1, 1, 1);
-        this.minecraft.getTextureManager().bindForSetup(gui);
-        relX = (this.width - this.getXSize()) / 2;
-        relY = (this.height - this.getYSize()) / 2;
-        this.blit(matrixStack, relX, relY, 0, 0, this.getXSize(), this.getYSize());
+    protected void renderBg(PoseStack poseStack, float partialTicks, int mouseX, int mouseY) {
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderSystem.setShaderTexture(0, this.gui);
+        leftPos = (this.width - this.getXSize()) / 2;
+        topPos = (this.height - this.getYSize()) / 2;
+        this.blit(poseStack, leftPos, topPos, 0, 0, this.getXSize(), this.getYSize());
     }
 
     private ItemStack lastItem;

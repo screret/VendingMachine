@@ -6,6 +6,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.TagParser;
+import net.minecraft.network.Connection;
 import net.minecraft.network.chat.BaseComponent;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
@@ -17,6 +18,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.util.JsonUtils;
@@ -56,9 +58,7 @@ public class VendingMachineTile extends BlockEntity implements MenuProvider {
     @Override
     public CompoundTag save(CompoundTag parentNBTTagCompound) {
         super.save(parentNBTTagCompound); // The super call is required to save and load the tileEntity's location
-        if(owner != null){
-            parentNBTTagCompound.putUUID("Owner", owner);
-        }
+        parentNBTTagCompound.putUUID("Owner", owner);
         parentNBTTagCompound.put("InputSlot", inputSlot.serializeNBT());
         parentNBTTagCompound.put("MoneySlot", moneySlot.serializeNBT());
         parentNBTTagCompound.put("OutputSlot", outputSlot.serializeNBT());
@@ -140,13 +140,22 @@ public class VendingMachineTile extends BlockEntity implements MenuProvider {
 
     @Override
     public CompoundTag getUpdateTag(){
-        CompoundTag nbt = this.save(new CompoundTag());
-        return nbt;
+        return this.save(new CompoundTag());
+    }
+
+    public ClientboundBlockEntityDataPacket getUpdatePacket(){
+        if(getLevel().hasChunkAt(this.worldPosition) && this.getLevel().getBlockState(this.worldPosition).getBlock() != Blocks.AIR){
+            return ClientboundBlockEntityDataPacket.create(this);
+        }
+        return null;
     }
 
     @Override
-    public ClientboundBlockEntityDataPacket getUpdatePacket(){
-        return ClientboundBlockEntityDataPacket.create(this);
+    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt) {
+        CompoundTag compoundtag = pkt.getTag();
+        if (compoundtag != null) {
+            load(compoundtag);
+        }
     }
 
     @Override

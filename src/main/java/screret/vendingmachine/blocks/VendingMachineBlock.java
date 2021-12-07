@@ -28,6 +28,8 @@ import org.jetbrains.annotations.Nullable;
 import screret.vendingmachine.init.Registration;
 import screret.vendingmachine.tileEntities.VendingMachineTile;
 
+import java.util.UUID;
+
 public class VendingMachineBlock extends HorizontalDirectionalBlock implements EntityBlock {
     public static final EnumProperty<DoubleBlockHalf> HALF = BlockStateProperties.DOUBLE_BLOCK_HALF;
     private static final EnumProperty<DyeColor> COLOR = EnumProperty.create("color", DyeColor.class);
@@ -57,8 +59,7 @@ public class VendingMachineBlock extends HorizontalDirectionalBlock implements E
             return;
         }
         BlockEntity tile = world.getBlockEntity(pos);
-        if(tile instanceof VendingMachineTile){
-            VendingMachineTile _tile = (VendingMachineTile)tile;
+        if(tile instanceof VendingMachineTile _tile){
             if(_tile.owner == null){
                 _tile.owner = entity.getUUID();
             }
@@ -75,8 +76,7 @@ public class VendingMachineBlock extends HorizontalDirectionalBlock implements E
                 tileEntity = world.getBlockEntity(blockPos.below());
                 blockPos = blockPos.below();
             }
-            if (tileEntity instanceof VendingMachineTile) {
-                VendingMachineTile finalTileEntity = (VendingMachineTile)tileEntity;
+            if (tileEntity instanceof VendingMachineTile finalTileEntity) {
                 BlockPos finalBlockPos = blockPos;
 
                 NetworkHooks.openGui((ServerPlayer) player, finalTileEntity, buffer -> buffer.writeBlockPos(finalBlockPos));
@@ -95,13 +95,15 @@ public class VendingMachineBlock extends HorizontalDirectionalBlock implements E
         if(state.getValue(HALF) == DoubleBlockHalf.LOWER){
             BlockEntity tileEntity = worldIn.getBlockEntity(pos);
             if(tileEntity == null){
-                tileEntity = worldIn.getBlockEntity(pos.below());
+                tileEntity =
+worldIn.getBlockEntity(pos.below());
             }
             ((VendingMachineTile)tileEntity).dropContents();
             worldIn.removeBlockEntity(pos);
             super.onRemove(state, worldIn, pos, newState, isMoving);
         }
     }
+
     @Override
     public void playerWillDestroy(Level world, BlockPos pos, BlockState state, Player playerEntity) {
         BlockPos blockpos = pos.below();
@@ -117,7 +119,6 @@ public class VendingMachineBlock extends HorizontalDirectionalBlock implements E
         }
         super.playerWillDestroy(world, pos, state, playerEntity);
     }
-
     @Override
     public MenuProvider getMenuProvider(BlockState state, Level world, BlockPos pos) {
         BlockEntity tileentity = world.getBlockEntity(pos);

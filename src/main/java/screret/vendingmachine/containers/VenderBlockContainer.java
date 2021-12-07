@@ -144,16 +144,16 @@ public class VenderBlockContainer extends AbstractContainerMenu {
             if(!isAllowedToTakeItems) {
                 if (slot.getItemHandler() == inputInventory) {
                     selectedSlot = slot;
-                    ItemStack playerCarried = player.inventoryMenu.getCarried();
+                    /*ItemStack playerCarried = player.inventoryMenu.getCarried();
                     if(!playerCarried.isEmpty()){
-                        /*player.inventory.setCarried(ItemStack.EMPTY);
+                        player.inventory.setCarried(ItemStack.EMPTY);
                         for (int i = 0; i < playerInventory.getSlots(); i++){
                             if(playerInventory.getStackInSlot(i).isEmpty()){
                                 playerInventory.setStackInSlot(i, playerCarried);
                                 break;
                             }
-                        }*/
-                    }
+                        }
+                    }*/
                     return;
                 }
             }
@@ -183,41 +183,41 @@ public class VenderBlockContainer extends AbstractContainerMenu {
         return tile;
     }
 
-    protected boolean moveItemStackTo(ItemStack stack, int slot, int slot2, boolean simulate) {
+    protected boolean moveItemStackTo(ItemStack stack, int slotIndex1, int slotIndex2, boolean simulate) {
         boolean flag = false;
-        int i = slot;
+        int i = slotIndex1;
         if (simulate) {
-            i = slot2 - 1;
-        }
-
-        if(!isAllowedToTakeItems){
-            return false;
+            i = slotIndex2 - 1;
         }
 
         if (stack.isStackable()) {
             while(!stack.isEmpty()) {
                 if (simulate) {
-                    if (i < slot) {
+                    if (i < slotIndex1) {
                         break;
                     }
-                } else if (i >= slot2) {
+                } else if (i >= slotIndex2) {
                     break;
                 }
 
-                SlotItemHandler slot1 = (SlotItemHandler) this.slots.get(i);
-                ItemStack itemstack = slot1.getItem();
+                SlotItemHandler slot = (SlotItemHandler) this.slots.get(i);
+                ItemStack itemstack = slot.getItem();
+                if(slot.getItemHandler() == inputInventory && !isAllowedToTakeItems){
+                    return false;
+                }
+
                 if (!itemstack.isEmpty() && ItemStack.isSameItemSameTags(stack, itemstack)) {
                     int j = itemstack.getCount() + stack.getCount();
-                    int maxSize = slot1.getMaxStackSize();
+                    int maxSize = slot.getMaxStackSize();
                     if (j <= maxSize) {
                         stack.setCount(0);
                         itemstack.setCount(j);
-                        slot1.setChanged();
+                        slot.setChanged();
                         flag = true;
                     } else if (itemstack.getCount() < maxSize) {
                         stack.shrink(maxSize - itemstack.getCount());
                         itemstack.setCount(maxSize);
-                        slot1.setChanged();
+                        slot.setChanged();
                         flag = true;
                     }
                 }
@@ -232,17 +232,17 @@ public class VenderBlockContainer extends AbstractContainerMenu {
 
         if (!stack.isEmpty()) {
             if (simulate) {
-                i = slot2 - 1;
+                i = slotIndex2 - 1;
             } else {
-                i = slot;
+                i = slotIndex1;
             }
 
             while(true) {
                 if (simulate) {
-                    if (i < slot) {
+                    if (i < slotIndex1) {
                         break;
                     }
-                } else if (i >= slot2) {
+                } else if (i >= slotIndex2) {
                     break;
                 }
 
@@ -379,7 +379,6 @@ public class VenderBlockContainer extends AbstractContainerMenu {
                 if (slot5 == null || !slot5.mayPickup(playerEntity)) {
                     return ItemStack.EMPTY;
                 }
-
 
                 for(ItemStack itemstack8 = this.quickMoveStack(playerEntity, slotId); !itemstack8.isEmpty() && ItemStack.isSame(slot5.getItem(), itemstack8); itemstack8 = this.quickMoveStack(playerEntity, slotId)) {
                     itemstack = itemstack8.copy();
