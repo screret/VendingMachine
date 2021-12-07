@@ -1,39 +1,37 @@
 package screret.vendingmachine.blocks;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.HorizontalBlock;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.inventory.container.INamedContainerProvider;
-import net.minecraft.item.BlockItemUseContext;
-import net.minecraft.item.DyeColor;
-import net.minecraft.item.ItemStack;
-import net.minecraft.state.EnumProperty;
-import net.minecraft.state.StateContainer;
-import net.minecraft.state.properties.AttachFace;
-import net.minecraft.state.properties.BlockStateProperties;
-import net.minecraft.state.properties.DoubleBlockHalf;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Direction;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.IWorldReader;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.network.NetworkHooks;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.HorizontalDirectionalBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraftforge.network.NetworkHooks;
+import org.jetbrains.annotations.Nullable;
+import screret.vendingmachine.init.Registration;
 import screret.vendingmachine.tileEntities.VendingMachineTile;
 
-import java.util.UUID;
-
-public class VendingMachineBlock extends HorizontalBlock {
+public class VendingMachineBlock extends HorizontalDirectionalBlock implements EntityBlock {
     public static final EnumProperty<DoubleBlockHalf> HALF = BlockStateProperties.DOUBLE_BLOCK_HALF;
     private static final EnumProperty<DyeColor> COLOR = EnumProperty.create("color", DyeColor.class);
-    private final DyeColor color;
+    private DyeColor color;
 
     public VendingMachineBlock(DyeColor color, Properties properties) {
         super(properties);
@@ -42,28 +40,23 @@ public class VendingMachineBlock extends HorizontalBlock {
     }
 
     @Override
-    protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> builder){
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder){
         builder.add(FACING, HALF, COLOR);
     }
 
     @Override
-    public boolean hasTileEntity(BlockState state) {
-        return state.getValue(HALF) == DoubleBlockHalf.LOWER;
-    }
-
-    @Override
-    public BlockState getStateForPlacement(BlockItemUseContext context) {
+    public BlockState getStateForPlacement(BlockPlaceContext context) {
         return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite()).setValue(HALF, DoubleBlockHalf.LOWER).setValue(COLOR, color);
     }
 
     @Override
-    public void setPlacedBy(World world, BlockPos pos, BlockState state, LivingEntity entity, ItemStack stack) {
+    public void setPlacedBy(Level world, BlockPos pos, BlockState state, LivingEntity entity, ItemStack stack) {
         if(world.getBlockState(pos.above()).getBlock() != Blocks.AIR){
             world.removeBlockEntity(pos);
             world.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
             return;
         }
-        TileEntity tile = world.getBlockEntity(pos);
+        BlockEntity tile = world.getBlockEntity(pos);
         if(tile instanceof VendingMachineTile){
             VendingMachineTile _tile = (VendingMachineTile)tile;
             if(_tile.owner == null){
@@ -75,9 +68,9 @@ public class VendingMachineBlock extends HorizontalBlock {
     }
 
     @Override
-    public ActionResultType use(BlockState state, World world, BlockPos blockPos, PlayerEntity player, Hand hand, BlockRayTraceResult trace) {
+    public InteractionResult use(BlockState state, Level world, BlockPos blockPos, Player player, InteractionHand hand, BlockHitResult trace) {
         if (!world.isClientSide) {
-            TileEntity tileEntity = world.getBlockEntity(blockPos);
+            BlockEntity tileEntity = world.getBlockEntity(blockPos);
             if(tileEntity == null){
                 tileEntity = world.getBlockEntity(blockPos.below());
                 blockPos = blockPos.below();
@@ -86,21 +79,21 @@ public class VendingMachineBlock extends HorizontalBlock {
                 VendingMachineTile finalTileEntity = (VendingMachineTile)tileEntity;
                 BlockPos finalBlockPos = blockPos;
 
-                NetworkHooks.openGui((ServerPlayerEntity) player, finalTileEntity, buffer -> buffer.writeBlockPos(finalBlockPos));
+                NetworkHooks.openGui((ServerPlayer) player, finalTileEntity, buffer -> buffer.writeBlockPos(finalBlockPos));
 
             } else {
                 throw new IllegalStateException("Our named container provider is missing!");
             }
-            return ActionResultType.CONSUME;
+            return InteractionResult.CONSUME;
         }else{
-            return ActionResultType.SUCCESS;
+            return InteractionResult.SUCCESS;
         }
     }
 
     @Override
-    public void onRemove(BlockState state, World worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
+    public void onRemove(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
         if(state.getValue(HALF) == DoubleBlockHalf.LOWER){
-            TileEntity tileEntity = worldIn.getBlockEntity(pos);
+            BlockEntity tileEntity = worldIn.getBlockEntity(pos);
             if(tileEntity == null){
                 tileEntity = worldIn.getBlockEntity(pos.below());
             }
@@ -109,14 +102,8 @@ public class VendingMachineBlock extends HorizontalBlock {
             super.onRemove(state, worldIn, pos, newState, isMoving);
         }
     }
-
     @Override
-    public TileEntity createTileEntity(BlockState state, IBlockReader worldIn) {
-        return new VendingMachineTile();
-    }
-
-    @Override
-    public void playerWillDestroy(World world, BlockPos pos, BlockState state, PlayerEntity playerEntity) {
+    public void playerWillDestroy(Level world, BlockPos pos, BlockState state, Player playerEntity) {
         BlockPos blockpos = pos.below();
         BlockState blockState = world.getBlockState(blockpos);
         if(state.getBlock() == this && state.getValue(HALF) == DoubleBlockHalf.UPPER) {
@@ -132,11 +119,17 @@ public class VendingMachineBlock extends HorizontalBlock {
     }
 
     @Override
-    public INamedContainerProvider getMenuProvider(BlockState state, World world, BlockPos pos) {
-        TileEntity tileentity = world.getBlockEntity(pos);
+    public MenuProvider getMenuProvider(BlockState state, Level world, BlockPos pos) {
+        BlockEntity tileentity = world.getBlockEntity(pos);
         if(tileentity == null){
             tileentity = world.getBlockEntity(pos.below());
         }
-        return tileentity instanceof INamedContainerProvider ? (INamedContainerProvider)tileentity : null;
+        return tileentity instanceof MenuProvider ? (MenuProvider)tileentity : null;
+    }
+
+    @Nullable
+    @Override
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return state.getValue(HALF) == DoubleBlockHalf.LOWER ? Registration.VENDER_TILE.get().create(pos, state) : null;
     }
 }

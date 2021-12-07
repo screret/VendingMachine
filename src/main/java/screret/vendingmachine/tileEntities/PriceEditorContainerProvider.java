@@ -1,15 +1,14 @@
 package screret.vendingmachine.tileEntities;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.INamedContainerProvider;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
-import screret.vendingmachine.containers.VenderBlockContainer;
+import net.minecraft.network.chat.BaseComponent;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import screret.vendingmachine.containers.VenderPriceEditorContainer;
 
-public class PriceEditorContainerProvider implements INamedContainerProvider {
+public class PriceEditorContainerProvider implements MenuProvider {
     final VendingMachineTile tile;
 
     VenderPriceEditorContainer container;
@@ -19,12 +18,12 @@ public class PriceEditorContainerProvider implements INamedContainerProvider {
     }
 
     @Override
-    public ITextComponent getDisplayName() {
-        return new TranslationTextComponent("gui.vendingmachine.vendingmachine");
+    public BaseComponent getDisplayName() {
+        return new TranslatableComponent("gui.vendingmachine.vendingmachine");
     }
 
     @Override
-    public Container createMenu(int windowID, PlayerInventory playerInventory, PlayerEntity playerEntity) {
+    public AbstractContainerMenu createMenu(int windowID, Inventory playerInventory, Player playerEntity) {
         container = new VenderPriceEditorContainer(windowID, playerInventory, tile);
         return container;
     }

@@ -1,13 +1,17 @@
 package screret.vendingmachine.events.packets;
 
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.math.BlockPos;
+import io.netty.buffer.ByteBuf;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.PacketDecoder;
+import net.minecraft.network.PacketEncoder;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraftforge.network.NetworkEvent;
+import org.objectweb.asm.commons.SerialVersionUIDAdder;
 import screret.vendingmachine.tileEntities.VendingMachineTile;
 
 import java.util.function.Supplier;
@@ -18,7 +22,7 @@ public class ChangePricePacket {
     private final ItemStack item;
     private final boolean add;
 
-    public ChangePricePacket(PacketBuffer buf) {
+    public ChangePricePacket(FriendlyByteBuf buf) {
         pos = buf.readBlockPos();
         item = buf.readItem();
         price = buf.readInt();
@@ -32,7 +36,7 @@ public class ChangePricePacket {
         this.add = add;
     }
 
-    public static void encode(ChangePricePacket packet, PacketBuffer buf) {
+    public static void encode(ChangePricePacket packet, FriendlyByteBuf buf) {
         buf.writeBlockPos(packet.pos);
         buf.writeItem(packet.item);
         buf.writeInt(packet.price);
@@ -40,11 +44,11 @@ public class ChangePricePacket {
     }
 
     public static void handle(final ChangePricePacket packet, Supplier<NetworkEvent.Context> context) {
-        ServerPlayerEntity playerEntity = context.get().getSender();
+        ServerPlayer playerEntity = context.get().getSender();
 
         NetworkEvent.Context ctx = context.get();
         ctx.enqueueWork(() -> {
-            TileEntity tile = playerEntity.getLevel().getBlockEntity(packet.pos);
+            BlockEntity tile = playerEntity.getLevel().getBlockEntity(packet.pos);
 
             if(tile instanceof VendingMachineTile){
                 VendingMachineTile finalTile = (VendingMachineTile) tile;
@@ -53,7 +57,6 @@ public class ChangePricePacket {
                 } else {
                     DistExecutor.unsafeRunWhenOn(Dist.DEDICATED_SERVER, () -> () -> finalTile.removePrice(packet.item));
                 }
-                finalTile.addPrice(packet.item, packet.price);
             }
         });
 

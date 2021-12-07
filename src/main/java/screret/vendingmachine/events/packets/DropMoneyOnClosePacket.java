@@ -4,32 +4,29 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.network.NetworkEvent;
-import net.minecraftforge.network.NetworkHooks;
 import screret.vendingmachine.tileEntities.VendingMachineTile;
 
 import java.util.function.Supplier;
 
-public class OpenGUIPacket {
+public class DropMoneyOnClosePacket {
     private final BlockPos pos;
-    private final boolean isMainTab;
 
-    public OpenGUIPacket(FriendlyByteBuf buf) {
+    public DropMoneyOnClosePacket(FriendlyByteBuf buf) {
         pos = buf.readBlockPos();
-        isMainTab = buf.readBoolean();
     }
 
-    public OpenGUIPacket(BlockPos pos, boolean isMainTab) {
+    public DropMoneyOnClosePacket(BlockPos pos) {
         this.pos = pos;
-        this.isMainTab = isMainTab;
     }
 
-    public static void encode(OpenGUIPacket packet, FriendlyByteBuf buf) {
+    public static void encode(DropMoneyOnClosePacket packet, FriendlyByteBuf buf) {
         buf.writeBlockPos(packet.pos);
-        buf.writeBoolean(packet.isMainTab);
     }
 
-    public static void handle(final OpenGUIPacket packet, Supplier<NetworkEvent.Context> context) {
+    public static void handle(final DropMoneyOnClosePacket packet, Supplier<NetworkEvent.Context> context) {
         ServerPlayer playerEntity = context.get().getSender();
 
         NetworkEvent.Context ctx = context.get();
@@ -37,11 +34,8 @@ public class OpenGUIPacket {
             BlockEntity tile = playerEntity.getLevel().getBlockEntity(packet.pos);
 
             if(tile instanceof VendingMachineTile){
-                if(packet.isMainTab){
-                    NetworkHooks.openGui(playerEntity, (VendingMachineTile)tile, packet.pos);
-                }else {
-                    NetworkHooks.openGui(playerEntity, ((VendingMachineTile)tile).priceEditorContainerProvider, packet.pos);
-                }
+                VendingMachineTile finalTile = (VendingMachineTile) tile;
+                DistExecutor.unsafeRunWhenOn(Dist.DEDICATED_SERVER, () -> finalTile::dropMoney);
             }
         });
 

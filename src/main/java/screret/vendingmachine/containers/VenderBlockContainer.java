@@ -1,13 +1,13 @@
 package screret.vendingmachine.containers;
 
 import com.google.common.collect.Sets;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.container.ClickType;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.Slot;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.SlotItemHandler;
@@ -23,7 +23,7 @@ import javax.annotation.Nullable;
 import java.util.Set;
 import java.util.UUID;
 
-public class VenderBlockContainer extends Container {
+public class VenderBlockContainer extends AbstractContainerMenu {
 
     private final PlayerInvWrapper playerInventory;
     public final OwnedStackHandler inputInventory;
@@ -49,7 +49,7 @@ public class VenderBlockContainer extends Container {
     private int quickcraftType = -1;
     private final Set<Slot> quickcraftSlots = Sets.newHashSet();
 
-    public VenderBlockContainer(int windowID, PlayerInventory playerInventory, OwnedStackHandler inputInv, IItemHandler outputInv, ItemStackHandlerMoney moneyInv, VendingMachineTile tileEntity) {
+    public VenderBlockContainer(int windowID, Inventory playerInventory, OwnedStackHandler inputInv, IItemHandler outputInv, ItemStackHandlerMoney moneyInv, VendingMachineTile tileEntity) {
         super(Registration.VENDER_CONT.get(), windowID);
         this.playerInventory = new PlayerInvWrapper(playerInventory);
         this.tile = tileEntity;
@@ -75,7 +75,7 @@ public class VenderBlockContainer extends Container {
             currentPlayer = playerInventory.player.getUUID();
             checkPlayerAllowedToChangeInv(currentPlayer);
 
-            this.addSlot(new SlotItemHandler(this.moneyInventory, 0, MONEY_SLOT_XPOS, MONEY_SLOT_YPOS));
+            this.addSlot(MyHandler(this.moneyInventory, 0, MONEY_SLOT_XPOS, MONEY_SLOT_YPOS));
 
             final int OUTPUT_SLOTS_XPOS = 134;
             final int OUTPUT_SLOTS_YPOS = 90;
@@ -85,7 +85,8 @@ public class VenderBlockContainer extends Container {
         }
     }
 
-    public ItemStack quickMoveStack(PlayerEntity playerEntity, int slotId) {
+    @Override
+    public ItemStack quickMoveStack(Player playerEntity, int slotId) {
         ItemStack itemstack = ItemStack.EMPTY;
         SlotItemHandler slot = (SlotItemHandler) this.slots.get(slotId);
         if((slot.getItemHandler() != playerInventory && slot.getItemHandler() != moneyInventory) && !isAllowedToTakeItems && !slot.getItemHandler().isItemValid(0, new ItemStack(VendingMachineConfig.PAYMENT_ITEM))) { return ItemStack.EMPTY; }
@@ -137,13 +138,13 @@ public class VenderBlockContainer extends Container {
     }
 
     @Override
-    public ItemStack clicked(int slotId, int dragType, ClickType clickTypeIn, PlayerEntity player) {
+    public void clicked(int slotId, int dragType, ClickType clickTypeIn, Player player) {
         if (slotId > INPUT_SLOTS_X_AMOUNT_PLUS_1 * INPUT_SLOTS_Y_AMOUNT_PLUS_1) {
             SlotItemHandler slot = (SlotItemHandler) this.slots.get(slotId);
             if(!isAllowedToTakeItems) {
                 if (slot.getItemHandler() == inputInventory) {
                     selectedSlot = slot;
-                    ItemStack playerCarried = player.inventory.getCarried();
+                    ItemStack playerCarried = player.inventoryMenu.getCarried();
                     if(!playerCarried.isEmpty()){
                         /*player.inventory.setCarried(ItemStack.EMPTY);
                         for (int i = 0; i < playerInventory.getSlots(); i++){
@@ -153,20 +154,20 @@ public class VenderBlockContainer extends Container {
                             }
                         }*/
                     }
-                    return ItemStack.EMPTY;
+                    return;
                 }
             }
         }
-        return this.doClick(slotId, dragType, clickTypeIn, player);
+        this.doClick(slotId, dragType, clickTypeIn, player);
     }
 
     public boolean checkPlayerAllowedToChangeInv(UUID currentPlayer){
         isAllowedToTakeItems = currentPlayer.equals(tile.owner) && !buyTestMode_REMOVE_LATER;
-        if(tile.owner != null && tile.getLevel().getPlayerByUUID(tile.owner) != null){
+        /*if(tile.owner != null && tile.getLevel().getPlayerByUUID(tile.owner) != null){
             String _ownerName = ITextComponent.Serializer.fromJsonLenient(tile.getLevel().getPlayerByUUID(tile.owner).getDisplayName().getString()).getString();
             String _openerName = ITextComponent.Serializer.fromJsonLenient(tile.getLevel().getPlayerByUUID(currentPlayer).getDisplayName().getString()).getString();
-            LOGGER.info("Current player who has the GUI open is the owner: " + isAllowedToTakeItems + "\n owner: " + _ownerName + "(" + tile.owner + ")" + "\n opener: " + _openerName + "(" + currentPlayer + ")");
-        }
+            LOGGER.info("Current player who has the GUI open is the owner: " + isAllowedToTakeItems + "\n owner: " + _ownerName + " (" + tile.owner + ")" + "\n opener: " + _openerName + " (" + currentPlayer + ")");
+        }*/
         if(!isAllowedToTakeItems){
             selectedSlot = null;
         }
@@ -174,7 +175,7 @@ public class VenderBlockContainer extends Container {
     }
 
     @Override
-    public boolean stillValid(PlayerEntity playerEntity) {
+    public boolean stillValid(Player playerEntity) {
         return playerEntity.position().distanceToSqr(this.tile.getBlockPos().getX(), this.tile.getBlockPos().getY(), this.tile.getBlockPos().getZ()) < 8 * 8;
     }
 
@@ -203,9 +204,9 @@ public class VenderBlockContainer extends Container {
                     break;
                 }
 
-                Slot slot1 = this.slots.get(i);
+                SlotItemHandler slot1 = (SlotItemHandler) this.slots.get(i);
                 ItemStack itemstack = slot1.getItem();
-                if (!itemstack.isEmpty() && consideredTheSameItem(stack, itemstack)) {
+                if (!itemstack.isEmpty() && ItemStack.isSameItemSameTags(stack, itemstack)) {
                     int j = itemstack.getCount() + stack.getCount();
                     int maxSize = slot1.getMaxStackSize();
                     if (j <= maxSize) {
@@ -245,7 +246,7 @@ public class VenderBlockContainer extends Container {
                     break;
                 }
 
-                Slot slot1 = this.slots.get(i);
+                SlotItemHandler slot1 = (SlotItemHandler) this.slots.get(i);
                 ItemStack itemstack1 = slot1.getItem();
                 if (itemstack1.isEmpty() && slot1.mayPlace(stack)) {
                     if (stack.getCount() > slot1.getMaxStackSize()) {
@@ -304,9 +305,9 @@ public class VenderBlockContainer extends Container {
         };
     }
 
-    private ItemStack doClick(int slotId, int dragType, ClickType clickType, PlayerEntity playerEntity) {
+    private ItemStack doClick(int slotId, int dragType, ClickType clickType, Player playerEntity) {
         ItemStack itemstack = ItemStack.EMPTY;
-        PlayerInventory playerinventory = playerEntity.inventory;
+        InventoryMenu playerinventory = playerEntity.inventoryMenu;
         if (clickType == ClickType.QUICK_CRAFT) {
             int i1 = this.quickcraftStatus;
             this.quickcraftStatus = getQuickcraftHeader(dragType);
@@ -388,7 +389,7 @@ public class VenderBlockContainer extends Container {
                     return ItemStack.EMPTY;
                 }
 
-                Slot slot6 = this.slots.get(slotId);
+                SlotItemHandler slot6 = (SlotItemHandler) this.slots.get(slotId);
                 if (slot6 != null) {
                     ItemStack itemstack9 = slot6.getItem();
                     ItemStack itemstack11 = playerinventory.getCarried();
@@ -420,7 +421,7 @@ public class VenderBlockContainer extends Container {
                                 slot6.onTake(playerEntity, playerinventory.getCarried());
                             }
                         } else if (slot6.mayPlace(itemstack11)) {
-                            if (consideredTheSameItem(itemstack9, itemstack11)) {
+                            if (ItemStack.isSameItemSameTags(itemstack9, itemstack11)) {
                                 int l2 = dragType == 0 ? itemstack11.getCount() : 1;
                                 if (l2 > slot6.getMaxStackSize(itemstack11) - itemstack9.getCount()) {
                                     l2 = slot6.getMaxStackSize(itemstack11) - itemstack9.getCount();
@@ -432,7 +433,7 @@ public class VenderBlockContainer extends Container {
                                 slot6.set(itemstack11);
                                 playerinventory.setCarried(itemstack9);
                             }
-                        } else if (itemstack11.getMaxStackSize() > 1 && consideredTheSameItem(itemstack9, itemstack11) && !itemstack9.isEmpty()) {
+                        } else if (itemstack11.getMaxStackSize() > 1 && ItemStack.isSameItemSameTags(itemstack9, itemstack11) && !itemstack9.isEmpty()) {
                             int i3 = itemstack9.getCount();
                             if (i3 + itemstack11.getCount() <= itemstack11.getMaxStackSize()) {
                                 itemstack11.grow(i3);

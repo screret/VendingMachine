@@ -1,9 +1,9 @@
 package screret.vendingmachine.events.packets;
 
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraftforge.network.NetworkEvent;
 import screret.vendingmachine.tileEntities.VendingMachineTile;
 
 import java.util.function.Supplier;
@@ -13,7 +13,7 @@ public class PacketSendBuy {
     private final BlockPos pos;
     private final int amount;
 
-    public PacketSendBuy(PacketBuffer buf) {
+    public PacketSendBuy(FriendlyByteBuf buf) {
         pos = buf.readBlockPos();
         slot = buf.readInt();
         amount = buf.readInt();
@@ -25,14 +25,14 @@ public class PacketSendBuy {
         this.amount = amount;
     }
 
-    public static void encode(PacketSendBuy packet, PacketBuffer buf) {
+    public static void encode(PacketSendBuy packet, FriendlyByteBuf buf) {
         buf.writeBlockPos(packet.pos);
         buf.writeInt(packet.slot);
         buf.writeInt(packet.amount);
     }
 
     public static void handle(final PacketSendBuy packet, Supplier<NetworkEvent.Context> context) {
-        ServerPlayerEntity playerEntity = context.get().getSender();
+        ServerPlayer playerEntity = context.get().getSender();
 
         NetworkEvent.Context ctx = context.get();
         ctx.enqueueWork(() -> {

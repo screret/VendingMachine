@@ -1,23 +1,13 @@
 package screret.vendingmachine.containers.gui;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.screen.inventory.ContainerScreen;
-import net.minecraft.client.gui.widget.Widget;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.network.play.server.SOpenWindowPacket;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.World;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.fml.client.gui.GuiUtils;
-import net.minecraftforge.fml.network.NetworkHooks;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
 import org.lwjgl.opengl.GL11;
 import screret.vendingmachine.VendingMachine;
 import screret.vendingmachine.configs.VendingMachineConfig;
@@ -25,18 +15,15 @@ import screret.vendingmachine.containers.VenderBlockContainer;
 import screret.vendingmachine.events.packets.OpenGUIPacket;
 import screret.vendingmachine.events.packets.PacketAllowItemTake;
 import screret.vendingmachine.events.packets.PacketSendBuy;
-import screret.vendingmachine.init.Registration;
 import screret.vendingmachine.tileEntities.VendingMachineTile;
 
-import java.util.UUID;
-
-public class VenderBlockScreen extends ContainerScreen<VenderBlockContainer> {
+public class VenderBlockScreen extends AbstractContainerScreen<VenderBlockContainer> {
     int relX, relY;
 
     private ResourceLocation widgets = new ResourceLocation(VendingMachine.MODID, "textures/gui/widgets.png");
     private ResourceLocation gui = new ResourceLocation(VendingMachine.MODID, "textures/gui/vending_machine_gui.png");
 
-    public VenderBlockScreen(VenderBlockContainer container, PlayerInventory inv, ITextComponent name) {
+    public VenderBlockScreen(VenderBlockContainer container, Inventory inv, Component name) {
         super(container, inv, name);
         this.imageWidth = 176;
         this.imageHeight = 222;
@@ -56,17 +43,17 @@ public class VenderBlockScreen extends ContainerScreen<VenderBlockContainer> {
         relX = (this.width - this.getXSize()) / 2;
         relY = (this.height - this.getYSize()) / 2;
 
-        this.addButton(new Button(relX + 110, relY + 108, 53, 18, new TranslationTextComponent("gui.vendingmachine.buybutton"), onBuyButtonPress));
-        this.addButton(new Button(relX + 133, relY + 64, 18, 9, new TranslationTextComponent("gui.vendingmachine.buytestbutton"), onTestButtonPress));
+        this.addRenderableWidget(new Button(relX + 110, relY + 108, 53, 18, new TranslatableComponent("gui.vendingmachine.buybutton"), onBuyButtonPress));
+        this.addRenderableWidget(new Button(relX + 133, relY + 64, 18, 9, new TranslatableComponent("gui.vendingmachine.buytestbutton"), onTestButtonPress));
 
         if(menu.currentPlayer.equals(menu.getTile().owner)){
-            this.addButton(new VenderTabButton(relX + this.imageWidth, relY + 12, 32, 28, new TranslationTextComponent("gui.vendingmachine.tab_price"), onTabButtonPress(true), true, true));
-            this.addButton(new VenderTabButton(relX + this.imageWidth, relY + 40, 32, 28, new TranslationTextComponent("gui.vendingmachine.tab_price"), onTabButtonPress(false), false, false));
+            this.addRenderableWidget(new VenderTabButton(relX + this.imageWidth, relY + 12, 32, 28, new TranslatableComponent("gui.vendingmachine.tab_price"), onTabButtonPress(true), true, true));
+            this.addRenderableWidget(new VenderTabButton(relX + this.imageWidth, relY + 40, 32, 28, new TranslatableComponent("gui.vendingmachine.tab_price"), onTabButtonPress(false), false, false));
         }
     }
 
     @Override
-    public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+    public void render(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
         this.renderBackground(matrixStack);
         super.render(matrixStack, mouseX, mouseY, partialTicks);
         this.renderTooltip(matrixStack, mouseX, mouseY);
@@ -76,20 +63,33 @@ public class VenderBlockScreen extends ContainerScreen<VenderBlockContainer> {
         }
     }
 
-    public void tick() {
-        super.tick();
-    }
-
     @Override
-    protected void renderBg(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY) {
+    protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
         GL11.glColor4f(1, 1, 1, 1);
-        this.minecraft.getTextureManager().bind(gui);
+        this.minecraft.getTextureManager().bindForSetup(gui);
         relX = (this.width - this.getXSize()) / 2;
         relY = (this.height - this.getYSize()) / 2;
         this.blit(matrixStack, relX, relY, 0, 0, this.getXSize(), this.getYSize());
     }
 
-    public Button.IPressable onTestButtonPress = new Button.IPressable() {
+    private ItemStack lastItem;
+    private TranslatableComponent itemPrice = new TranslatableComponent("msg.vendingmachine.price");
+    private TranslatableComponent lastItemPrice = new TranslatableComponent("msg.vendingmachine.price");
+
+    @Override
+    protected void renderTooltip(PoseStack matrixStack, ItemStack itemStack, int x, int y) {
+        itemPrice = new TranslatableComponent("msg.vendingmachine.price", this.menu.getTile().getPrices().get(itemStack.getItem()));
+        if(lastItem != null){
+            this.getTooltipFromItem(lastItem).remove(lastItemPrice);
+        }
+        this.getTooltipFromItem(itemStack).add(itemPrice);
+        this.renderTooltip(matrixStack, this.getTooltipFromItem(itemStack), itemStack.getTooltipImage(), x, y, this.font);
+
+        lastItemPrice = itemPrice;
+        lastItem = itemStack;
+    }
+
+    public Button.OnPress onTestButtonPress = new Button.OnPress() {
         @Override
         public void onPress(Button button) {
             VendingMachine.NETWORK_HANDLER.sendToServer(new PacketAllowItemTake(menu.getTile().getBlockPos(), menu.currentPlayer, !menu.buyTestMode_REMOVE_LATER));
@@ -98,7 +98,7 @@ public class VenderBlockScreen extends ContainerScreen<VenderBlockContainer> {
         }
     };
 
-    public final Button.IPressable onBuyButtonPress = button -> {
+    public final Button.OnPress onBuyButtonPress = button -> {
         //menu.getTile().buy(menu.selectedSlot.getSlotIndex());
         if(menu.selectedSlot != null) {
             if(hasShiftDown() && !VendingMachineConfig.GENERAL.isStackPrices.get()){
@@ -111,8 +111,8 @@ public class VenderBlockScreen extends ContainerScreen<VenderBlockContainer> {
         }
     }; //VendingMachine.SIMPLE_CHANNEL.sendToServer(new PacketSendBuy(menu.selectedSlot)); };
 
-    public Button.IPressable onTabButtonPress(boolean isMain){
-        return new Button.IPressable() {
+    public Button.OnPress onTabButtonPress(boolean isMain){
+        return new Button.OnPress() {
             @Override
             public void onPress(Button button) {
                 VendingMachineTile tile = menu.getTile();
