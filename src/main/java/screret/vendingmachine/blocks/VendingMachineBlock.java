@@ -25,6 +25,7 @@ import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.Nullable;
+import org.lwjgl.system.CallbackI;
 import screret.vendingmachine.init.Registration;
 import screret.vendingmachine.tileEntities.VendingMachineTile;
 
@@ -34,6 +35,8 @@ public class VendingMachineBlock extends HorizontalDirectionalBlock implements E
     public static final EnumProperty<DoubleBlockHalf> HALF = BlockStateProperties.DOUBLE_BLOCK_HALF;
     private static final EnumProperty<DyeColor> COLOR = EnumProperty.create("color", DyeColor.class);
     private DyeColor color;
+
+    private UUID owner;
 
     public VendingMachineBlock(DyeColor color, Properties properties) {
         super(properties);
@@ -58,12 +61,16 @@ public class VendingMachineBlock extends HorizontalDirectionalBlock implements E
             world.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
             return;
         }
+
         BlockEntity tile = world.getBlockEntity(pos);
-        if(tile instanceof VendingMachineTile _tile){
+        if(tile instanceof VendingMachineTile){
+            VendingMachineTile _tile = (VendingMachineTile)tile;
             if(_tile.owner == null){
                 _tile.owner = entity.getUUID();
             }
         }
+        owner = entity.getUUID();
+
         world.setBlock(pos.above(), state.setValue(HALF, DoubleBlockHalf.UPPER).setValue(FACING, state.getValue(FACING)), 3);
         world.blockUpdated(pos, this);
     }
@@ -95,11 +102,11 @@ public class VendingMachineBlock extends HorizontalDirectionalBlock implements E
         if(state.getValue(HALF) == DoubleBlockHalf.LOWER){
             BlockEntity tileEntity = worldIn.getBlockEntity(pos);
             if(tileEntity == null){
-                tileEntity =
-worldIn.getBlockEntity(pos.below());
+                tileEntity = worldIn.getBlockEntity(pos.below());
             }
-            ((VendingMachineTile)tileEntity).dropContents();
-            worldIn.removeBlockEntity(pos);
+            if(tileEntity != null){
+                ((VendingMachineTile)tileEntity).dropContents();
+            }
             super.onRemove(state, worldIn, pos, newState, isMoving);
         }
     }
@@ -131,6 +138,7 @@ worldIn.getBlockEntity(pos.below());
     @Nullable
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return state.getValue(HALF) == DoubleBlockHalf.LOWER ? Registration.VENDER_TILE.get().create(pos, state) : null;
+        VendingMachineTile tile = state.getValue(HALF) == DoubleBlockHalf.LOWER ? Registration.VENDER_TILE.get().create(pos, state) : null;
+        return tile;
     }
 }

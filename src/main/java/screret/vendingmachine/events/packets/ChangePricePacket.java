@@ -50,8 +50,7 @@ public class ChangePricePacket {
         ctx.enqueueWork(() -> {
             BlockEntity tile = playerEntity.getLevel().getBlockEntity(packet.pos);
 
-            if(tile instanceof VendingMachineTile){
-                VendingMachineTile finalTile = (VendingMachineTile) tile;
+            if(tile instanceof VendingMachineTile finalTile){
                 if(packet.add){
                     DistExecutor.unsafeRunWhenOn(Dist.DEDICATED_SERVER, () -> () -> finalTile.addPrice(packet.item, packet.price));
                 } else {

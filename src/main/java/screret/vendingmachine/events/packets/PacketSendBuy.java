@@ -38,7 +38,7 @@ public class PacketSendBuy {
         ctx.enqueueWork(() -> {
             VendingMachineTile tile = (VendingMachineTile)playerEntity.getLevel().getBlockEntity(packet.pos);
 
-           tile.buy(packet.slot, packet.amount);
+            tile.buy(packet.slot, packet.amount);
             //DistExecutor.safeRunWhenOn(Dist.DEDICATED_SERVER, () -> openScreen(slot, context.get().getSender()));
         });
 

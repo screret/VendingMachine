@@ -74,6 +74,7 @@ public class VenderBlockContainer extends AbstractContainerMenu {
             }
             currentPlayer = playerInventory.player.getUUID();
             checkPlayerAllowedToChangeInv(currentPlayer);
+            LOGGER.info(currentPlayer + "\n" + tileEntity.owner + "\n" + isAllowedToTakeItems);
 
             this.addSlot(MyHandler(this.moneyInventory, 0, MONEY_SLOT_XPOS, MONEY_SLOT_YPOS));
 
@@ -324,7 +325,7 @@ public class VenderBlockContainer extends AbstractContainerMenu {
                     this.resetQuickCraft();
                 }
             } else if (this.quickcraftStatus == 1) {
-                Slot slot7 = this.slots.get(slotId);
+                SlotItemHandler slot7 = (SlotItemHandler) this.slots.get(slotId);
                 ItemStack itemstack12 = playerinventory.getCarried();
                 if (slot7 != null && canItemQuickReplace(slot7, itemstack12, true) && slot7.mayPlace(itemstack12) && (this.quickcraftType == 2 || itemstack12.getCount() > this.quickcraftSlots.size()) && this.canDragTo(slot7)) {
                     this.quickcraftSlots.add(slot7);
@@ -484,7 +485,7 @@ public class VenderBlockContainer extends AbstractContainerMenu {
         return itemstack;
     }
 
-    public static boolean canItemQuickReplace(@Nullable Slot slot, ItemStack stack, boolean simulate) {
+    public static boolean canItemQuickReplace(@Nullable SlotItemHandler slot, ItemStack stack, boolean simulate) {
         boolean flag = slot == null || !slot.hasItem();
         if (!flag && stack.sameItem(slot.getItem()) && ItemStack.tagMatches(slot.getItem(), stack)) {
             return slot.getItem().getCount() + (simulate ? 0 : stack.getCount()) <= slot.getMaxStackSize();

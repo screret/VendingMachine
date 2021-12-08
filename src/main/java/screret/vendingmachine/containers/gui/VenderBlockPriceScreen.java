@@ -189,6 +189,7 @@ public class VenderBlockPriceScreen extends AbstractContainerScreen<VenderPriceE
         if(itemNameInput == null){
             itemNameInput = new EditBox(this.minecraft.font, leftPos + 32, topPos + 54, 64, 16, new TranslatableComponent("gui.vendingmachine.inputtemplate"));
             this.addWidget(itemNameInput);
+            itemNameInput.setMaxLength(40);
         } else {
             itemPriceInput.x = leftPos + 32;
             itemPriceInput.y = topPos + 54;

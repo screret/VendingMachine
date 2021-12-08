@@ -1,11 +1,10 @@
 package screret.vendingmachine.tileEntities;
 
-import com.google.gson.*;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.TagParser;
+import net.minecraft.nbt.IntTag;
 import net.minecraft.network.Connection;
 import net.minecraft.network.chat.BaseComponent;
 import net.minecraft.network.chat.TextComponent;
@@ -21,18 +20,21 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.util.JsonUtils;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.wrapper.CombinedInvWrapper;
+import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
+import screret.vendingmachine.VendingMachine;
 import screret.vendingmachine.blocks.VendingMachineBlock;
 import screret.vendingmachine.configs.VendingMachineConfig;
 import screret.vendingmachine.containers.ItemStackHandlerMoney;
 import screret.vendingmachine.containers.ItemStackHandlerOutput;
 import screret.vendingmachine.containers.OwnedStackHandler;
 import screret.vendingmachine.containers.VenderBlockContainer;
+import screret.vendingmachine.events.packets.SendOwnerToClientPacket;
 import screret.vendingmachine.init.Registration;
 
 import java.util.HashMap;
@@ -56,69 +58,48 @@ public class VendingMachineTile extends BlockEntity implements MenuProvider {
     }
 
     @Override
-    public CompoundTag save(CompoundTag parentNBTTagCompound) {
-        super.save(parentNBTTagCompound); // The super call is required to save and load the tileEntity's location
+    protected void saveAdditional(@NotNull CompoundTag parentNBTTagCompound) {
+        super.saveAdditional(parentNBTTagCompound); // The super call is required to save and load the tileEntity's location
         parentNBTTagCompound.putUUID("Owner", owner);
         parentNBTTagCompound.put("InputSlot", inputSlot.serializeNBT());
         parentNBTTagCompound.put("MoneySlot", moneySlot.serializeNBT());
         parentNBTTagCompound.put("OutputSlot", outputSlot.serializeNBT());
         parentNBTTagCompound.put("Prices", savePrices());
-        return parentNBTTagCompound;
     }
 
     protected CompoundTag savePrices() {
         if(VendingMachineConfig.GENERAL.allowPriceEditing.get()){
             CompoundTag nbt = new CompoundTag();
-            JsonObject array = new JsonObject();
             for (Map.Entry<Item, Integer> entry : priceMap.entrySet()){
-                array.add(ForgeRegistries.ITEMS.getKey(entry.getKey()).toString(), new JsonPrimitive(entry.getValue()));
+                nbt.put(ForgeRegistries.ITEMS.getKey(entry.getKey()).toString(), IntTag.valueOf(entry.getValue()));
             }
-
-            try {
-                nbt = TagParser.parseTag(array.toString());
-            } catch (CommandSyntaxException e) {
-                e.printStackTrace();
-            }
-
             return nbt;
         } else {
             CompoundTag nbt = new CompoundTag();
-            JsonArray array = new JsonArray();
-            for (String entry : VendingMachineConfig.GENERAL.itemPrices.get()){
-                array.add(entry);
+            for (Map.Entry<Item, Integer> entry : VendingMachineConfig.DECRYPTED_PRICES.entrySet()){
+                nbt.put(ForgeRegistries.ITEMS.getKey(entry.getKey()).toString(), IntTag.valueOf(entry.getValue()));
             }
-
-            try {
-                nbt = TagParser.parseTag(array.getAsString());
-            } catch (CommandSyntaxException e) {
-                e.printStackTrace();
-            }
-
             return nbt;
         }
-
     }
 
     // This is where you load the data that you saved in write
     @Override
-    public void load(CompoundTag parentNBTTagCompound) {
+    public void load(@NotNull CompoundTag parentNBTTagCompound) {
         super.load(parentNBTTagCompound); // The super call is required to save and load the tiles location
         owner = parentNBTTagCompound.getUUID("Owner");
         inputSlot.deserializeNBT(parentNBTTagCompound.getCompound("InputSlot"));
         moneySlot.deserializeNBT(parentNBTTagCompound.getCompound("MoneySlot"));
         outputSlot.deserializeNBT(parentNBTTagCompound.getCompound("OutputSlot"));
-        priceMap = loadPrices(parentNBTTagCompound.get("Prices").getAsString());
+        priceMap = loadPrices(parentNBTTagCompound.getCompound("Prices"));
         //LOGGER.debug(world.getRecipeManager().getRecipesForType(BlenderRecipeSerializer.BLENDING));
     }
 
-    protected Map<Item, Integer> loadPrices(String array){
+    protected Map<Item, Integer> loadPrices(CompoundTag array){
         Map<Item, Integer> map = new HashMap<>();
 
-        JsonParser parser = new JsonParser();
-        JsonObject array1 = parser.parse(array).getAsJsonObject();
-
-        for (Map.Entry<String, JsonElement> entry : array1.entrySet()){
-            map.put(ForgeRegistries.ITEMS.getValue(new ResourceLocation(entry.getKey())), entry.getValue().getAsInt());
+        for (String entry : array.getAllKeys()){
+            map.put(ForgeRegistries.ITEMS.getValue(new ResourceLocation(entry)), array.getInt(entry));
         }
         return map;
     }
@@ -139,12 +120,20 @@ public class VendingMachineTile extends BlockEntity implements MenuProvider {
     }
 
     @Override
+    public void handleUpdateTag(CompoundTag tag) {
+        load(tag);
+        if(!level.isClientSide){
+            VendingMachine.NETWORK_HANDLER.sendTo(new SendOwnerToClientPacket(this.worldPosition, this.owner), Minecraft.getInstance().getConnection().getConnection(), NetworkDirection.PLAY_TO_CLIENT);
+        }
+    }
+
+    @Override
     public CompoundTag getUpdateTag(){
         return this.save(new CompoundTag());
     }
 
     public ClientboundBlockEntityDataPacket getUpdatePacket(){
-        if(getLevel().hasChunkAt(this.worldPosition) && this.getLevel().getBlockState(this.worldPosition).getBlock() != Blocks.AIR){
+        if(getLevel().isLoaded(this.worldPosition) && this.getLevel().getBlockState(this.worldPosition).getBlock() != Blocks.AIR){
             return ClientboundBlockEntityDataPacket.create(this);
         }
         return null;

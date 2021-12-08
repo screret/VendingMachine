@@ -76,6 +76,7 @@ public class VendingMachine {
         NETWORK_HANDLER.registerMessage(2, OpenGUIPacket.class, OpenGUIPacket::encode, OpenGUIPacket::new, OpenGUIPacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
         NETWORK_HANDLER.registerMessage(3, ChangePricePacket.class, ChangePricePacket::encode, ChangePricePacket::new, ChangePricePacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
         NETWORK_HANDLER.registerMessage(4, DropMoneyOnClosePacket.class, DropMoneyOnClosePacket::encode, DropMoneyOnClosePacket::new, DropMoneyOnClosePacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        NETWORK_HANDLER.registerMessage(5, SendOwnerToClientPacket.class, SendOwnerToClientPacket::encode, SendOwnerToClientPacket::new, SendOwnerToClientPacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
     }
 
     private void doClientStuff(final FMLClientSetupEvent event) {
