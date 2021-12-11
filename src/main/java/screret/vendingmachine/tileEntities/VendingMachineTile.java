@@ -1,9 +1,6 @@
 package screret.vendingmachine.tileEntities;
 
-import com.google.gson.*;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.block.BlockState;
-import net.minecraft.client.Minecraft;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -11,7 +8,6 @@ import net.minecraft.inventory.container.INamedContainerProvider;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.JsonToNBT;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SUpdateTileEntityPacket;
 import net.minecraft.tileentity.TileEntity;
@@ -21,7 +17,6 @@ import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.wrapper.CombinedInvWrapper;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.logging.log4j.LogManager;
@@ -34,15 +29,16 @@ import screret.vendingmachine.containers.OwnedStackHandler;
 import screret.vendingmachine.containers.VenderBlockContainer;
 import screret.vendingmachine.init.Registration;
 
+import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 public class VendingMachineTile extends TileEntity implements INamedContainerProvider {
 
-    public ItemStackHandler outputSlot = new ItemStackHandlerOutput(1);
+    public ItemStackHandlerOutput outputSlot = new ItemStackHandlerOutput(1);
     public OwnedStackHandler inputSlot = new OwnedStackHandler(30);
-    public ItemStackHandlerMoney moneySlot =  new ItemStackHandlerMoney(1);
+    public ItemStackHandlerMoney moneySlot =  new ItemStackHandlerMoney(18);
 
     public static Logger LOGGER = LogManager.getLogger();
 
@@ -68,35 +64,21 @@ public class VendingMachineTile extends TileEntity implements INamedContainerPro
     }
 
     protected CompoundNBT savePrices() {
+        CompoundNBT nbt = new CompoundNBT();
         if(VendingMachineConfig.GENERAL.allowPriceEditing.get()){
-            CompoundNBT nbt = new CompoundNBT();
-            JsonObject array = new JsonObject();
             for (Map.Entry<Item, Integer> entry : priceMap.entrySet()){
-                array.add(ForgeRegistries.ITEMS.getKey(entry.getKey()).toString(), new JsonPrimitive(entry.getValue()));
+                nbt.putInt(ForgeRegistries.ITEMS.getKey(entry.getKey()).toString(), entry.getValue());
+                LOGGER.info(entry + " " + nbt.getAllKeys());
             }
 
-            try {
-                nbt = JsonToNBT.parseTag(array.toString());
-            } catch (CommandSyntaxException e) {
-                e.printStackTrace();
-            }
-
-            return nbt;
         } else {
-            CompoundNBT nbt = new CompoundNBT();
-            JsonArray array = new JsonArray();
-            for (String entry : VendingMachineConfig.GENERAL.itemPrices.get()){
-                array.add(entry);
+            for (Map.Entry<Item, Integer> entry : VendingMachineConfig.DECRYPTED_PRICES.entrySet()){
+                nbt.putInt(ForgeRegistries.ITEMS.getKey(entry.getKey()).toString(), entry.getValue());
+                LOGGER.info(entry + " " + nbt.getAllKeys());
             }
 
-            try {
-                nbt = JsonToNBT.parseTag(array.toString());
-            } catch (CommandSyntaxException e) {
-                e.printStackTrace();
-            }
-
-            return nbt;
         }
+        return nbt;
 
     }
 
@@ -108,18 +90,15 @@ public class VendingMachineTile extends TileEntity implements INamedContainerPro
         inputSlot.deserializeNBT(parentNBTTagCompound.getCompound("InputSlot"));
         moneySlot.deserializeNBT(parentNBTTagCompound.getCompound("MoneySlot"));
         outputSlot.deserializeNBT(parentNBTTagCompound.getCompound("OutputSlot"));
-        priceMap = loadPrices(parentNBTTagCompound.get("Prices").getAsString());
+        priceMap = loadPrices(parentNBTTagCompound.getCompound("Prices"));
         //LOGGER.debug(world.getRecipeManager().getRecipesForType(BlenderRecipeSerializer.BLENDING));
     }
 
-    protected Map<Item, Integer> loadPrices(String array){
+    protected Map<Item, Integer> loadPrices(CompoundNBT array){
         Map<Item, Integer> map = new HashMap<>();
 
-        JsonParser parser = new JsonParser();
-        JsonObject array1 = parser.parse(array).getAsJsonObject();
-
-        for (Map.Entry<String, JsonElement> entry : array1.entrySet()){
-            map.put(ForgeRegistries.ITEMS.getValue(new ResourceLocation(entry.getKey())), entry.getValue().getAsInt());
+        for (String entry : array.getAllKeys()){
+            map.put(ForgeRegistries.ITEMS.getValue(new ResourceLocation(entry)), array.getInt(entry));
         }
         return map;
     }
@@ -141,8 +120,7 @@ public class VendingMachineTile extends TileEntity implements INamedContainerPro
 
     @Override
     public CompoundNBT getUpdateTag(){
-        CompoundNBT nbt = this.save(new CompoundNBT());
-        return nbt;
+        return this.save(new CompoundNBT());
     }
 
     @Override
@@ -175,28 +153,67 @@ public class VendingMachineTile extends TileEntity implements INamedContainerPro
             ItemStack money = moneySlot.getStackInSlot(0);
             ItemStack stack = inputSlot.getStackInSlot(slotIndex);
             int price = VendingMachineConfig.GENERAL.allowPriceEditing.get() ? this.priceMap.getOrDefault(stack.getItem(), 4) : VendingMachineConfig.DECRYPTED_PRICES.getOrDefault(stack.getItem(), 4);
+            int realPrice = price * amount;
+            int realMoney = money.getCount() * price;
+
             ItemStack stack1 = new ItemStack(stack.getItem(), Math.min(stack.getCount(), amount));
-            if (!stack.isEmpty() && price * amount < money.getCount()) {
-                outputSlot.setStackInSlot(0, new ItemStack(stack1.getItem(), stack1.getCount() + outputSlot.getStackInSlot(0).getCount()));
-                inputSlot.extractItem(slotIndex, Math.min(money.getCount() * price, amount), false);
-                moneySlot.extractItem(0, amount * price, false);
+            if (!stack.isEmpty() && realPrice < money.getCount()) {
+                if(outputSlot.getStackInSlot(0).isEmpty()){
+                    outputSlot.setStackInSlot(0, new ItemStack(stack1.getItem(), stack1.getCount() + outputSlot.getStackInSlot(0).getCount()));
+                }else{
+                    return;
+                }
+                inputSlot.extractItem(slotIndex, Math.min(realMoney, amount), false);
+
+                boolean b = addMoneyToStorage(realPrice);
+
+                if(!b){
+                    return;
+                }
+                moneySlot.extractItem(0, realPrice, false);
+
                 this.getLevel().getPlayerByUUID(this.container.currentPlayer).sendMessage(new TranslationTextComponent("msg.vendingmachine.buy", stack1.toString(), amount * price, new StringTextComponent(VendingMachineConfig.PAYMENT_ITEM.toString()).withStyle(TextFormatting.DARK_GREEN)), this.container.currentPlayer);
-            } else if (price * amount > money.getCount()) {
+            } else if (realPrice > money.getCount()) {
                 amount = money.getCount() / price;
+                realPrice = price * amount;
                 stack1 = new ItemStack(stack.getItem(), amount);
                 outputSlot.setStackInSlot(0, new ItemStack(stack1.getItem(), stack1.getCount() + outputSlot.getStackInSlot(0).getCount()));
-                inputSlot.extractItem(slotIndex, Math.min(money.getCount() * price, amount), false);
-                moneySlot.extractItem(0, amount * price, false);
+                inputSlot.extractItem(slotIndex, Math.min(realMoney, amount), false);
+
+                boolean b = addMoneyToStorage(realPrice);
+
+                if(!b){
+                    return;
+                }
+                moneySlot.extractItem(0, realPrice, false);
 
                 this.getLevel().getPlayerByUUID(this.container.currentPlayer).sendMessage(new TranslationTextComponent("msg.vendingmachine.notenoughmoney"), this.container.currentPlayer);
             }
         }
     }
 
-    public void addPrice(ItemStack item, int price){
+    private boolean addMoneyToStorage(int realPrice){
+        for(int i = 1; i < moneySlot.getSlots(); ++i){
+            ItemStack insertedMoney = moneySlot.insertItem(i, new ItemStack(VendingMachineConfig.PAYMENT_ITEM.getItem(), realPrice), false);
+            if(insertedMoney.isEmpty()){
+                break;
+            }else{
+                if(i == moneySlot.getSlots() - 1){
+                    insertedMoney = moneySlot.insertItem(1, insertedMoney, false);
+                    if(!insertedMoney.isEmpty()){
+                        return false;
+                    }
+                }else{
+                    moneySlot.insertItem(i + 1, insertedMoney, false);
+                }
+            }
+        }
+        return true;
+    }
+
+    public void addPrice(@Nonnull ItemStack item, int price){
         priceMap.put(item.getItem(), price);
         this.setChanged();
-        LOGGER.info(priceMap.entrySet());
     }
 
     public void removePrice(ItemStack item){

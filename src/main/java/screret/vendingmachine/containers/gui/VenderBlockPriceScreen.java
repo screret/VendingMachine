@@ -8,7 +8,6 @@ import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
@@ -22,14 +21,11 @@ import net.minecraftforge.registries.ForgeRegistries;
 import org.lwjgl.opengl.GL11;
 import screret.vendingmachine.VendingMachine;
 import screret.vendingmachine.configs.VendingMachineConfig;
-import screret.vendingmachine.containers.VenderBlockContainer;
 import screret.vendingmachine.containers.VenderPriceEditorContainer;
 import screret.vendingmachine.events.packets.ChangePricePacket;
 import screret.vendingmachine.events.packets.DropMoneyOnClosePacket;
-import screret.vendingmachine.events.packets.OpenGUIPacket;
+import screret.vendingmachine.events.packets.OpenVenderGUIPacket;
 import screret.vendingmachine.tileEntities.VendingMachineTile;
-
-import javax.annotation.Nullable;
 
 public class VenderBlockPriceScreen extends ContainerScreen<VenderPriceEditorContainer> {
     private boolean scrolling;
@@ -342,10 +338,7 @@ public class VenderBlockPriceScreen extends ContainerScreen<VenderPriceEditorCon
             @Override
             public void onPress(Button button) {
                 VendingMachineTile tile = menu.getTile();
-                if (isMain) {
-                    VendingMachine.NETWORK_HANDLER.sendToServer(new OpenGUIPacket(tile.getBlockPos(), true));
-                    //VendingMachine.NETWORK_HANDLER.sendToServer(new SOpenWindowPacket(menu.containerId, Registration.VENDER_CONT_PRICES.get(), new TranslationTextComponent("gui.vendingmachine.changeprice")));
-                }
+                VendingMachine.NETWORK_HANDLER.sendToServer(new OpenVenderGUIPacket(tile.getBlockPos(), !isMain));
             }
         };
     }

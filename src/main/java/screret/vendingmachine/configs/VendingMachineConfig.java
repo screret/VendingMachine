@@ -24,6 +24,7 @@ public class VendingMachineConfig extends ForgeConfigSpec.Builder {
 
         public final ForgeConfigSpec.BooleanValue allowPriceEditing;
         public final ForgeConfigSpec.BooleanValue isStackPrices;
+        public final ForgeConfigSpec.BooleanValue allowControlCard;
 
         public General(ForgeConfigSpec.Builder builder)
         {
@@ -42,6 +43,9 @@ public class VendingMachineConfig extends ForgeConfigSpec.Builder {
             this.isStackPrices = builder.comment("Set to true if prices are per-stack and not per-item")
                     .worldRestart()
                     .define("is_stack_price", false);
+            this.allowControlCard = builder.comment("Set to false if you don't want players to be able to remote control their machines.")
+                    .worldRestart()
+                    .define("allow_rc", true);
 
             builder.pop();
         }
@@ -57,9 +61,8 @@ public class VendingMachineConfig extends ForgeConfigSpec.Builder {
             String value = string.split(" ")[1];
 
             String[] keyParts = key.split(":");
-            if(ResourceLocation.isValidResourceLocation(key)) {
-                map.put(ForgeRegistries.ITEMS.getValue(new ResourceLocation(keyParts[0], keyParts[1])), Integer.decode(value));
-            }
+
+            map.put(ForgeRegistries.ITEMS.getValue(new ResourceLocation(keyParts[0], keyParts[1])), Integer.decode(value));
         }
 
         return map;
@@ -68,10 +71,7 @@ public class VendingMachineConfig extends ForgeConfigSpec.Builder {
     public static Item PAYMENT_ITEM = getPaymentItem();
 
     public static Item getPaymentItem(){
-        if(ResourceLocation.isValidResourceLocation(GENERAL.paymentItem.get())) {
-            return ForgeRegistries.ITEMS.getValue(new ResourceLocation(GENERAL.paymentItem.get()));
-        }
-        return Items.AIR;
+        return ForgeRegistries.ITEMS.getValue(new ResourceLocation(GENERAL.paymentItem.get()));
     }
 
 }

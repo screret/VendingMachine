@@ -7,7 +7,6 @@ import net.minecraft.inventory.container.ClickType;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.text.ITextComponent;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.SlotItemHandler;
@@ -69,17 +68,28 @@ public class VenderBlockContainer extends Container {
             for(int x = 0; x < INPUT_SLOTS_X_AMOUNT_PLUS_1; x++){
                 for(int y = 0; y < INPUT_SLOTS_Y_AMOUNT_PLUS_1; y++) {
                     int slotNumber = y * INPUT_SLOTS_Y_AMOUNT + x;
-                    this.addSlot(MyHandler(this.inputInventory, slotNumber, INPUT_SLOTS_XPOS + SLOT_X_SPACING * x, INPUT_SLOTS_YPOS + SLOT_Y_SPACING * y));
+                    this.addSlot(myHandler(this.inputInventory, slotNumber, INPUT_SLOTS_XPOS + SLOT_X_SPACING * x, INPUT_SLOTS_YPOS + SLOT_Y_SPACING * y));
                 }
             }
             currentPlayer = playerInventory.player.getUUID();
             checkPlayerAllowedToChangeInv(currentPlayer);
 
-            this.addSlot(MyHandler(this.moneyInventory, 0, MONEY_SLOT_XPOS, MONEY_SLOT_YPOS));
+            this.addSlot(myHandler(this.moneyInventory, 0, MONEY_SLOT_XPOS, MONEY_SLOT_YPOS));
 
             final int OUTPUT_SLOTS_XPOS = 134;
             final int OUTPUT_SLOTS_YPOS = 90;
-            this.addSlot(new SlotItemHandler(this.outputInventory, 0, OUTPUT_SLOTS_XPOS, OUTPUT_SLOTS_YPOS));
+            this.addSlot(myHandler(this.outputInventory, 0, OUTPUT_SLOTS_XPOS, OUTPUT_SLOTS_YPOS));
+
+            int moneyXPos = MONEY_SLOT_XPOS - 36;
+            if(currentPlayer.equals(tile.owner)){
+                for(int x = 0; x < 2; x++){
+                    for(int y = 0; y < 4; y++){
+                        int slotNumber = y * 2 + x + 1;
+                        LOGGER.info(slotNumber + " " + x + " " + y);
+                        this.addSlot(myHandler(this.moneyInventory, slotNumber, moneyXPos + SLOT_X_SPACING * x, MONEY_SLOT_YPOS + SLOT_Y_SPACING * y));
+                    }
+                }
+            }
         } else {
             throw new IllegalStateException("TileEntity is null");
         }
@@ -138,7 +148,7 @@ public class VenderBlockContainer extends Container {
 
     @Override
     public ItemStack clicked(int slotId, int dragType, ClickType clickTypeIn, PlayerEntity player) {
-        if (slotId > INPUT_SLOTS_X_AMOUNT_PLUS_1 * INPUT_SLOTS_Y_AMOUNT_PLUS_1) {
+        if (slotId > INPUT_SLOTS_X_AMOUNT_PLUS_1 * INPUT_SLOTS_Y_AMOUNT_PLUS_1 && clickTypeIn != ClickType.PICKUP_ALL) {
             SlotItemHandler slot = (SlotItemHandler) this.slots.get(slotId);
             if(!isAllowedToTakeItems) {
                 if (slot.getItemHandler() == inputInventory) {
@@ -270,7 +280,7 @@ public class VenderBlockContainer extends Container {
         return flag;
     }
 
-    public SlotItemHandler MyHandler(IItemHandler itemHandler, int index, int xPosition, int yPosition){
+    public SlotItemHandler myHandler(IItemHandler itemHandler, int index, int xPosition, int yPosition){
         return new SlotItemHandler(itemHandler, index, xPosition, yPosition){
             @Override
             public int getMaxStackSize(@Nonnull ItemStack stack)

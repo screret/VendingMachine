@@ -18,4 +18,9 @@ public class ItemStackHandlerOutput extends ItemStackHandler {
     public boolean isItemValid(int slot, @Nonnull ItemStack stack) {
         return false;
     }
+
+    @Override
+    public int getSlotLimit(int slot) {
+        return 192;
+    }
 }

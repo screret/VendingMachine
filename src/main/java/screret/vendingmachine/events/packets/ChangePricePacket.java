@@ -8,6 +8,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.network.NetworkEvent;
+import org.omg.PortableInterceptor.LOCATION_FORWARD;
 import screret.vendingmachine.tileEntities.VendingMachineTile;
 
 import java.util.function.Supplier;
@@ -49,9 +50,11 @@ public class ChangePricePacket {
             if(tile instanceof VendingMachineTile){
                 VendingMachineTile finalTile = (VendingMachineTile) tile;
                 if(packet.add){
-                    DistExecutor.unsafeRunWhenOn(Dist.DEDICATED_SERVER, () -> () -> finalTile.addPrice(packet.item, packet.price));
+                    //DistExecutor.unsafeRunWhenOn(Dist.DEDICATED_SERVER, () -> () -> finalTile.addPrice(packet.item, packet.price));
+                    finalTile.addPrice(packet.item, packet.price);
                 } else {
-                    DistExecutor.unsafeRunWhenOn(Dist.DEDICATED_SERVER, () -> () -> finalTile.removePrice(packet.item));
+                    //DistExecutor.unsafeRunWhenOn(Dist.DEDICATED_SERVER, () -> () -> finalTile.removePrice(packet.item));
+                    finalTile.removePrice(packet.item);
                 }
             }
         });

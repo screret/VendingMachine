@@ -2,13 +2,17 @@ package screret.vendingmachine.init;
 
 import net.minecraft.block.*;
 import net.minecraft.block.material.Material;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.model.RenderMaterial;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.ai.attributes.Attribute;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.container.ContainerType;
 import net.minecraft.item.*;
 import net.minecraft.item.crafting.IRecipeSerializer;
 import net.minecraft.tileentity.TileEntityType;
+import net.minecraft.util.Hand;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -19,8 +23,12 @@ import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import screret.vendingmachine.VendingMachine;
 import screret.vendingmachine.blocks.VendingMachineBlock;
+import screret.vendingmachine.capabilities.ControlCardCapability;
+import screret.vendingmachine.capabilities.Controller;
+import screret.vendingmachine.containers.ContainerControlCard;
 import screret.vendingmachine.containers.VenderBlockContainer;
 import screret.vendingmachine.containers.VenderPriceEditorContainer;
+import screret.vendingmachine.items.ControlCardItem;
 import screret.vendingmachine.tileEntities.VendingMachineTile;
 
 import java.util.Arrays;
@@ -83,6 +91,9 @@ public class Registration {
     public static final RegistryObject<Item> VENDER_ITEM_RED = ITEMS.register("vending_machine_red", () -> new BlockItem(Registration.VENDER_RED.get(), new Item.Properties().tab(VendingMachine.MOD_TAB)));
     public static final RegistryObject<Item> VENDER_ITEM_BLACK = ITEMS.register("vending_machine_black", () -> new BlockItem(Registration.VENDER_BLACK.get(), new Item.Properties().tab(VendingMachine.MOD_TAB)));
 
+    //TODO: make this work
+    //public static final RegistryObject<Item> VENDER_CONTROL_CARD = ITEMS.register("vending_machine_controller", () -> new ControlCardItem(new Item.Properties().tab(VendingMachine.MOD_TAB).stacksTo(1), null));
+
     //containers
     public static final RegistryObject<ContainerType<VenderBlockContainer>> VENDER_CONT = CONTAINERS.register("container_vending_machine", () -> IForgeContainerType.create((windowId, inv, buffer) -> {
         BlockPos pos = buffer.readBlockPos();
@@ -102,5 +113,19 @@ public class Registration {
             tile = (VendingMachineTile) world.getBlockEntity(pos.below());
         }
         return new VenderPriceEditorContainer(windowId, inv, tile);
+    }));
+
+    public static final RegistryObject<ContainerType<ContainerControlCard>> CONTAINER_CONTROL_CARD = CONTAINERS.register("container_control_card", () -> IForgeContainerType.create((windowId, inv, buffer) -> {
+        PlayerEntity player = inv.player;
+        ItemStack stack = player.getItemInHand(Hand.MAIN_HAND);
+        if(stack.isEmpty()){
+            stack = player.getItemInHand(Hand.OFF_HAND);
+        }
+        ControlCardItem item = (ControlCardItem) stack.getItem();
+
+        if(item.getOwner() == null){
+            item.setOwner(inv.player.getUUID());
+        }
+        return new ContainerControlCard(windowId, inv, item.getOwner(), ControlCardItem.getController(item, stack));
     }));
 }
