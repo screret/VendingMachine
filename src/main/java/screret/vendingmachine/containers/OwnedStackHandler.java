@@ -1,14 +1,13 @@
 package screret.vendingmachine.containers;
 
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.ListNBT;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.registry.Registry;
-import net.minecraftforge.common.util.Constants;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.ItemStackHandler;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -118,33 +117,33 @@ public class OwnedStackHandler extends ItemStackHandler {
     }
 
     @Override
-    public CompoundNBT serializeNBT()
+    public CompoundTag serializeNBT()
     {
-        ListNBT nbtTagList = new ListNBT();
+        ListTag nbtTagList = new ListTag();
         for (int i = 0; i < stacks.size(); i++)
         {
             if (!stacks.get(i).isEmpty())
             {
-                CompoundNBT itemTag = new CompoundNBT();
+                CompoundTag itemTag = new CompoundTag();
                 itemTag.putInt("Slot", i);
                 saveItem(itemTag, stacks.get(i));
                 nbtTagList.add(itemTag);
             }
         }
-        CompoundNBT nbt = new CompoundNBT();
+        CompoundTag nbt = new CompoundTag();
         nbt.put("Items", nbtTagList);
         nbt.putInt("Size", stacks.size());
         return nbt;
     }
 
     @Override
-    public void deserializeNBT(CompoundNBT nbt)
+    public void deserializeNBT(CompoundTag nbt)
     {
-        setSize(nbt.contains("Size", Constants.NBT.TAG_INT) ? nbt.getInt("Size") : stacks.size());
-        ListNBT tagList = nbt.getList("Items", Constants.NBT.TAG_COMPOUND);
+        setSize(nbt.contains("Size", 3) ? nbt.getInt("Size") : stacks.size());
+        ListTag tagList = nbt.getList("Items", 10);
         for (int i = 0; i < tagList.size(); i++)
         {
-            CompoundNBT itemTags = tagList.getCompound(i);
+            CompoundTag itemTags = tagList.getCompound(i);
             int slot = itemTags.getInt("Slot");
 
             if (slot >= 0 && slot < stacks.size())
@@ -155,8 +154,8 @@ public class OwnedStackHandler extends ItemStackHandler {
         onLoad();
     }
 
-    public CompoundNBT saveItem(CompoundNBT p_77955_1_, ItemStack stack) {
-        ResourceLocation resourcelocation = Registry.ITEM.getKey(stack.getItem());
+    public CompoundTag saveItem(CompoundTag p_77955_1_, ItemStack stack) {
+        ResourceLocation resourcelocation = ForgeRegistries.ITEMS.getKey(stack.getItem());
         p_77955_1_.putString("id", resourcelocation.toString());
         p_77955_1_.putInt("Count", stack.getCount());
         if (stack.getTag() != null) {
@@ -165,13 +164,13 @@ public class OwnedStackHandler extends ItemStackHandler {
         return p_77955_1_;
     }
 
-    public ItemStack loadItem(CompoundNBT nbt) {
-        Item item = Registry.ITEM.get(new ResourceLocation(nbt.getString("id")));
+    public ItemStack loadItem(CompoundTag nbt) {
+        Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(nbt.getString("id")));
         int count = nbt.getInt("Count");
 
         ItemStack stack = new ItemStack(item, count);
         if (nbt.contains("tag", 10)) {
-            CompoundNBT tag = nbt.getCompound("tag");
+            CompoundTag tag = nbt.getCompound("tag");
             stack.getItem().verifyTagAfterLoad(nbt);
         }
         return stack;

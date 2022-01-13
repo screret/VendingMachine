@@ -1,9 +1,9 @@
 package screret.vendingmachine;
 
-import net.minecraft.client.gui.ScreenManager;
-import net.minecraft.item.ItemGroup;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.client.gui.screens.MenuScreens;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
@@ -13,12 +13,10 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.InterModEnqueueEvent;
 import net.minecraftforge.fml.event.lifecycle.InterModProcessEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.fml.network.NetworkDirection;
-import net.minecraftforge.fml.network.NetworkRegistry;
-import net.minecraftforge.fml.network.simple.SimpleChannel;
-import screret.vendingmachine.capabilities.ControlCardCapability;
+import net.minecraftforge.network.NetworkDirection;
+import net.minecraftforge.network.NetworkRegistry;
+import net.minecraftforge.network.simple.SimpleChannel;
 import screret.vendingmachine.configs.VendingMachineConfig;
-import screret.vendingmachine.containers.gui.ControlCardScreen;
 import screret.vendingmachine.containers.gui.VenderBlockPriceScreen;
 import screret.vendingmachine.containers.gui.VenderBlockScreen;
 import screret.vendingmachine.events.packets.*;
@@ -33,7 +31,7 @@ import java.util.Optional;
 public class VendingMachine {
     public static final String MODID = "vendingmachine";
 
-    public static final ItemGroup MOD_TAB = new ItemGroup("vendingmachine") {
+    public static final CreativeModeTab MOD_TAB = new CreativeModeTab("vendingmachine") {
         @Override
         public ItemStack makeIcon() {
             return new ItemStack(Registration.VENDER_ITEM_BLUE.get());
@@ -73,18 +71,17 @@ public class VendingMachine {
 
     private void setup(final FMLCommonSetupEvent event)
     {
-        ControlCardCapability.register();
         NETWORK_HANDLER.registerMessage(0, PacketSendBuy.class, PacketSendBuy::encode, PacketSendBuy::new, PacketSendBuy::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
         NETWORK_HANDLER.registerMessage(1, PacketAllowItemTake.class, PacketAllowItemTake::encode, PacketAllowItemTake::new, PacketAllowItemTake::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
-        NETWORK_HANDLER.registerMessage(2, OpenVenderGUIPacket.class, OpenVenderGUIPacket::encode, OpenVenderGUIPacket::new, OpenVenderGUIPacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        NETWORK_HANDLER.registerMessage(2, OpenGUIPacket.class, OpenGUIPacket::encode, OpenGUIPacket::new, OpenGUIPacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
         NETWORK_HANDLER.registerMessage(3, ChangePricePacket.class, ChangePricePacket::encode, ChangePricePacket::new, ChangePricePacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
         NETWORK_HANDLER.registerMessage(4, DropMoneyOnClosePacket.class, DropMoneyOnClosePacket::encode, DropMoneyOnClosePacket::new, DropMoneyOnClosePacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        NETWORK_HANDLER.registerMessage(5, SendOwnerToClientPacket.class, SendOwnerToClientPacket::encode, SendOwnerToClientPacket::new, SendOwnerToClientPacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
     }
 
     private void doClientStuff(final FMLClientSetupEvent event) {
-        event.enqueueWork(() -> ScreenManager.register(Registration.VENDER_CONT.get(), VenderBlockScreen::new));
-        event.enqueueWork(() -> ScreenManager.register(Registration.VENDER_CONT_PRICES.get(), VenderBlockPriceScreen::new));
-        event.enqueueWork(() -> ScreenManager.register(Registration.CONTAINER_CONTROL_CARD.get(), ControlCardScreen::new));
+        event.enqueueWork(() -> MenuScreens.register(Registration.VENDER_CONT.get(), VenderBlockScreen::new));
+        event.enqueueWork(() -> MenuScreens.register(Registration.VENDER_CONT_PRICES.get(), VenderBlockPriceScreen::new));
     }
 
     private void enqueueIMC(final InterModEnqueueEvent event)

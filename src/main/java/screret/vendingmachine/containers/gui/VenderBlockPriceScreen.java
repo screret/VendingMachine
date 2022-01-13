@@ -1,22 +1,25 @@
 package screret.vendingmachine.containers.gui;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.audio.SimpleSound;
-import net.minecraft.client.gui.screen.inventory.ContainerScreen;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.SoundEvents;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraftforge.fml.client.gui.widget.Slider;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.network.chat.BaseComponent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.client.event.ContainerScreenEvent;
+import net.minecraftforge.client.gui.widget.Slider;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.lwjgl.opengl.GL11;
 import screret.vendingmachine.VendingMachine;
@@ -24,10 +27,10 @@ import screret.vendingmachine.configs.VendingMachineConfig;
 import screret.vendingmachine.containers.VenderPriceEditorContainer;
 import screret.vendingmachine.events.packets.ChangePricePacket;
 import screret.vendingmachine.events.packets.DropMoneyOnClosePacket;
-import screret.vendingmachine.events.packets.OpenVenderGUIPacket;
+import screret.vendingmachine.events.packets.OpenGUIPacket;
 import screret.vendingmachine.tileEntities.VendingMachineTile;
 
-public class VenderBlockPriceScreen extends ContainerScreen<VenderPriceEditorContainer> {
+public class VenderBlockPriceScreen extends AbstractContainerScreen<VenderPriceEditorContainer> {
     private boolean scrolling;
     private float scrollOffs;
     private int startIndex;
@@ -41,7 +44,7 @@ public class VenderBlockPriceScreen extends ContainerScreen<VenderPriceEditorCon
 
     private ResourceLocation gui = new ResourceLocation(VendingMachine.MODID, "textures/gui/vending_machine_prices_gui.png");
 
-    public VenderBlockPriceScreen(VenderPriceEditorContainer container, PlayerInventory inv, ITextComponent name) {
+    public VenderBlockPriceScreen(VenderPriceEditorContainer container, Inventory inv, Component name) {
         super(container, inv, name);
         this.imageWidth = 176;
         this.imageHeight = 202;
@@ -56,7 +59,7 @@ public class VenderBlockPriceScreen extends ContainerScreen<VenderPriceEditorCon
 
     private Button addPriceMenuButton1;
     private Button addPriceMenuButton2;
-    private TextFieldWidget itemNameInput;
+    private EditBox itemNameInput;
     private Slider itemPriceInput;
 
     private Button addPriceButton;
@@ -77,48 +80,51 @@ public class VenderBlockPriceScreen extends ContainerScreen<VenderPriceEditorCon
         addPriceButton = new VenderCustomizableButton(gui, leftPos + 148, topPos + 32, 16, 16, 192, 15, onAddPress);
         delPriceButton = new VenderCustomizableButton(gui, leftPos + 148, topPos + 76, 16, 16, 176, 15, onRemovedPress);
 
-        this.addButton(addPriceButton);
-        this.addButton(delPriceButton);
+        this.addWidget(addPriceButton);
+        this.addWidget(delPriceButton);
 
-        mainPageButton = new VenderTabButton(leftPos + this.imageWidth, topPos + 2, 32, 28, new TranslationTextComponent("gui.vendingmachine.tab_price"), onTabButtonPress(true), true, false);
-        thisPageButton = new VenderTabButton(leftPos + this.imageWidth, topPos + 30, 32, 28, new TranslationTextComponent("gui.vendingmachine.tab_price"), onTabButtonPress(false), false, true);
+        mainPageButton = new VenderTabButton(leftPos + this.imageWidth, topPos + 2, 32, 28, new TranslatableComponent("gui.vendingmachine.tab_price"), onTabButtonPress(true), true, false);
+        thisPageButton = new VenderTabButton(leftPos + this.imageWidth, topPos + 30, 32, 28, new TranslatableComponent("gui.vendingmachine.tab_price"), onTabButtonPress(false), false, true);
 
-        this.addButton(mainPageButton);
-        this.addButton(thisPageButton);
+        this.addWidget(mainPageButton);
+        this.addWidget(thisPageButton);
     }
 
     @Override
-    public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+    public void render(PoseStack PoseStack, int mouseX, int mouseY, float partialTicks) {
         leftPos = (this.width - this.getXSize()) / 2;
         topPos = (this.height - this.getYSize()) / 2;
-        this.renderBackground(matrixStack);
-        this.renderOthers(matrixStack, mouseX, mouseY, partialTicks);
-        this.renderButtons(matrixStack, mouseX, mouseY, leftPos + 12, topPos + 21, this.startIndex + 9, partialTicks);
+        this.renderBackground(PoseStack);
+        this.renderOthers(PoseStack, mouseX, mouseY, partialTicks);
+        this.renderButtons(PoseStack, mouseX, mouseY, leftPos + 12, topPos + 21, this.startIndex + 9, partialTicks);
 
-        this.minecraft.getTextureManager().bind(gui);
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderSystem.setShaderTexture(0, this.gui);
         int k = (int)(147.0F * this.scrollOffs);
-        this.blit(matrixStack, leftPos + 127, topPos + 21 + k, 176 + (this.isScrollBarActive() ? 0 : 12), 0, 12, 15);
+        this.blit(PoseStack, leftPos + 127, topPos + 21 + k, 176 + (this.isScrollBarActive() ? 0 : 12), 0, 12, 15);
 
-        this.addPriceButton.render(matrixStack, mouseX, mouseY, partialTicks);
-        this.delPriceButton.render(matrixStack, mouseX, mouseY, partialTicks);
+        this.addPriceButton.render(PoseStack, mouseX, mouseY, partialTicks);
+        this.delPriceButton.render(PoseStack, mouseX, mouseY, partialTicks);
         if(displayAddMenu){
-            this.renderAddMenu(matrixStack, mouseX, mouseY, partialTicks);
+            this.renderAddMenu(PoseStack, mouseX, mouseY, partialTicks);
         }
-        this.renderTooltip(matrixStack, mouseX, mouseY);
+        this.renderTooltip(PoseStack, mouseX, mouseY);
 
         this.delPriceButton.active = selectedItem != null && !selectedItem.isEmpty();
     }
 
     @Override
-    protected void renderBg(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY) {
-        GL11.glColor4f(1, 1, 1, 1);
-        mainPageButton.renderButton(matrixStack, mouseX, mouseY, partialTicks);
-        thisPageButton.renderButton(matrixStack, mouseX, mouseY, partialTicks);
-        this.minecraft.getTextureManager().bind(gui);
-        this.blit(matrixStack, leftPos, topPos, 0, 0, this.getXSize(), this.getYSize());
+    protected void renderBg(PoseStack PoseStack, float partialTicks, int mouseX, int mouseY) {
+        mainPageButton.renderButton(PoseStack, mouseX, mouseY, partialTicks);
+        thisPageButton.renderButton(PoseStack, mouseX, mouseY, partialTicks);
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderSystem.setShaderTexture(0, this.gui);
+        this.blit(PoseStack, leftPos, topPos, 0, 0, this.getXSize(), this.getYSize());
     }
 
-    private void renderButtons(MatrixStack matrixStack, int mouseX, int mouseY, int startX, int startY, int lastPos, float partialTicks) {
+    private void renderButtons(PoseStack PoseStack, int mouseX, int mouseY, int startX, int startY, int lastPos, float partialTicks) {
         Object[] stacks = menu.getTile().getPrices().keySet().toArray();
         Object[] prices = menu.getTile().getPrices().values().toArray();
         for(int i = this.startIndex; i < lastPos && i < menu.getTile().getPrices().size(); ++i) {
@@ -133,23 +139,27 @@ public class VenderBlockPriceScreen extends ContainerScreen<VenderPriceEditorCon
                 j1 += 34;
             }
 
-            this.minecraft.getTextureManager().bind(gui);
-            this.blit(matrixStack, startX, i1, j2, j1, 112, 18);
-            ITextComponent itemName = ((Item)stacks[i]).getDescription();
-            drawCenteredString(matrixStack, minecraft.font, itemName, startX + 56, i1 + 5, getFGColor());
-            drawCenteredString(matrixStack, minecraft.font, prices[i].toString(), startX + 104, i1 + 5, getFGColor());
+            RenderSystem.setShader(GameRenderer::getPositionTexShader);
+            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+            RenderSystem.setShaderTexture(0, this.gui);
+            this.blit(PoseStack, startX, i1, j2, j1, 112, 18);
+            Component itemName = ((Item)stacks[i]).getDescription();
+            drawCenteredString(PoseStack, minecraft.font, itemName, startX + 56, i1 + 5, getFGColor());
+            drawCenteredString(PoseStack, minecraft.font, prices[i].toString(), startX + 104, i1 + 5, getFGColor());
             this.itemRenderer.renderAndDecorateItem(new ItemStack((Item)stacks[i]), startX + 5, i1 + 1);
         }
     }
 
-    public void renderAddMenu(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks){
-        this.minecraft.getTextureManager().bind(gui);
-        this.blit(matrixStack, leftPos + 22, topPos + 50, 112, 202, 92, 54);
+    public void renderAddMenu(PoseStack PoseStack, int mouseX, int mouseY, float partialTicks){
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderSystem.setShaderTexture(0, this.gui);
+        this.blit(PoseStack, leftPos + 22, topPos + 50, 112, 202, 92, 54);
 
-        itemNameInput.render(matrixStack, mouseX, mouseY, partialTicks);
-        itemPriceInput.render(matrixStack, mouseX, mouseY, partialTicks);
-        addPriceMenuButton1.render(matrixStack, mouseX, mouseY, partialTicks);
-        addPriceMenuButton2.render(matrixStack, mouseX, mouseY, partialTicks);
+        itemNameInput.render(PoseStack, mouseX, mouseY, partialTicks);
+        itemPriceInput.render(PoseStack, mouseX, mouseY, partialTicks);
+        addPriceMenuButton1.render(PoseStack, mouseX, mouseY, partialTicks);
+        addPriceMenuButton2.render(PoseStack, mouseX, mouseY, partialTicks);
 
         currentPrice = itemPriceInput.getValueInt();
         if(ResourceLocation.isValidResourceLocation(itemNameInput.getValue())){
@@ -177,8 +187,9 @@ public class VenderBlockPriceScreen extends ContainerScreen<VenderPriceEditorCon
 
     public void createAddMenu(){
         if(itemNameInput == null){
-            itemNameInput = new TextFieldWidget(this.minecraft.font, leftPos + 32, topPos + 54, 64, 16, new TranslationTextComponent("gui.vendingmachine.inputtemplate"));
-            this.addButton(itemNameInput);
+            itemNameInput = new EditBox(this.minecraft.font, leftPos + 32, topPos + 54, 64, 16, new TranslatableComponent("gui.vendingmachine.inputtemplate"));
+            this.addWidget(itemNameInput);
+            itemNameInput.setMaxLength(40);
         } else {
             itemPriceInput.x = leftPos + 32;
             itemPriceInput.y = topPos + 54;
@@ -188,8 +199,8 @@ public class VenderBlockPriceScreen extends ContainerScreen<VenderPriceEditorCon
         itemNameInput.setEditable(true);
 
         if(itemPriceInput == null){
-            itemPriceInput = new Slider(leftPos + 32, topPos + 70, 64, 16, new TranslationTextComponent("gui.vendingmachine.priceslider"), new StringTextComponent("1"), 1, 64, 4, false, true, emptyPressable);
-            this.addButton(itemPriceInput);
+            itemPriceInput = new Slider(leftPos + 32, topPos + 70, 64, 16, new TranslatableComponent("gui.vendingmachine.priceslider"), new TextComponent("1"), 1, 64, 4, false, true, emptyPressable);
+            this.addWidget(itemPriceInput);
         } else {
             itemPriceInput.visible = true;
             itemPriceInput.x = leftPos + 32;
@@ -198,8 +209,8 @@ public class VenderBlockPriceScreen extends ContainerScreen<VenderPriceEditorCon
         itemPriceInput.active = true;
 
         if(addPriceMenuButton1 == null){
-            addPriceMenuButton1 = new Button(leftPos + 32, topPos + 86, 32, 16, new TranslationTextComponent("gui.vendingmachine.addprice"), onAddedPress);
-            this.addButton(addPriceMenuButton1);
+            addPriceMenuButton1 = new Button(leftPos + 32, topPos + 86, 32, 16, new TranslatableComponent("gui.vendingmachine.addprice"), onAddedPress);
+            this.addWidget(addPriceMenuButton1);
         } else {
             addPriceMenuButton1.visible = true;
             addPriceMenuButton1.x = leftPos + 32;
@@ -207,8 +218,8 @@ public class VenderBlockPriceScreen extends ContainerScreen<VenderPriceEditorCon
         }
 
         if(addPriceMenuButton2 == null){
-            addPriceMenuButton2 = new Button(leftPos + 72, topPos + 86, 32, 16, new TranslationTextComponent("gui.vendingmachine.cancel"), hideAddMenu);
-            this.addButton(addPriceMenuButton2);
+            addPriceMenuButton2 = new Button(leftPos + 72, topPos + 86, 32, 16, new TranslatableComponent("gui.vendingmachine.cancel"), hideAddMenu);
+            this.addWidget(addPriceMenuButton2);
         }else {
             addPriceMenuButton2.visible = true;
             addPriceMenuButton2.x = leftPos + 72;
@@ -223,7 +234,7 @@ public class VenderBlockPriceScreen extends ContainerScreen<VenderPriceEditorCon
             int i = this.topPos + 21;
             int j = i + 162;
             this.scrollOffs = ((float)mouseY - (float)i - 7.5F) / ((float)(j - i) - 15.0F);
-            this.scrollOffs = MathHelper.clamp(this.scrollOffs, 0.0F, 1.0F);
+            this.scrollOffs = Mth.clamp(this.scrollOffs, 0.0F, 1.0F);
             this.startIndex = (int)((double)(this.scrollOffs * (float)this.getOffscreenRows()) + 0.5D) * 4;
             return true;
         } else {
@@ -244,7 +255,7 @@ public class VenderBlockPriceScreen extends ContainerScreen<VenderPriceEditorCon
                 double d0 = mouseX - (double)(i);
                 double d1 = mouseY - (double)(j + i1 * 18);
                 if (d0 >= 0.0D && d1 >= 0.0D && d0 < 112.0D && d1 < 18.0D && this.menu.clickMenuButton(this.minecraft.player, l) && !displayAddMenu) {
-                        Minecraft.getInstance().getSoundManager().play(SimpleSound.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+                        Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
                         this.minecraft.gameMode.handleInventoryButtonClick((this.menu).containerId, l);
                         return true;
                 }
@@ -265,7 +276,7 @@ public class VenderBlockPriceScreen extends ContainerScreen<VenderPriceEditorCon
         if (this.isScrollBarActive()) {
             int i = this.getOffscreenRows();
             this.scrollOffs = (float)((double)this.scrollOffs - p_231043_5_ / (double)i);
-            this.scrollOffs = MathHelper.clamp(this.scrollOffs, 0.0F, 1.0F);
+            this.scrollOffs = Mth.clamp(this.scrollOffs, 0.0F, 1.0F);
             this.startIndex = (int)((double)(this.scrollOffs * (float)i) + 0.5D) * 4;
         }
 
@@ -307,43 +318,43 @@ public class VenderBlockPriceScreen extends ContainerScreen<VenderPriceEditorCon
         VendingMachine.NETWORK_HANDLER.sendToServer(new DropMoneyOnClosePacket(this.menu.getTile().getBlockPos()));
     }
 
-    public void renderOthers(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+    public void renderOthers(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
         int i = this.leftPos;
         int j = this.topPos;
-        this.renderBg(matrixStack, partialTicks, mouseX, mouseY);
-        net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(new net.minecraftforge.client.event.GuiContainerEvent.DrawBackground(this, matrixStack, mouseX, mouseY));
-        RenderSystem.disableRescaleNormal();
+        this.renderBg(poseStack, partialTicks, mouseX, mouseY);
+        net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(new ContainerScreenEvent.DrawBackground(this, poseStack, mouseX, mouseY));
         RenderSystem.disableDepthTest();
-        RenderSystem.pushMatrix();
-        RenderSystem.translatef((float)i, (float)j, 0.0F);
-        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderSystem.enableRescaleNormal();
-        RenderSystem.glMultiTexCoord2f(33986, 240.0F, 240.0F);
-        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+        poseStack.pushPose();
+        poseStack.translate((float)i, (float)j, 0.0F);
+        poseStack.scale(1.0F, 1.0F, 1.0F);
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 
-        this.renderLabels(matrixStack, mouseX, mouseY);
-        net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(new net.minecraftforge.client.event.GuiContainerEvent.DrawForeground(this, matrixStack, mouseX, mouseY));
+        this.renderLabels(poseStack, mouseX, mouseY);
+        net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(new ContainerScreenEvent.DrawForeground(this, poseStack, mouseX, mouseY));
 
-        RenderSystem.popMatrix();
+        poseStack.popPose();
         RenderSystem.enableDepthTest();
     }
 
-    protected void renderLabels(MatrixStack p_230451_1_, int p_230451_2_, int p_230451_3_) {
+    protected void renderLabels(PoseStack p_230451_1_, int p_230451_2_, int p_230451_3_) {
         this.font.draw(p_230451_1_, this.title, (float)this.titleLabelX, (float)this.titleLabelY, 4210752);
         //this.font.draw(p_230451_1_, this.inventory.getDisplayName(), (float)this.inventoryLabelX, (float)this.inventoryLabelY, 4210752);
     }
 
-    public Button.IPressable onTabButtonPress(boolean isMain){
-        return new Button.IPressable() {
+    public Button.OnPress onTabButtonPress(boolean isMain){
+        return new Button.OnPress() {
             @Override
             public void onPress(Button button) {
                 VendingMachineTile tile = menu.getTile();
-                VendingMachine.NETWORK_HANDLER.sendToServer(new OpenVenderGUIPacket(tile.getBlockPos(), !isMain));
+                if (isMain) {
+                    VendingMachine.NETWORK_HANDLER.sendToServer(new OpenGUIPacket(tile.getBlockPos(), true));
+                    //VendingMachine.NETWORK_HANDLER.sendToServer(new SOpenWindowPacket(menu.containerId, Registration.VENDER_CONT_PRICES.get(), new TranslationTextComponent("gui.vendingmachine.changeprice")));
+                }
             }
         };
     }
 
-    public Button.IPressable onAddPress = new Button.IPressable() {
+    public Button.OnPress onAddPress = new Button.OnPress() {
         @Override
         public void onPress(Button button) {
             displayAddMenu = true;
@@ -351,7 +362,7 @@ public class VenderBlockPriceScreen extends ContainerScreen<VenderPriceEditorCon
         }
     };
 
-    public Button.IPressable onAddedPress = new Button.IPressable() {
+    public Button.OnPress onAddedPress = new Button.OnPress() {
         @Override
         public void onPress(Button button) {
             VendingMachineTile tile = menu.getTile();
@@ -362,7 +373,7 @@ public class VenderBlockPriceScreen extends ContainerScreen<VenderPriceEditorCon
         }
     };
 
-    public Button.IPressable onRemovedPress = new Button.IPressable() {
+    public Button.OnPress onRemovedPress = new Button.OnPress() {
         @Override
         public void onPress(Button button) {
             if(selectedItem != null && !selectedItem.isEmpty()){
@@ -374,14 +385,14 @@ public class VenderBlockPriceScreen extends ContainerScreen<VenderPriceEditorCon
         }
     };
 
-    public Button.IPressable emptyPressable = new Button.IPressable() {
-        @Overridegggggg
+    public Button.OnPress emptyPressable = new Button.OnPress() {
+        @Override
         public void onPress(Button button) {
 
         }
     };
 
-    public Button.IPressable hideAddMenu = new Button.IPressable() {
+    public Button.OnPress hideAddMenu = new Button.OnPress() {
         @Override
         public void onPress(Button button) {
             removeAddMenu();

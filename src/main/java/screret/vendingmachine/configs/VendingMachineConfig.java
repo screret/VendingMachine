@@ -1,14 +1,14 @@
 package screret.vendingmachine.configs;
 
-import net.minecraft.entity.passive.PandaEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.Items;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.registry.Registry;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.registries.ForgeRegistries;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 public class VendingMachineConfig extends ForgeConfigSpec.Builder {
     private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
@@ -24,7 +24,6 @@ public class VendingMachineConfig extends ForgeConfigSpec.Builder {
 
         public final ForgeConfigSpec.BooleanValue allowPriceEditing;
         public final ForgeConfigSpec.BooleanValue isStackPrices;
-        public final ForgeConfigSpec.BooleanValue allowControlCard;
 
         public General(ForgeConfigSpec.Builder builder)
         {
@@ -43,9 +42,6 @@ public class VendingMachineConfig extends ForgeConfigSpec.Builder {
             this.isStackPrices = builder.comment("Set to true if prices are per-stack and not per-item")
                     .worldRestart()
                     .define("is_stack_price", false);
-            this.allowControlCard = builder.comment("Set to false if you don't want players to be able to remote control their machines.")
-                    .worldRestart()
-                    .define("allow_rc", true);
 
             builder.pop();
         }
@@ -61,8 +57,9 @@ public class VendingMachineConfig extends ForgeConfigSpec.Builder {
             String value = string.split(" ")[1];
 
             String[] keyParts = key.split(":");
-
-            map.put(ForgeRegistries.ITEMS.getValue(new ResourceLocation(keyParts[0], keyParts[1])), Integer.decode(value));
+            if(ResourceLocation.isValidResourceLocation(key)) {
+                map.put(ForgeRegistries.ITEMS.getValue(new ResourceLocation(keyParts[0], keyParts[1])), Integer.decode(value));
+            }
         }
 
         return map;
@@ -71,7 +68,10 @@ public class VendingMachineConfig extends ForgeConfigSpec.Builder {
     public static Item PAYMENT_ITEM = getPaymentItem();
 
     public static Item getPaymentItem(){
-        return ForgeRegistries.ITEMS.getValue(new ResourceLocation(GENERAL.paymentItem.get()));
+        if(ResourceLocation.isValidResourceLocation(GENERAL.paymentItem.get())) {
+            return ForgeRegistries.ITEMS.getValue(new ResourceLocation(GENERAL.paymentItem.get()));
+        }
+        return Items.AIR;
     }
 
 }

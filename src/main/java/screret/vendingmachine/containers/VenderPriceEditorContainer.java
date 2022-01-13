@@ -1,17 +1,16 @@
 package screret.vendingmachine.containers;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.StonecutterContainer;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ChestMenu;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.SlotItemHandler;
 import net.minecraftforge.items.wrapper.PlayerInvWrapper;
 import screret.vendingmachine.init.Registration;
 import screret.vendingmachine.tileEntities.VendingMachineTile;
 
-public class VenderPriceEditorContainer extends Container {
+public class VenderPriceEditorContainer extends AbstractContainerMenu {
     private final PlayerInvWrapper playerInventory;
     final VendingMachineTile tile;
 
@@ -19,7 +18,7 @@ public class VenderPriceEditorContainer extends Container {
 
     public int selectedItemIndex = -1;
 
-    public VenderPriceEditorContainer(int windowID, PlayerInventory inv, VendingMachineTile tile) {
+    public VenderPriceEditorContainer(int windowID, Inventory inv, VendingMachineTile tile) {
         super(Registration.VENDER_CONT_PRICES.get(), windowID);
         this.tile = tile;
         this.playerInventory = new PlayerInvWrapper(inv);
@@ -36,7 +35,7 @@ public class VenderPriceEditorContainer extends Container {
     }
 
     @Override
-    public boolean clickMenuButton(PlayerEntity playerEntity, int index) {
+    public boolean clickMenuButton(Player playerEntity, int index) {
         if (this.isValidPriceIndex(index)) {
             this.selectedItemIndex = index;
         }
@@ -48,7 +47,7 @@ public class VenderPriceEditorContainer extends Container {
     }
 
     @Override
-    public boolean stillValid(PlayerEntity playerEntity) {
+    public boolean stillValid(Player playerEntity) {
         return playerEntity.position().distanceToSqr(this.tile.getBlockPos().getX(), this.tile.getBlockPos().getY(), this.tile.getBlockPos().getZ()) < 8 * 8;
     }
 

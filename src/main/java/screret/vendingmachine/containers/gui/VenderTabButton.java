@@ -1,14 +1,15 @@
 package screret.vendingmachine.containers.gui;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.client.renderer.ItemRenderer;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.entity.ItemRenderer;
+import net.minecraft.network.chat.BaseComponent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 import screret.vendingmachine.VendingMachine;
 import screret.vendingmachine.init.Registration;
 
@@ -22,11 +23,11 @@ public class VenderTabButton extends Button {
 
     public static final ResourceLocation GUI_LOCATION = new ResourceLocation(VendingMachine.MODID,"textures/gui/vending_machine_gui.png");
 
-    public VenderTabButton(int x, int y, int xSize, int ySize, ITextComponent text, IPressable onPress, boolean isMain, boolean selected) {
+    public VenderTabButton(int x, int y, int xSize, int ySize, BaseComponent text, Button.OnPress onPress, boolean isMain, boolean selected) {
         this(x, y, xSize, ySize, text, onPress, NO_TOOLTIP, isMain, selected);
     }
 
-    public VenderTabButton(int x, int y, int xSize, int ySize, ITextComponent text, IPressable onPress, ITooltip tooltip, boolean isMain, boolean selected) {
+    public VenderTabButton(int x, int y, int xSize, int ySize, BaseComponent text, Button.OnPress onPress, OnTooltip tooltip, boolean isMain, boolean selected) {
         super(x, y, xSize, ySize, text, onPress, tooltip);
         this.buttonIsMain = isMain;
         this.xSize = xSize;
@@ -38,17 +39,17 @@ public class VenderTabButton extends Button {
     ItemStack stack = new ItemStack(Registration.VENDER_ITEM_BLUE.get());
 
     @Override
-    public void renderButton(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+    public void renderButton(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
         Minecraft minecraft = Minecraft.getInstance();
         itemRenderer = minecraft.getItemRenderer();
 
         int itemX = x + 4;
         int itemY = y + 5;
 
-        FontRenderer fontrenderer = minecraft.font;
-        minecraft.getTextureManager().bind(GUI_LOCATION);
-        RenderSystem.color4f(1.0F, 1.0F, 1.0F, this.alpha);
-        int i = this.getYImage(this.isHovered());
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.setShaderTexture(0, GUI_LOCATION);
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, this.alpha);
+        int i = this.getYImage(this.isHoveredOrFocused());
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.enableDepthTest();

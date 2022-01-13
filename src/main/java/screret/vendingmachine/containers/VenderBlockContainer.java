@@ -1,12 +1,13 @@
 package screret.vendingmachine.containers;
 
 import com.google.common.collect.Sets;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.container.ClickType;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.Slot;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.SlotItemHandler;
@@ -22,7 +23,7 @@ import javax.annotation.Nullable;
 import java.util.Set;
 import java.util.UUID;
 
-public class VenderBlockContainer extends Container {
+public class VenderBlockContainer extends AbstractContainerMenu {
 
     private final PlayerInvWrapper playerInventory;
     public final OwnedStackHandler inputInventory;
@@ -48,7 +49,7 @@ public class VenderBlockContainer extends Container {
     private int quickcraftType = -1;
     private final Set<Slot> quickcraftSlots = Sets.newHashSet();
 
-    public VenderBlockContainer(int windowID, PlayerInventory playerInventory, OwnedStackHandler inputInv, IItemHandler outputInv, ItemStackHandlerMoney moneyInv, VendingMachineTile tileEntity) {
+    public VenderBlockContainer(int windowID, Inventory playerInventory, OwnedStackHandler inputInv, IItemHandler outputInv, ItemStackHandlerMoney moneyInv, VendingMachineTile tileEntity) {
         super(Registration.VENDER_CONT.get(), windowID);
         this.playerInventory = new PlayerInvWrapper(playerInventory);
         this.tile = tileEntity;
@@ -68,34 +69,25 @@ public class VenderBlockContainer extends Container {
             for(int x = 0; x < INPUT_SLOTS_X_AMOUNT_PLUS_1; x++){
                 for(int y = 0; y < INPUT_SLOTS_Y_AMOUNT_PLUS_1; y++) {
                     int slotNumber = y * INPUT_SLOTS_Y_AMOUNT + x;
-                    this.addSlot(myHandler(this.inputInventory, slotNumber, INPUT_SLOTS_XPOS + SLOT_X_SPACING * x, INPUT_SLOTS_YPOS + SLOT_Y_SPACING * y));
+                    this.addSlot(MyHandler(this.inputInventory, slotNumber, INPUT_SLOTS_XPOS + SLOT_X_SPACING * x, INPUT_SLOTS_YPOS + SLOT_Y_SPACING * y));
                 }
             }
             currentPlayer = playerInventory.player.getUUID();
             checkPlayerAllowedToChangeInv(currentPlayer);
+            LOGGER.info(currentPlayer + "\n" + tileEntity.owner + "\n" + isAllowedToTakeItems);
 
-            this.addSlot(myHandler(this.moneyInventory, 0, MONEY_SLOT_XPOS, MONEY_SLOT_YPOS));
+            this.addSlot(MyHandler(this.moneyInventory, 0, MONEY_SLOT_XPOS, MONEY_SLOT_YPOS));
 
             final int OUTPUT_SLOTS_XPOS = 134;
             final int OUTPUT_SLOTS_YPOS = 90;
-            this.addSlot(myHandler(this.outputInventory, 0, OUTPUT_SLOTS_XPOS, OUTPUT_SLOTS_YPOS));
-
-            int moneyXPos = MONEY_SLOT_XPOS - 36;
-            if(currentPlayer.equals(tile.owner)){
-                for(int x = 0; x < 2; x++){
-                    for(int y = 0; y < 4; y++){
-                        int slotNumber = y * 2 + x + 1;
-                        LOGGER.info(slotNumber + " " + x + " " + y);
-                        this.addSlot(myHandler(this.moneyInventory, slotNumber, moneyXPos + SLOT_X_SPACING * x, MONEY_SLOT_YPOS + SLOT_Y_SPACING * y));
-                    }
-                }
-            }
+            this.addSlot(new SlotItemHandler(this.outputInventory, 0, OUTPUT_SLOTS_XPOS, OUTPUT_SLOTS_YPOS));
         } else {
             throw new IllegalStateException("TileEntity is null");
         }
     }
 
-    public ItemStack quickMoveStack(PlayerEntity playerEntity, int slotId) {
+    @Override
+    public ItemStack quickMoveStack(Player playerEntity, int slotId) {
         ItemStack itemstack = ItemStack.EMPTY;
         SlotItemHandler slot = (SlotItemHandler) this.slots.get(slotId);
         if((slot.getItemHandler() != playerInventory && slot.getItemHandler() != moneyInventory) && !isAllowedToTakeItems && !slot.getItemHandler().isItemValid(0, new ItemStack(VendingMachineConfig.PAYMENT_ITEM))) { return ItemStack.EMPTY; }
@@ -147,27 +139,27 @@ public class VenderBlockContainer extends Container {
     }
 
     @Override
-    public ItemStack clicked(int slotId, int dragType, ClickType clickTypeIn, PlayerEntity player) {
-        if (slotId > INPUT_SLOTS_X_AMOUNT_PLUS_1 * INPUT_SLOTS_Y_AMOUNT_PLUS_1 && clickTypeIn != ClickType.PICKUP_ALL) {
+    public void clicked(int slotId, int dragType, ClickType clickTypeIn, Player player) {
+        if (slotId > INPUT_SLOTS_X_AMOUNT_PLUS_1 * INPUT_SLOTS_Y_AMOUNT_PLUS_1) {
             SlotItemHandler slot = (SlotItemHandler) this.slots.get(slotId);
             if(!isAllowedToTakeItems) {
                 if (slot.getItemHandler() == inputInventory) {
                     selectedSlot = slot;
-                    ItemStack playerCarried = player.inventory.getCarried();
+                    /*ItemStack playerCarried = player.inventoryMenu.getCarried();
                     if(!playerCarried.isEmpty()){
-                        /*player.inventory.setCarried(ItemStack.EMPTY);
+                        player.inventory.setCarried(ItemStack.EMPTY);
                         for (int i = 0; i < playerInventory.getSlots(); i++){
                             if(playerInventory.getStackInSlot(i).isEmpty()){
                                 playerInventory.setStackInSlot(i, playerCarried);
                                 break;
                             }
-                        }*/
-                    }
-                    return ItemStack.EMPTY;
+                        }
+                    }*/
+                    return;
                 }
             }
         }
-        return this.doClick(slotId, dragType, clickTypeIn, player);
+        this.doClick(slotId, dragType, clickTypeIn, player);
     }
 
     public boolean checkPlayerAllowedToChangeInv(UUID currentPlayer){
@@ -184,7 +176,7 @@ public class VenderBlockContainer extends Container {
     }
 
     @Override
-    public boolean stillValid(PlayerEntity playerEntity) {
+    public boolean stillValid(Player playerEntity) {
         return playerEntity.position().distanceToSqr(this.tile.getBlockPos().getX(), this.tile.getBlockPos().getY(), this.tile.getBlockPos().getZ()) < 8 * 8;
     }
 
@@ -192,41 +184,41 @@ public class VenderBlockContainer extends Container {
         return tile;
     }
 
-    protected boolean moveItemStackTo(ItemStack stack, int slot, int slot2, boolean simulate) {
+    protected boolean moveItemStackTo(ItemStack stack, int slotIndex1, int slotIndex2, boolean simulate) {
         boolean flag = false;
-        int i = slot;
+        int i = slotIndex1;
         if (simulate) {
-            i = slot2 - 1;
-        }
-
-        if(!isAllowedToTakeItems){
-            return false;
+            i = slotIndex2 - 1;
         }
 
         if (stack.isStackable()) {
             while(!stack.isEmpty()) {
                 if (simulate) {
-                    if (i < slot) {
+                    if (i < slotIndex1) {
                         break;
                     }
-                } else if (i >= slot2) {
+                } else if (i >= slotIndex2) {
                     break;
                 }
 
-                SlotItemHandler slot1 = (SlotItemHandler) this.slots.get(i);
-                ItemStack itemstack = slot1.getItem();
-                if (!itemstack.isEmpty() && consideredTheSameItem(stack, itemstack)) {
+                SlotItemHandler slot = (SlotItemHandler) this.slots.get(i);
+                ItemStack itemstack = slot.getItem();
+                if(slot.getItemHandler() == inputInventory && !isAllowedToTakeItems){
+                    return false;
+                }
+
+                if (!itemstack.isEmpty() && ItemStack.isSameItemSameTags(stack, itemstack)) {
                     int j = itemstack.getCount() + stack.getCount();
-                    int maxSize = slot1.getMaxStackSize();
+                    int maxSize = slot.getMaxStackSize();
                     if (j <= maxSize) {
                         stack.setCount(0);
                         itemstack.setCount(j);
-                        slot1.setChanged();
+                        slot.setChanged();
                         flag = true;
                     } else if (itemstack.getCount() < maxSize) {
                         stack.shrink(maxSize - itemstack.getCount());
                         itemstack.setCount(maxSize);
-                        slot1.setChanged();
+                        slot.setChanged();
                         flag = true;
                     }
                 }
@@ -241,17 +233,17 @@ public class VenderBlockContainer extends Container {
 
         if (!stack.isEmpty()) {
             if (simulate) {
-                i = slot2 - 1;
+                i = slotIndex2 - 1;
             } else {
-                i = slot;
+                i = slotIndex1;
             }
 
             while(true) {
                 if (simulate) {
-                    if (i < slot) {
+                    if (i < slotIndex1) {
                         break;
                     }
-                } else if (i >= slot2) {
+                } else if (i >= slotIndex2) {
                     break;
                 }
 
@@ -280,7 +272,7 @@ public class VenderBlockContainer extends Container {
         return flag;
     }
 
-    public SlotItemHandler myHandler(IItemHandler itemHandler, int index, int xPosition, int yPosition){
+    public SlotItemHandler MyHandler(IItemHandler itemHandler, int index, int xPosition, int yPosition){
         return new SlotItemHandler(itemHandler, index, xPosition, yPosition){
             @Override
             public int getMaxStackSize(@Nonnull ItemStack stack)
@@ -314,9 +306,9 @@ public class VenderBlockContainer extends Container {
         };
     }
 
-    private ItemStack doClick(int slotId, int dragType, ClickType clickType, PlayerEntity playerEntity) {
+    private ItemStack doClick(int slotId, int dragType, ClickType clickType, Player playerEntity) {
         ItemStack itemstack = ItemStack.EMPTY;
-        PlayerInventory playerinventory = playerEntity.inventory;
+        InventoryMenu playerinventory = playerEntity.inventoryMenu;
         if (clickType == ClickType.QUICK_CRAFT) {
             int i1 = this.quickcraftStatus;
             this.quickcraftStatus = getQuickcraftHeader(dragType);
@@ -333,7 +325,7 @@ public class VenderBlockContainer extends Container {
                     this.resetQuickCraft();
                 }
             } else if (this.quickcraftStatus == 1) {
-                Slot slot7 = this.slots.get(slotId);
+                SlotItemHandler slot7 = (SlotItemHandler) this.slots.get(slotId);
                 ItemStack itemstack12 = playerinventory.getCarried();
                 if (slot7 != null && canItemQuickReplace(slot7, itemstack12, true) && slot7.mayPlace(itemstack12) && (this.quickcraftType == 2 || itemstack12.getCount() > this.quickcraftSlots.size()) && this.canDragTo(slot7)) {
                     this.quickcraftSlots.add(slot7);
@@ -389,7 +381,6 @@ public class VenderBlockContainer extends Container {
                     return ItemStack.EMPTY;
                 }
 
-
                 for(ItemStack itemstack8 = this.quickMoveStack(playerEntity, slotId); !itemstack8.isEmpty() && ItemStack.isSame(slot5.getItem(), itemstack8); itemstack8 = this.quickMoveStack(playerEntity, slotId)) {
                     itemstack = itemstack8.copy();
                 }
@@ -430,7 +421,7 @@ public class VenderBlockContainer extends Container {
                                 slot6.onTake(playerEntity, playerinventory.getCarried());
                             }
                         } else if (slot6.mayPlace(itemstack11)) {
-                            if (consideredTheSameItem(itemstack9, itemstack11)) {
+                            if (ItemStack.isSameItemSameTags(itemstack9, itemstack11)) {
                                 int l2 = dragType == 0 ? itemstack11.getCount() : 1;
                                 if (l2 > slot6.getMaxStackSize(itemstack11) - itemstack9.getCount()) {
                                     l2 = slot6.getMaxStackSize(itemstack11) - itemstack9.getCount();
@@ -442,7 +433,7 @@ public class VenderBlockContainer extends Container {
                                 slot6.set(itemstack11);
                                 playerinventory.setCarried(itemstack9);
                             }
-                        } else if (itemstack11.getMaxStackSize() > 1 && consideredTheSameItem(itemstack9, itemstack11) && !itemstack9.isEmpty()) {
+                        } else if (itemstack11.getMaxStackSize() > 1 && ItemStack.isSameItemSameTags(itemstack9, itemstack11) && !itemstack9.isEmpty()) {
                             int i3 = itemstack9.getCount();
                             if (i3 + itemstack11.getCount() <= itemstack11.getMaxStackSize()) {
                                 itemstack11.grow(i3);
@@ -494,7 +485,7 @@ public class VenderBlockContainer extends Container {
         return itemstack;
     }
 
-    public static boolean canItemQuickReplace(@Nullable Slot slot, ItemStack stack, boolean simulate) {
+    public static boolean canItemQuickReplace(@Nullable SlotItemHandler slot, ItemStack stack, boolean simulate) {
         boolean flag = slot == null || !slot.hasItem();
         if (!flag && stack.sameItem(slot.getItem()) && ItemStack.tagMatches(slot.getItem(), stack)) {
             return slot.getItem().getCount() + (simulate ? 0 : stack.getCount()) <= slot.getMaxStackSize();
