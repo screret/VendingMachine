@@ -1,10 +1,8 @@
 package screret.vendingmachine.capabilities;
 
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.INBT;
-import net.minecraft.nbt.ListNBT;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.nbt.*;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityInject;
 import net.minecraftforge.common.capabilities.CapabilityManager;
@@ -46,20 +44,20 @@ public class ControlCardCapability {
             }
 
             @Override
-            public void readNBT(Capability<IController> capability, IController instance, Direction side, INBT nbt) {
+            public void readNBT(Capability<IController> capability, IController instance, Direction side, Tag nbt) {
                 if (instance == null){
                     throw new RuntimeException("Controller instance is null");
                 }
                 Controller controller = (Controller) instance;
-                ListNBT tagList = (ListNBT) nbt;
+                ListTag tagList = (ListTag) nbt;
 
-                CompoundNBT ownerTag = tagList.getCompound(0);
+                CompoundTag ownerTag = tagList.getCompound(0);
                 if(ownerTag.hasUUID("Owner")){
                     controller.setOwner(ownerTag.getUUID("Owner"));
                 }
                 for (int i = 1; i < tagList.size(); i++)
                 {
-                    CompoundNBT pos = tagList.getCompound(i);
+                    CompoundTag pos = tagList.getCompound(i);
                     int index = pos.getInt("Index");
                     int x = pos.getInt("PosX");
                     int y = pos.getInt("PosY");

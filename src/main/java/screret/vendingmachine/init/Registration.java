@@ -18,9 +18,12 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 import screret.vendingmachine.VendingMachine;
 import screret.vendingmachine.blocks.VendingMachineBlock;
+import screret.vendingmachine.containers.ContainerControlCard;
 import screret.vendingmachine.containers.VenderBlockContainer;
 import screret.vendingmachine.containers.VenderPriceEditorContainer;
 import screret.vendingmachine.tileEntities.VendingMachineTile;
+
+import java.util.UUID;
 
 public class Registration {
 
@@ -101,5 +104,12 @@ public class Registration {
             tile = (VendingMachineTile) world.getBlockEntity(pos.below());
         }
         return new VenderPriceEditorContainer(windowId, inv, tile);
+    }));
+
+    public static final RegistryObject<MenuType<VenderPriceEditorContainer>> CONTAINER_CONTROL_CARD = CONTAINERS.register("container_control_card", () -> IForgeMenuType.create((windowId, inv, buffer) -> {
+        BlockPos pos = buffer.readBlockPos();
+        Level world = inv.player.getCommandSenderWorld();'
+        UUID uuid = inv.player.getUUID();
+        return new ContainerControlCard(windowId, inv, uuid);
     }));
 }

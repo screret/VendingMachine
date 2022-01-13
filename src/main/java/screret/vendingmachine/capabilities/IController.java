@@ -1,6 +1,6 @@
 package screret.vendingmachine.capabilities;
 
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
 
 import javax.annotation.Nonnull;
 import java.util.UUID;

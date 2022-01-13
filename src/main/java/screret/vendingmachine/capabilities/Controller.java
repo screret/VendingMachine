@@ -1,7 +1,7 @@
 package screret.vendingmachine.capabilities;
 
 import com.google.common.collect.Lists;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
 
 import javax.annotation.Nonnull;
 import java.util.List;
