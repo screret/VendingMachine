@@ -101,7 +101,7 @@ public class ControlCardItem extends Item {
         if (targetCapability == null) {
             ICapabilityProvider provider = VendingMachineForgeRegistration.CONTROL_CARD_CAP_PROVIDER;
             if(provider != null){
-                targetCapability = provider.getCapability(ControlCardCapability.VENDING_CONTROL_CAPABILITY, direction.getOpposite());
+                targetCapability = provider.getCapability(ControlCardCapability.VENDING_CONTROL_CAPABILITY, direction);
                 cache.put(direction, targetCapability);
                 targetCapability.addListener(self -> cache.put(direction, null));
             }
