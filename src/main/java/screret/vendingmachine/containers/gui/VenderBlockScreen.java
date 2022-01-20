@@ -13,7 +13,7 @@ import net.minecraft.world.item.ItemStack;
 import screret.vendingmachine.VendingMachine;
 import screret.vendingmachine.configs.VendingMachineConfig;
 import screret.vendingmachine.containers.VenderBlockContainer;
-import screret.vendingmachine.events.packets.OpenGUIPacket;
+import screret.vendingmachine.events.packets.OpenVenderGUIPacket;
 import screret.vendingmachine.events.packets.PacketAllowItemTake;
 import screret.vendingmachine.events.packets.PacketSendBuy;
 import screret.vendingmachine.tileEntities.VendingMachineTile;
@@ -115,7 +115,7 @@ public class VenderBlockScreen extends AbstractContainerScreen<VenderBlockContai
             public void onPress(Button button) {
                 VendingMachineTile tile = menu.getTile();
                 if (!isMain) {
-                    VendingMachine.NETWORK_HANDLER.sendToServer(new OpenGUIPacket(tile.getBlockPos(), false));
+                    VendingMachine.NETWORK_HANDLER.sendToServer(new OpenVenderGUIPacket(tile.getBlockPos(), false));
                     //VendingMachine.NETWORK_HANDLER.sendToServer(new SOpenWindowPacket(menu.containerId, Registration.VENDER_CONT_PRICES.get(), new TranslationTextComponent("gui.vendingmachine.changeprice")));
                 }
             }

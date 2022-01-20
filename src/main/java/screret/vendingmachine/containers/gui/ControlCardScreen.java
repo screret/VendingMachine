@@ -61,7 +61,7 @@ public class ControlCardScreen extends AbstractContainerScreen<ContainerControlC
     @Override
     protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
         GL11.glColor4f(1, 1, 1, 1);
-        this.minecraft.getTextureManager().bind(textureLocation);
+        this.minecraft.getTextureManager().bindForSetup(textureLocation);
         this.blit(matrixStack, leftPos, topPos, 0, 0, this.getXSize(), this.getYSize());
     }
 
