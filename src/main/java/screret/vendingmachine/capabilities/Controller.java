@@ -20,8 +20,6 @@ public class Controller implements IController {
         this.owner = owner;
     }
 
-    public Controller(){ }
-
     @Override
     public UUID getOwner(){
         return owner;
