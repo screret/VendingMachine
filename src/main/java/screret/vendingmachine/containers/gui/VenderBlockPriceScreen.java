@@ -8,7 +8,6 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
-import net.minecraft.network.chat.BaseComponent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
@@ -21,13 +20,12 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.client.event.ContainerScreenEvent;
 import net.minecraftforge.client.gui.widget.Slider;
 import net.minecraftforge.registries.ForgeRegistries;
-import org.lwjgl.opengl.GL11;
 import screret.vendingmachine.VendingMachine;
 import screret.vendingmachine.configs.VendingMachineConfig;
 import screret.vendingmachine.containers.VenderPriceEditorContainer;
 import screret.vendingmachine.events.packets.ChangePricePacket;
 import screret.vendingmachine.events.packets.DropMoneyOnClosePacket;
-import screret.vendingmachine.events.packets.OpenGUIPacket;
+import screret.vendingmachine.events.packets.OpenVenderGUIPacket;
 import screret.vendingmachine.tileEntities.VendingMachineTile;
 
 public class VenderBlockPriceScreen extends AbstractContainerScreen<VenderPriceEditorContainer> {
@@ -347,7 +345,7 @@ public class VenderBlockPriceScreen extends AbstractContainerScreen<VenderPriceE
             public void onPress(Button button) {
                 VendingMachineTile tile = menu.getTile();
                 if (isMain) {
-                    VendingMachine.NETWORK_HANDLER.sendToServer(new OpenGUIPacket(tile.getBlockPos(), true));
+                    VendingMachine.NETWORK_HANDLER.sendToServer(new OpenVenderGUIPacket(tile.getBlockPos(), true));
                     //VendingMachine.NETWORK_HANDLER.sendToServer(new SOpenWindowPacket(menu.containerId, Registration.VENDER_CONT_PRICES.get(), new TranslationTextComponent("gui.vendingmachine.changeprice")));
                 }
             }
