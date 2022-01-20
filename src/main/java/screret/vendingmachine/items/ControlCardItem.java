@@ -1,26 +1,24 @@
 package screret.vendingmachine.items;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.inventory.container.INamedContainerProvider;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUseContext;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Direction;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.World;
-import net.minecraftforge.common.capabilities.Capability;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.network.NetworkHooks;
+import net.minecraftforge.network.NetworkHooks;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import screret.vendingmachine.VendingMachineForgeRegistration;
@@ -31,7 +29,6 @@ import screret.vendingmachine.containers.ContainerControlCard;
 import screret.vendingmachine.tileEntities.VendingMachineTile;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -55,8 +52,8 @@ public class ControlCardItem extends Item {
 
     @Nonnull
     @Override
-    public ActionResultType onItemUseFirst(ItemStack stack, ItemUseContext ctx) {
-        World level = ctx.getLevel();
+    public InteractionResult onItemUseFirst(ItemStack stack, UseOnContext ctx) {
+        Level level = ctx.getLevel();
 
         if(owner == null){
             owner = ctx.getPlayer().getUUID();
@@ -67,32 +64,32 @@ public class ControlCardItem extends Item {
         if (!(itemStack.getItem() instanceof ControlCardItem)) throw new AssertionError("Unexpected ControlCardItem type");
         ControlCardItem itemControlCard = (ControlCardItem)itemStack.getItem();
 
-        TileEntity tileEntity = level.getBlockEntity(pos);
+        BlockEntity tileEntity = level.getBlockEntity(pos);
         if(tileEntity == null){
             tileEntity = level.getBlockEntity(pos.below());
             pos = pos.below();
         }
-        if (tileEntity == null) return ActionResultType.PASS;
+        if (tileEntity == null) return InteractionResult.PASS;
 
         if(tileEntity instanceof VendingMachineTile && ((VendingMachineTile)tileEntity).owner.equals(this.owner)){
             sendTile((VendingMachineTile)tileEntity, null);
         }
 
         if(level.isClientSide()){
-            ctx.getPlayer().sendMessage(new TranslationTextComponent("msg.vendingmachine.addedcontrol"), this.owner);
+            ctx.getPlayer().sendMessage(new TranslatableComponent("msg.vendingmachine.addedcontrol"), this.owner);
         }
-        return ActionResultType.PASS;
+        return InteractionResult.PASS;
     }
 
     @Override
-    public ActionResult<ItemStack> use(World level, PlayerEntity player, Hand hand) {
+    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
-        if (level.isClientSide()) return ActionResult.pass(stack);
+        if (level.isClientSide()) return InteractionResultHolder.pass(stack);
         if(owner == null){
             owner = player.getUUID();
         }
-        NetworkHooks.openGui((ServerPlayerEntity) player, new ContainerProviderControlCard(this, stack));
-        return ActionResult.success(stack);
+        NetworkHooks.openGui((ServerPlayer) player, new ContainerProviderControlCard(this, stack));
+        return InteractionResultHolder.success(stack);
     }
 
     private final Map<Direction, LazyOptional<IController>> cache = new HashMap<>();
@@ -121,19 +118,19 @@ public class ControlCardItem extends Item {
         return (Controller)controller;
     }
 
-    private static class ContainerProviderControlCard implements INamedContainerProvider {
+    private static class ContainerProviderControlCard implements MenuProvider {
         public ContainerProviderControlCard(ControlCardItem controlCardItem, ItemStack itemStack) {
             this.thisStack = itemStack;
             this.controlCardItem = controlCardItem;
         }
 
         @Override
-        public ITextComponent getDisplayName() {
+        public Component getDisplayName() {
             return thisStack.getDisplayName();
         }
 
         @Override
-        public ContainerControlCard createMenu(int windowID, PlayerInventory playerInventory, PlayerEntity playerEntity) {
+        public ContainerControlCard createMenu(int windowID, Inventory playerInventory, Player playerEntity) {
             return new ContainerControlCard(windowID, playerInventory, controlCardItem.getOwner(), ControlCardItem.getController(controlCardItem, thisStack));
         }
 

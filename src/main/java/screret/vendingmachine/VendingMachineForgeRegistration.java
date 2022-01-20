@@ -1,9 +1,9 @@
 package screret.vendingmachine;
 
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.INBT;
-import net.minecraft.util.Direction;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.core.Direction;
+import net.minecraft.nbt.Tag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.common.capabilities.ICapabilitySerializable;
@@ -30,7 +30,7 @@ public class VendingMachineForgeRegistration {
             LazyOptional<IController> optionalStorage = LazyOptional.of(() -> backend);
             Capability<IController> capability = ControlCardCapability.VENDING_CONTROL_CAPABILITY;
 
-            CONTROL_CARD_CAP_PROVIDER = new ICapabilitySerializable<INBT>() {
+            CONTROL_CARD_CAP_PROVIDER = new ICapabilitySerializable<Tag>() {
                 @Override
                 public <T> LazyOptional<T> getCapability(Capability<T> cap, @Nullable Direction direction) {
                     if (cap == capability) {
@@ -40,13 +40,13 @@ public class VendingMachineForgeRegistration {
                 }
 
                 @Override
-                public INBT serializeNBT() {
-                    return capability.getStorage().writeNBT(capability, backend, null);
+                public Tag serializeNBT() {
+                    return optionalStorage.resolve().get().writeNBT(capability, backend, null);
                 }
 
                 @Override
-                public void deserializeNBT(INBT nbt) {
-                    capability.getStorage().readNBT(capability, backend, null, nbt);
+                public void deserializeNBT(Tag nbt) {
+                    optionalStorage.resolve().get().readNBT(capability, backend, null, nbt);
                 }
             };
 
