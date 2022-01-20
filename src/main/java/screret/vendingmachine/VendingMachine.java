@@ -18,7 +18,7 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
-import screret.vendingmachine.capabilities.IController;
+import screret.vendingmachine.capabilities.ControlCardCapability;
 import screret.vendingmachine.configs.VendingMachineConfig;
 import screret.vendingmachine.containers.gui.VenderBlockPriceScreen;
 import screret.vendingmachine.containers.gui.VenderBlockScreen;
@@ -95,7 +95,7 @@ public class VendingMachine {
 
     @SubscribeEvent
     public void registerCaps(RegisterCapabilitiesEvent event) {
-        event.register(IController.class);
+        ControlCardCapability.register(event);
     }
 
     private void processIMC(final InterModProcessEvent event)

@@ -11,6 +11,7 @@ import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import org.jetbrains.annotations.NotNull;
 import screret.vendingmachine.capabilities.ControlCardCapability;
 import screret.vendingmachine.capabilities.Controller;
 import screret.vendingmachine.capabilities.IController;
@@ -24,8 +25,8 @@ public class VendingMachineForgeRegistration {
     public static ICapabilityProvider CONTROL_CARD_CAP_PROVIDER;
 
     @SubscribeEvent
-    public void setupCapabilities(final AttachCapabilitiesEvent<ItemStack> event) {
-        if(event.getObject().getItem() instanceof ControlCardItem){
+    public static void setupCapabilities(@NotNull AttachCapabilitiesEvent<ItemStack> event) {
+        if(event.getObject().getItem().asItem() instanceof ControlCardItem){
             Controller backend = new Controller(((ControlCardItem) event.getObject().getItem()).getOwner());
             LazyOptional<IController> optionalStorage = LazyOptional.of(() -> backend);
             Capability<IController> capability = ControlCardCapability.VENDING_CONTROL_CAPABILITY;
