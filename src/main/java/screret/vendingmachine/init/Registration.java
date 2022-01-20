@@ -21,6 +21,7 @@ import screret.vendingmachine.blocks.VendingMachineBlock;
 import screret.vendingmachine.containers.ContainerControlCard;
 import screret.vendingmachine.containers.VenderBlockContainer;
 import screret.vendingmachine.containers.VenderPriceEditorContainer;
+import screret.vendingmachine.items.ControlCardItem;
 import screret.vendingmachine.tileEntities.VendingMachineTile;
 
 import java.util.UUID;
@@ -106,10 +107,8 @@ public class Registration {
         return new VenderPriceEditorContainer(windowId, inv, tile);
     }));
 
-    public static final RegistryObject<MenuType<VenderPriceEditorContainer>> CONTAINER_CONTROL_CARD = CONTAINERS.register("container_control_card", () -> IForgeMenuType.create((windowId, inv, buffer) -> {
-        BlockPos pos = buffer.readBlockPos();
-        Level world = inv.player.getCommandSenderWorld();'
+    public static final RegistryObject<MenuType<ContainerControlCard>> CONTAINER_CONTROL_CARD = CONTAINERS.register("container_control_card", () -> IForgeMenuType.create((windowId, inv, buffer) -> {
         UUID uuid = inv.player.getUUID();
-        return new ContainerControlCard(windowId, inv, uuid);
+        return new ContainerControlCard(windowId, inv, uuid, ControlCardItem.getController((ControlCardItem) inv.player.getUseItem().getItem(), inv.player.getUseItem()));
     }));
 }
