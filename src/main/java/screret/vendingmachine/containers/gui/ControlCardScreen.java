@@ -1,18 +1,22 @@
 package screret.vendingmachine.containers.gui;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.level.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.opengl.GL11;
 import screret.vendingmachine.VendingMachine;
 import screret.vendingmachine.capabilities.Controller;
 import screret.vendingmachine.containers.ContainerControlCard;
+import screret.vendingmachine.events.packets.LoadChunkPacket;
 import screret.vendingmachine.events.packets.OpenVenderGUIPacket;
 
 public class ControlCardScreen extends AbstractContainerScreen<ContainerControlCard> {
@@ -20,7 +24,7 @@ public class ControlCardScreen extends AbstractContainerScreen<ContainerControlC
     private static Logger logger = LogManager.getLogger();
     private final ContainerControlCard backupMenu;
 
-    public ControlCardScreen(ContainerControlCard container, Inventory playerInventory, TextComponent name) {
+    public ControlCardScreen(ContainerControlCard container, Inventory playerInventory, Component name) {
         super(container, playerInventory, name);
         this.imageWidth = 128;
         this.imageHeight = 53;
@@ -60,8 +64,8 @@ public class ControlCardScreen extends AbstractContainerScreen<ContainerControlC
 
     @Override
     protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
-        GL11.glColor4f(1, 1, 1, 1);
-        this.minecraft.getTextureManager().bindForSetup(textureLocation);
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderSystem.setShaderTexture(0, this.textureLocation);
         this.blit(matrixStack, leftPos, topPos, 0, 0, this.getXSize(), this.getYSize());
     }
 
@@ -71,6 +75,10 @@ public class ControlCardScreen extends AbstractContainerScreen<ContainerControlC
             @Override
             public void onPress(Button button) {
                 BlockPos machinePos = menu.getController().getMachine(index);
+                Level level = menu.getCurrentPlayer().getLevel();
+                if(!level.isLoaded(machinePos)){
+                    VendingMachine.NETWORK_HANDLER.sendToServer(new LoadChunkPacket(machinePos));
+                }
                 VendingMachine.NETWORK_HANDLER.sendToServer(new OpenVenderGUIPacket(machinePos, true));
             }
         };

@@ -36,7 +36,7 @@ public class OpenVenderGUIPacket {
 
         NetworkEvent.Context ctx = context.get();
         ctx.enqueueWork(() -> {
-            if(packet.isMainWindow){
+            if(!packet.isMainWindow){
                 NetworkHooks.openGui(playerEntity, ((VendingMachineTile)tile).priceEditorContainerProvider, packet.pos);
             }
             else if(tile instanceof VendingMachineTile){

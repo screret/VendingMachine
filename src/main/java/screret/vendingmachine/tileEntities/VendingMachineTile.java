@@ -129,9 +129,10 @@ public class VendingMachineTile extends BlockEntity implements MenuProvider {
 
     @Override
     public CompoundTag getUpdateTag(){
-        return this.save(new CompoundTag());
+        return this.saveWithFullMetadata();
     }
 
+    @Override
     public ClientboundBlockEntityDataPacket getUpdatePacket(){
         if(getLevel().isLoaded(this.worldPosition) && this.getLevel().getBlockState(this.worldPosition).getBlock() != Blocks.AIR){
             return ClientboundBlockEntityDataPacket.create(this);

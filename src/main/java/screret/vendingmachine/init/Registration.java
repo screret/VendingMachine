@@ -1,6 +1,7 @@
 package screret.vendingmachine.init;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.inventory.MenuType;
@@ -110,6 +111,6 @@ public class Registration {
 
     public static final RegistryObject<MenuType<ContainerControlCard>> CONTAINER_CONTROL_CARD = CONTAINERS.register("container_control_card", () -> IForgeMenuType.create((windowId, inv, buffer) -> {
         UUID uuid = inv.player.getUUID();
-        return new ContainerControlCard(windowId, inv, uuid, ControlCardItem.getController((ControlCardItem) inv.player.getUseItem().getItem(), inv.player.getUseItem()));
+        return new ContainerControlCard(windowId, inv, uuid, ControlCardItem.getController((ControlCardItem) inv.player.getItemInHand(InteractionHand.MAIN_HAND).getItem(), inv.player.getUseItem()));
     }));
 }

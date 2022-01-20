@@ -53,7 +53,10 @@ public class ControlCardItem extends Item {
     @Nonnull
     @Override
     public InteractionResult onItemUseFirst(ItemStack stack, UseOnContext ctx) {
-        owner = ctx.getPlayer().getUUID();
+        if(!ctx.getPlayer().isCrouching()){
+            return InteractionResult.PASS;
+        }
+
         Level level = ctx.getLevel();
 
         if(owner == null){
@@ -66,18 +69,19 @@ public class ControlCardItem extends Item {
         ControlCardItem itemControlCard = (ControlCardItem)itemStack.getItem();
 
         BlockEntity tileEntity = level.getBlockEntity(pos);
-        if(tileEntity == null){
+        if (tileEntity == null){
             tileEntity = level.getBlockEntity(pos.below());
             pos = pos.below();
         }
         if (tileEntity == null) return InteractionResult.PASS;
 
-        if(tileEntity instanceof VendingMachineTile && ((VendingMachineTile)tileEntity).owner.equals(this.owner)){
-            sendTile((VendingMachineTile)tileEntity, null);
+        if(level.isClientSide()){
+            return InteractionResult.PASS;
         }
 
-        if(level.isClientSide()){
-            ctx.getPlayer().sendMessage(new TranslatableComponent("msg.vendingmachine.addedcontrol"), this.owner);
+        if(tileEntity instanceof VendingMachineTile && ((VendingMachineTile)tileEntity).owner.equals(this.owner) && !ControlCardItem.getController(itemControlCard, itemStack).hasMachine(pos)) {
+            sendTile((VendingMachineTile) tileEntity, null);
+            level.getServer().sendMessage(new TranslatableComponent("msg.vendingmachine.addedcontrol"), this.owner);
         }
         return InteractionResult.PASS;
     }

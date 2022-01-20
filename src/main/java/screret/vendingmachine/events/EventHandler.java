@@ -10,7 +10,7 @@ import screret.vendingmachine.tileEntities.VendingMachineTile;
 
 public class EventHandler {
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public void protectedBreak(PlayerInteractEvent.LeftClickBlock e) {
+    public static void protectedBreak(PlayerInteractEvent.LeftClickBlock e) {
         Block brokeBlock = e.getWorld().getBlockState(e.getPos()).getBlock();
 
         if (brokeBlock instanceof VendingMachineBlock) {

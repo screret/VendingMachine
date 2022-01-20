@@ -44,7 +44,7 @@ public class VenderBlockScreen extends AbstractContainerScreen<VenderBlockContai
         this.addRenderableWidget(new Button(leftPos + 133, topPos + 64, 18, 9, new TranslatableComponent("gui.vendingmachine.buytestbutton"), onTestButtonPress));
 
         if(menu.currentPlayer.equals(menu.getTile().owner)){
-            this.addRenderableWidget(new VenderTabButton(leftPos + this.imageWidth, topPos + 12, 32, 28, new TranslatableComponent("gui.vendingmachine.tab_price"), onTabButtonPress(true), true, true));
+            this.addRenderableWidget(new VenderTabButton(leftPos + this.imageWidth, topPos + 12, 32, 28, new TranslatableComponent("gui.vendingmachine.mainbutton"), onTabButtonPress(true), true, true));
             this.addRenderableWidget(new VenderTabButton(leftPos + this.imageWidth, topPos + 40, 32, 28, new TranslatableComponent("gui.vendingmachine.tab_price"), onTabButtonPress(false), false, false));
         }
     }
@@ -65,8 +65,6 @@ public class VenderBlockScreen extends AbstractContainerScreen<VenderBlockContai
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShaderTexture(0, this.gui);
-        leftPos = (this.width - this.getXSize()) / 2;
-        topPos = (this.height - this.getYSize()) / 2;
         this.blit(poseStack, leftPos, topPos, 0, 0, this.getXSize(), this.getYSize());
     }
 
@@ -116,7 +114,6 @@ public class VenderBlockScreen extends AbstractContainerScreen<VenderBlockContai
                 VendingMachineTile tile = menu.getTile();
                 if (!isMain) {
                     VendingMachine.NETWORK_HANDLER.sendToServer(new OpenVenderGUIPacket(tile.getBlockPos(), false));
-                    //VendingMachine.NETWORK_HANDLER.sendToServer(new SOpenWindowPacket(menu.containerId, Registration.VENDER_CONT_PRICES.get(), new TranslationTextComponent("gui.vendingmachine.changeprice")));
                 }
             }
         };

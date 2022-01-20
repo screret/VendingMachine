@@ -41,6 +41,25 @@ public class Controller implements IController {
         return machines.get(index);
     }
 
+    public BlockPos getMachine(BlockPos pos) {
+        BlockPos machinePos;
+        for (int i = 0; i < machines.size(); ++i){
+            if(machines.get(i) == pos){
+                return pos;
+            }
+        }
+        throw new StackOverflowError("there isn't a machine at that position.");
+    }
+
+    public boolean hasMachine(BlockPos pos) {
+        for (int i = 0; i < machines.size(); ++i){
+            if(machines.get(i) == pos){
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Override
     public void addMachine(BlockPos pos) {
         machines.add(pos);
