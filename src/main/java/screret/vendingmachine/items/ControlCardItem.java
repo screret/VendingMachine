@@ -37,7 +37,7 @@ public class ControlCardItem extends Item {
     private static final Logger LOGGER = LogManager.getLogger();
     private UUID owner;
 
-    public ControlCardItem(Properties properties, UUID owner) {
+    public ControlCardItem(Properties properties) {
         super(properties);
         this.owner = owner;
     }
@@ -53,6 +53,7 @@ public class ControlCardItem extends Item {
     @Nonnull
     @Override
     public InteractionResult onItemUseFirst(ItemStack stack, UseOnContext ctx) {
+        owner = ctx.getPlayer().getUUID();
         Level level = ctx.getLevel();
 
         if(owner == null){
