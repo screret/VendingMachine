@@ -1,4 +1,4 @@
-package screret.vendingmachine.configs;
+package screret.vendingmachine.capabilities.configs;
 
 import net.minecraft.entity.passive.PandaEntity;
 import net.minecraft.item.Item;
@@ -20,11 +20,13 @@ public class VendingMachineConfig extends ForgeConfigSpec.Builder {
         public final ForgeConfigSpec.ConfigValue<List<String>> itemPrices;
 
         public final ForgeConfigSpec.ConfigValue<String> paymentItem;
-        public final String defaultPaymentItem = "minecraft:emerald";
+        public final String defaultPaymentItem = "vendingmachine:money";
 
         public final ForgeConfigSpec.BooleanValue allowPriceEditing;
         public final ForgeConfigSpec.BooleanValue isStackPrices;
-        public final ForgeConfigSpec.BooleanValue allowControlCard;
+        //public final ForgeConfigSpec.BooleanValue allowControlCard;
+
+        public final ForgeConfigSpec.ConfigValue<Integer> moneyAmount;
 
         public General(ForgeConfigSpec.Builder builder)
         {
@@ -34,7 +36,10 @@ public class VendingMachineConfig extends ForgeConfigSpec.Builder {
             this.paymentItem = builder.comment("The default payment item. Format is \"namespace:item\"")
                     .worldRestart()
                     .define("payment_item", defaultPaymentItem);
-            this.itemPrices = builder.comment("Item prices. Format is \"namespace:item price\"")
+            this.moneyAmount = builder.comment("Set to 0 if you don't want to give new players money, else set to the amount of money to give new players.", "only works in counts of 100.")
+                    .worldRestart()
+                    .define("start_money", 1000);
+            this.itemPrices = builder.comment("Item default prices. Format is \"namespace:item price\"")
                     .worldRestart()
                     .define("item_prices", itemDefaultPrices);
             this.allowPriceEditing = builder.comment("Set to true if players can edit item prices per-machine.")
@@ -43,9 +48,10 @@ public class VendingMachineConfig extends ForgeConfigSpec.Builder {
             this.isStackPrices = builder.comment("Set to true if prices are per-stack and not per-item")
                     .worldRestart()
                     .define("is_stack_price", false);
-            this.allowControlCard = builder.comment("Set to false if you don't want players to be able to remote control their machines.")
-                    .worldRestart()
-                    .define("allow_rc", true);
+            //this.allowControlCard = builder.comment("Set to false if you don't want players to be able to remote control their machines.")
+            //        .worldRestart()
+            //        .define("allow_rc", true);
+
 
             builder.pop();
         }

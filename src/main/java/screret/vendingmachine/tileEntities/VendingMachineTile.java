@@ -22,12 +22,13 @@ import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import screret.vendingmachine.blocks.VendingMachineBlock;
-import screret.vendingmachine.configs.VendingMachineConfig;
+import screret.vendingmachine.capabilities.configs.VendingMachineConfig;
 import screret.vendingmachine.containers.ItemStackHandlerMoney;
 import screret.vendingmachine.containers.ItemStackHandlerOutput;
 import screret.vendingmachine.containers.OwnedStackHandler;
 import screret.vendingmachine.containers.VenderBlockContainer;
 import screret.vendingmachine.init.Registration;
+import screret.vendingmachine.items.MoneyItem;
 
 import javax.annotation.Nonnull;
 import java.util.HashMap;
@@ -68,13 +69,13 @@ public class VendingMachineTile extends TileEntity implements INamedContainerPro
         if(VendingMachineConfig.GENERAL.allowPriceEditing.get()){
             for (Map.Entry<Item, Integer> entry : priceMap.entrySet()){
                 nbt.putInt(ForgeRegistries.ITEMS.getKey(entry.getKey()).toString(), entry.getValue());
-                LOGGER.info(entry + " " + nbt.getAllKeys());
+                //LOGGER.info(entry + " " + nbt.getAllKeys());
             }
 
         } else {
             for (Map.Entry<Item, Integer> entry : VendingMachineConfig.DECRYPTED_PRICES.entrySet()){
                 nbt.putInt(ForgeRegistries.ITEMS.getKey(entry.getKey()).toString(), entry.getValue());
-                LOGGER.info(entry + " " + nbt.getAllKeys());
+                //LOGGER.info(entry + " " + nbt.getAllKeys());
             }
 
         }
@@ -156,8 +157,14 @@ public class VendingMachineTile extends TileEntity implements INamedContainerPro
             int realPrice = price * amount;
             int realMoney = money.getCount() * price;
 
+            float moneyItemValue = -1;
+
+            if(money.getItem().equals(Registration.MONEY.get())){
+                moneyItemValue = money.getTag().getFloat(MoneyItem.MONEY_VALUE_TAG) * money.getCount();
+            }
+
             ItemStack stack1 = new ItemStack(stack.getItem(), Math.min(stack.getCount(), amount));
-            if (!stack.isEmpty() && realPrice < money.getCount()) {
+            if (!stack.isEmpty() && (realPrice < money.getCount() || (moneyItemValue != -1 && realPrice < moneyItemValue))) {
                 if(outputSlot.getStackInSlot(0).isEmpty()){
                     outputSlot.setStackInSlot(0, new ItemStack(stack1.getItem(), stack1.getCount() + outputSlot.getStackInSlot(0).getCount()));
                 }else{
@@ -170,9 +177,13 @@ public class VendingMachineTile extends TileEntity implements INamedContainerPro
                 if(!b){
                     return;
                 }
-                moneySlot.extractItem(0, realPrice, false);
+                if(moneyItemValue != -1){
 
-                this.getLevel().getPlayerByUUID(this.container.currentPlayer).sendMessage(new TranslationTextComponent("msg.vendingmachine.buy", stack1.toString(), amount * price, new StringTextComponent(VendingMachineConfig.PAYMENT_ITEM.toString()).withStyle(TextFormatting.DARK_GREEN)), this.container.currentPlayer);
+                }else{
+                    moneySlot.extractItem(0, realPrice, false);
+                }
+
+                this.getLevel().getPlayerByUUID(this.container.currentPlayer).sendMessage(new TranslationTextComponent("msg.vendingmachine.buy", stack1.toString(), amount * price, new StringTextComponent(VendingMachineConfig.getPaymentItem().toString()).withStyle(TextFormatting.DARK_GREEN)), this.container.currentPlayer);
             } else if (realPrice > money.getCount()) {
                 amount = money.getCount() / price;
                 realPrice = price * amount;
@@ -194,7 +205,7 @@ public class VendingMachineTile extends TileEntity implements INamedContainerPro
 
     private boolean addMoneyToStorage(int realPrice){
         for(int i = 1; i < moneySlot.getSlots(); ++i){
-            ItemStack insertedMoney = moneySlot.insertItem(i, new ItemStack(VendingMachineConfig.PAYMENT_ITEM.getItem(), realPrice), false);
+            ItemStack insertedMoney = moneySlot.insertItem(i, new ItemStack(VendingMachineConfig.getPaymentItem(), realPrice), false);
             if(insertedMoney.isEmpty()){
                 break;
             }else{

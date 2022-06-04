@@ -11,6 +11,7 @@ import net.minecraftforge.fml.network.NetworkEvent;
 import org.omg.PortableInterceptor.LOCATION_FORWARD;
 import screret.vendingmachine.tileEntities.VendingMachineTile;
 
+import java.util.UUID;
 import java.util.function.Supplier;
 
 public class ChangePricePacket {
@@ -18,19 +19,22 @@ public class ChangePricePacket {
     private final int price;
     private final ItemStack item;
     private final boolean add;
+    private final UUID executor;
 
     public ChangePricePacket(PacketBuffer buf) {
         pos = buf.readBlockPos();
         item = buf.readItem();
         price = buf.readInt();
         add = buf.readBoolean();
+        executor = buf.readUUID();
     }
 
-    public ChangePricePacket(BlockPos pos, ItemStack item, int price, boolean add) {
+    public ChangePricePacket(BlockPos pos, ItemStack item, int price, boolean add, UUID executor) {
         this.pos = pos;
         this.item = item;
         this.price = price;
         this.add = add;
+        this.executor = executor;
     }
 
     public static void encode(ChangePricePacket packet, PacketBuffer buf) {
@@ -38,6 +42,7 @@ public class ChangePricePacket {
         buf.writeItem(packet.item);
         buf.writeInt(packet.price);
         buf.writeBoolean(packet.add);
+        buf.writeUUID(packet.executor);
     }
 
     public static void handle(final ChangePricePacket packet, Supplier<NetworkEvent.Context> context) {
@@ -49,6 +54,7 @@ public class ChangePricePacket {
 
             if(tile instanceof VendingMachineTile){
                 VendingMachineTile finalTile = (VendingMachineTile) tile;
+                if(finalTile.owner == packet.executor)
                 if(packet.add){
                     //DistExecutor.unsafeRunWhenOn(Dist.DEDICATED_SERVER, () -> () -> finalTile.addPrice(packet.item, packet.price));
                     finalTile.addPrice(packet.item, packet.price);

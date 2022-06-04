@@ -20,7 +20,7 @@ import net.minecraftforge.fml.client.gui.widget.Slider;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.lwjgl.opengl.GL11;
 import screret.vendingmachine.VendingMachine;
-import screret.vendingmachine.configs.VendingMachineConfig;
+import screret.vendingmachine.capabilities.configs.VendingMachineConfig;
 import screret.vendingmachine.containers.VenderPriceEditorContainer;
 import screret.vendingmachine.events.packets.ChangePricePacket;
 import screret.vendingmachine.events.packets.DropMoneyOnClosePacket;
@@ -177,7 +177,7 @@ public class VenderBlockPriceScreen extends ContainerScreen<VenderPriceEditorCon
 
     public void createAddMenu(){
         if(itemNameInput == null){
-            itemNameInput = new TextFieldWidget(this.minecraft.font, leftPos + 32, topPos + 54, 64, 16, new TranslationTextComponent("gui.vendingmachine.inputtemplate"));
+            itemNameInput = new TextFieldWidget(this.minecraft.font, leftPos + 32, topPos + 54, 64, 16, new StringTextComponent("minecraft:dirt"));
             this.addButton(itemNameInput);
         } else {
             itemPriceInput.x = leftPos + 32;
@@ -355,7 +355,7 @@ public class VenderBlockPriceScreen extends ContainerScreen<VenderPriceEditorCon
         @Override
         public void onPress(Button button) {
             VendingMachineTile tile = menu.getTile();
-            VendingMachine.NETWORK_HANDLER.sendToServer(new ChangePricePacket(tile.getBlockPos(), currentItem, currentPrice, true));
+            VendingMachine.NETWORK_HANDLER.sendToServer(new ChangePricePacket(tile.getBlockPos(), currentItem, currentPrice, true, Minecraft.getInstance().player.getUUID()));
             removeAddMenu();
             tile.addPrice(currentItem, currentPrice);
             menu.updateGUI();
@@ -367,7 +367,7 @@ public class VenderBlockPriceScreen extends ContainerScreen<VenderPriceEditorCon
         public void onPress(Button button) {
             if(selectedItem != null && !selectedItem.isEmpty()){
                 VendingMachineTile tile = menu.getTile();
-                VendingMachine.NETWORK_HANDLER.sendToServer(new ChangePricePacket(tile.getBlockPos(), selectedItem, currentPrice, false));
+                VendingMachine.NETWORK_HANDLER.sendToServer(new ChangePricePacket(tile.getBlockPos(), selectedItem, currentPrice, false, Minecraft.getInstance().player.getUUID()));
                 tile.removePrice(selectedItem);
                 menu.updateGUI();
             }
@@ -375,7 +375,7 @@ public class VenderBlockPriceScreen extends ContainerScreen<VenderPriceEditorCon
     };
 
     public Button.IPressable emptyPressable = new Button.IPressable() {
-        @Overridegggggg
+        @Override
         public void onPress(Button button) {
 
         }

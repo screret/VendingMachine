@@ -1,5 +1,7 @@
 package screret.vendingmachine;
 
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.INBT;
 import net.minecraft.util.Direction;
@@ -24,9 +26,9 @@ public class VendingMachineForgeRegistration {
     public static ICapabilityProvider CONTROL_CARD_CAP_PROVIDER;
 
     @SubscribeEvent
-    public void setupCapabilities(final AttachCapabilitiesEvent<ItemStack> event) {
-        if(event.getObject().getItem() instanceof ControlCardItem){
-            Controller backend = new Controller(((ControlCardItem) event.getObject().getItem()).getOwner());
+    public void setupCapabilities(final AttachCapabilitiesEvent<Entity> event) {
+        if(event.getObject() instanceof PlayerEntity){
+            Controller backend = new Controller(/*((ControlCardItem) event.getObject().getItem()).getOwner()*/);
             LazyOptional<IController> optionalStorage = LazyOptional.of(() -> backend);
             Capability<IController> capability = ControlCardCapability.VENDING_CONTROL_CAPABILITY;
 

@@ -25,6 +25,7 @@ import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
+import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.fml.network.NetworkHooks;
 import screret.vendingmachine.tileEntities.VendingMachineTile;
 
@@ -121,12 +122,12 @@ public class VendingMachineBlock extends HorizontalBlock {
         BlockState blockState = world.getBlockState(blockpos);
         if(state.getBlock() == this && state.getValue(HALF) == DoubleBlockHalf.UPPER) {
             world.setBlock(blockpos, Blocks.AIR.defaultBlockState(), 3);
-            world.levelEvent(playerEntity, 2001, blockpos, Block.getId(blockState));
+            world.levelEvent(playerEntity, Constants.WorldEvents.BREAK_BLOCK_EFFECTS, blockpos, Block.getId(blockState));
         } else if(state.getBlock() == this && state.getValue(HALF) == DoubleBlockHalf.LOWER) {
             blockpos = pos.above();
             blockState = world.getBlockState(blockpos);
             world.setBlock(blockpos, Blocks.AIR.defaultBlockState(), 3);
-            world.levelEvent(playerEntity, 2001, blockpos, Block.getId(blockState));
+            world.levelEvent(playerEntity, Constants.WorldEvents.BREAK_BLOCK_EFFECTS, blockpos, Block.getId(blockState));
         }
         super.playerWillDestroy(world, pos, state, playerEntity);
     }

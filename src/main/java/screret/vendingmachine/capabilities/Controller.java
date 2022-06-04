@@ -9,23 +9,8 @@ import java.util.UUID;
 
 public class Controller implements IController {
     private final List<BlockPos> machines = Lists.newArrayList();
-    private UUID owner;
-
-    public Controller(UUID owner){
-        this.owner = owner;
-    }
 
     public Controller(){ }
-
-    @Override
-    public UUID getOwner(){
-        return owner;
-    }
-
-    @Override
-    public void setOwner(UUID owner){
-        this.owner = owner;
-    }
 
     @Override
     public int getMachines() {
@@ -52,11 +37,6 @@ public class Controller implements IController {
     @Override
     public void setMachineInIndex(int index, BlockPos pos){
         machines.set(index, pos);
-    }
-
-    @Override
-    public int getMachineLimit(int index) {
-        return 10;
     }
 
     @Override

@@ -13,7 +13,7 @@ import net.minecraftforge.items.SlotItemHandler;
 import net.minecraftforge.items.wrapper.PlayerInvWrapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import screret.vendingmachine.configs.VendingMachineConfig;
+import screret.vendingmachine.capabilities.configs.VendingMachineConfig;
 import screret.vendingmachine.init.Registration;
 import screret.vendingmachine.tileEntities.VendingMachineTile;
 
@@ -85,7 +85,6 @@ public class VenderBlockContainer extends Container {
                 for(int x = 0; x < 2; x++){
                     for(int y = 0; y < 4; y++){
                         int slotNumber = y * 2 + x + 1;
-                        LOGGER.info(slotNumber + " " + x + " " + y);
                         this.addSlot(myHandler(this.moneyInventory, slotNumber, moneyXPos + SLOT_X_SPACING * x, MONEY_SLOT_YPOS + SLOT_Y_SPACING * y));
                     }
                 }
@@ -98,7 +97,7 @@ public class VenderBlockContainer extends Container {
     public ItemStack quickMoveStack(PlayerEntity playerEntity, int slotId) {
         ItemStack itemstack = ItemStack.EMPTY;
         SlotItemHandler slot = (SlotItemHandler) this.slots.get(slotId);
-        if((slot.getItemHandler() != playerInventory && slot.getItemHandler() != moneyInventory) && !isAllowedToTakeItems && !slot.getItemHandler().isItemValid(0, new ItemStack(VendingMachineConfig.PAYMENT_ITEM))) { return ItemStack.EMPTY; }
+        if((slot.getItemHandler() != playerInventory && slot.getItemHandler() != moneyInventory) && !isAllowedToTakeItems && !slot.getItemHandler().isItemValid(0, new ItemStack(VendingMachineConfig.getPaymentItem()))) { return ItemStack.EMPTY; }
         if (slot != null && slot.hasItem()) {
             ItemStack itemstack1 = slot.getItem();
             itemstack = slot.getItem();

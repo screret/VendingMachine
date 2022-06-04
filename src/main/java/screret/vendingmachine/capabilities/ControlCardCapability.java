@@ -26,12 +26,6 @@ public class ControlCardCapability {
                 CompoundNBT ownerTag = new CompoundNBT();
 
                 Controller controller = (Controller)instance;
-                if(controller.getOwner() != null){
-                    ownerTag.putUUID("Owner", controller.getOwner());
-                    nbtTagList.add(ownerTag);
-                }else{
-                    nbtTagList.add(ownerTag);
-                }
                 for (int i = 0; i < size; i++)
                 {
                     BlockPos pos = instance.getMachine(i);
@@ -54,9 +48,6 @@ public class ControlCardCapability {
                 ListNBT tagList = (ListNBT) nbt;
 
                 CompoundNBT ownerTag = tagList.getCompound(0);
-                if(ownerTag.hasUUID("Owner")){
-                    controller.setOwner(ownerTag.getUUID("Owner"));
-                }
                 for (int i = 1; i < tagList.size(); i++)
                 {
                     CompoundNBT pos = tagList.getCompound(i);

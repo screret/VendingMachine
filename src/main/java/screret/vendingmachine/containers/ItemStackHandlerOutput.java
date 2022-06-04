@@ -1,10 +1,7 @@
 package screret.vendingmachine.containers;
 
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.ItemStackHandler;
-import screret.vendingmachine.configs.VendingMachineConfig;
 
 import javax.annotation.Nonnull;
 

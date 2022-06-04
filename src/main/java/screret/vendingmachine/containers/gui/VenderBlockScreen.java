@@ -11,7 +11,7 @@ import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import org.lwjgl.opengl.GL11;
 import screret.vendingmachine.VendingMachine;
-import screret.vendingmachine.configs.VendingMachineConfig;
+import screret.vendingmachine.capabilities.configs.VendingMachineConfig;
 import screret.vendingmachine.containers.VenderBlockContainer;
 import screret.vendingmachine.events.packets.OpenVenderGUIPacket;
 import screret.vendingmachine.events.packets.PacketAllowItemTake;
@@ -20,8 +20,8 @@ import screret.vendingmachine.tileEntities.VendingMachineTile;
 
 public class VenderBlockScreen extends ContainerScreen<VenderBlockContainer> {
 
-    private ResourceLocation widgets = new ResourceLocation(VendingMachine.MODID, "textures/gui/widgets.png");
-    private ResourceLocation gui = new ResourceLocation(VendingMachine.MODID, "textures/gui/vending_machine_gui.png");
+    private final ResourceLocation widgets = new ResourceLocation(VendingMachine.MODID, "textures/gui/widgets.png");
+    private final ResourceLocation gui = new ResourceLocation(VendingMachine.MODID, "textures/gui/vending_machine_gui.png");
 
     public VenderBlockScreen(VenderBlockContainer container, PlayerInventory inv, ITextComponent name) {
         super(container, inv, name);
@@ -39,7 +39,7 @@ public class VenderBlockScreen extends ContainerScreen<VenderBlockContainer> {
         super.init();
 
         this.addButton(new Button(leftPos + 110, topPos + 108, 53, 18, new TranslationTextComponent("gui.vendingmachine.buybutton"), onBuyButtonPress));
-        this.addButton(new Button(leftPos + 133, topPos + 64, 18, 9, new TranslationTextComponent("gui.vendingmachine.buytestbutton"), onTestButtonPress));
+        //this.addButton(new Button(leftPos + 133, topPos + 64, 18, 9, new TranslationTextComponent("gui.vendingmachine.buytestbutton"), onTestButtonPress));
 
         if(menu.currentPlayer.equals(menu.getTile().owner)){
             this.addButton(new VenderTabButton(leftPos + this.imageWidth, topPos + 12, 32, 28, new TranslationTextComponent("gui.vendingmachine.tab_price"), onTabButtonPress(true), true, true));

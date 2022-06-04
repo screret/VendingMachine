@@ -116,7 +116,7 @@ public class ControlCardItem extends Item {
         IController controller = itemStack.getCapability(ControlCardCapability.VENDING_CONTROL_CAPABILITY).orElse(null);
         if (controller == null || !(controller instanceof Controller)) {
             LOGGER.error("ControlCardItem did not have the expected VENDING_CONTROL_CAPABILITY");
-            return new Controller(item.owner);
+            return new Controller();
         }
         return (Controller)controller;
     }

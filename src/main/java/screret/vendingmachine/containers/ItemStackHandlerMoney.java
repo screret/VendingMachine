@@ -1,10 +1,9 @@
 package screret.vendingmachine.containers;
 
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.ItemStackHandler;
-import screret.vendingmachine.configs.VendingMachineConfig;
+import screret.vendingmachine.capabilities.configs.VendingMachineConfig;
 
 import javax.annotation.Nonnull;
 
@@ -16,7 +15,7 @@ public class ItemStackHandlerMoney extends ItemStackHandler {
 
     @Override
     public boolean isItemValid(int slot, @Nonnull ItemStack stack) {
-        return stack.copy().getItem() == VendingMachineConfig.PAYMENT_ITEM;
+        return stack.copy().getItem() == VendingMachineConfig.getPaymentItem();
     }
 
     @Override

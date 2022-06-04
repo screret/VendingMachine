@@ -1,0 +1,21 @@
+{
+  "replace": false,
+  "values": [
+    "vendingmachine:vending_machine_white",
+    "vendingmachine:vending_machine_orange",
+    "vendingmachine:vending_machine_magenta",
+    "vendingmachine:vending_machine_light_blue",
+    "vendingmachine:vending_machine_yellow",
+    "vendingmachine:vending_machine_lime",
+    "vendingmachine:vending_machine_pink",
+    "vendingmachine:vending_machine_gray",
+    "vendingmachine:vending_machine_light_gray",
+    "vendingmachine:vending_machine_cyan",
+    "vendingmachine:vending_machine_purple",
+    "vendingmachine:vending_machine_blue",
+    "vendingmachine:vending_machine_brown",
+    "vendingmachine:vending_machine_green",
+    "vendingmachine:vending_machine_red",
+    "vendingmachine:vending_machine_black"
+  ]
+}

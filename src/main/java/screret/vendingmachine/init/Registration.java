@@ -29,6 +29,7 @@ import screret.vendingmachine.containers.ContainerControlCard;
 import screret.vendingmachine.containers.VenderBlockContainer;
 import screret.vendingmachine.containers.VenderPriceEditorContainer;
 import screret.vendingmachine.items.ControlCardItem;
+import screret.vendingmachine.items.MoneyItem;
 import screret.vendingmachine.tileEntities.VendingMachineTile;
 
 import java.util.Arrays;
@@ -93,6 +94,8 @@ public class Registration {
 
     //TODO: make this work
     //public static final RegistryObject<Item> VENDER_CONTROL_CARD = ITEMS.register("vending_machine_controller", () -> new ControlCardItem(new Item.Properties().tab(VendingMachine.MOD_TAB).stacksTo(1), null));
+
+    public static final RegistryObject<Item> MONEY = ITEMS.register("money", () -> new MoneyItem(new Item.Properties()));
 
     //containers
     public static final RegistryObject<ContainerType<VenderBlockContainer>> VENDER_CONT = CONTAINERS.register("container_vending_machine", () -> IForgeContainerType.create((windowId, inv, buffer) -> {
