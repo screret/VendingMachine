@@ -41,7 +41,7 @@ public class VenderBlockScreen extends AbstractContainerScreen<VenderBlockContai
         topPos = (this.height - this.getYSize()) / 2;
 
         this.addRenderableWidget(new Button(leftPos + 110, topPos + 108, 53, 18, new TranslatableComponent("gui.vendingmachine.buybutton"), onBuyButtonPress));
-        this.addRenderableWidget(new Button(leftPos + 133, topPos + 64, 18, 9, new TranslatableComponent("gui.vendingmachine.buytestbutton"), onTestButtonPress));
+        //this.addRenderableWidget(new Button(leftPos + 133, topPos + 64, 18, 9, new TranslatableComponent("gui.vendingmachine.buytestbutton"), onTestButtonPress));
 
         if(menu.currentPlayer.equals(menu.getTile().owner)){
             this.addRenderableWidget(new VenderTabButton(leftPos + this.imageWidth, topPos + 12, 32, 28, new TranslatableComponent("gui.vendingmachine.mainbutton"), onTabButtonPress(true), true, true));
@@ -68,21 +68,13 @@ public class VenderBlockScreen extends AbstractContainerScreen<VenderBlockContai
         this.blit(poseStack, leftPos, topPos, 0, 0, this.getXSize(), this.getYSize());
     }
 
-    private ItemStack lastItem;
-    private TranslatableComponent itemPrice = new TranslatableComponent("msg.vendingmachine.price");
-    private TranslatableComponent lastItemPrice = new TranslatableComponent("msg.vendingmachine.price");
-
     @Override
     protected void renderTooltip(PoseStack matrixStack, ItemStack itemStack, int x, int y) {
-        itemPrice = new TranslatableComponent("msg.vendingmachine.price", this.menu.getTile().getPrices().get(itemStack.getItem()));
-        if(lastItem != null){
-            this.getTooltipFromItem(lastItem).remove(lastItemPrice);
-        }
-        this.getTooltipFromItem(itemStack).add(itemPrice);
-        this.renderTooltip(matrixStack, this.getTooltipFromItem(itemStack), itemStack.getTooltipImage(), x, y, this.font);
+        Object price = this.menu.getTile().getPrices().get(itemStack.getItem());
+        var tooltip = this.getTooltipFromItem(itemStack);
+        if(price != null && this.hoveredSlot.index < VenderBlockContainer.INPUT_SLOTS_X_AMOUNT_PLUS_1 * VenderBlockContainer.INPUT_SLOTS_Y_AMOUNT_PLUS_1) tooltip.add(1, new TranslatableComponent("msg.vendingmachine.price", price));
 
-        lastItemPrice = itemPrice;
-        lastItem = itemStack;
+        this.renderTooltip(matrixStack, tooltip, itemStack.getTooltipImage(), x, y, this.font);
     }
 
     public Button.OnPress onTestButtonPress = new Button.OnPress() {
@@ -108,13 +100,10 @@ public class VenderBlockScreen extends AbstractContainerScreen<VenderBlockContai
     }; //VendingMachine.SIMPLE_CHANNEL.sendToServer(new PacketSendBuy(menu.selectedSlot)); };
 
     public Button.OnPress onTabButtonPress(boolean isMain){
-        return new Button.OnPress() {
-            @Override
-            public void onPress(Button button) {
-                VendingMachineTile tile = menu.getTile();
-                if (!isMain) {
-                    VendingMachine.NETWORK_HANDLER.sendToServer(new OpenVenderGUIPacket(tile.getBlockPos(), false));
-                }
+        return button -> {
+            VendingMachineTile tile = menu.getTile();
+            if (!isMain) {
+                VendingMachine.NETWORK_HANDLER.sendToServer(new OpenVenderGUIPacket(tile.getBlockPos(), false));
             }
         };
     }

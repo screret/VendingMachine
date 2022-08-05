@@ -23,6 +23,7 @@ import screret.vendingmachine.containers.ContainerControlCard;
 import screret.vendingmachine.containers.VenderBlockContainer;
 import screret.vendingmachine.containers.VenderPriceEditorContainer;
 import screret.vendingmachine.items.ControlCardItem;
+import screret.vendingmachine.items.MoneyItem;
 import screret.vendingmachine.tileEntities.VendingMachineTile;
 
 import java.util.UUID;
@@ -86,7 +87,11 @@ public class Registration {
     public static final RegistryObject<Item> VENDER_ITEM_GREEN = ITEMS.register("vending_machine_green", () -> new BlockItem(Registration.VENDER_GREEN.get(), new Item.Properties().tab(VendingMachine.MOD_TAB)));
     public static final RegistryObject<Item> VENDER_ITEM_RED = ITEMS.register("vending_machine_red", () -> new BlockItem(Registration.VENDER_RED.get(), new Item.Properties().tab(VendingMachine.MOD_TAB)));
     public static final RegistryObject<Item> VENDER_ITEM_BLACK = ITEMS.register("vending_machine_black", () -> new BlockItem(Registration.VENDER_BLACK.get(), new Item.Properties().tab(VendingMachine.MOD_TAB)));
-    public static final RegistryObject<Item> VENDER_CONTROL_ITEM = ITEMS.register("vender_controller", () -> new ControlCardItem(new Item.Properties().tab(VendingMachine.MOD_TAB)));
+
+    //public static final RegistryObject<Item> VENDER_CONTROL_CARD = ITEMS.register("vender_controller", () -> new ControlCardItem(new Item.Properties().tab(VendingMachine.MOD_TAB)));
+
+    public static final RegistryObject<Item> MONEY = ITEMS.register("money", () -> new MoneyItem(new Item.Properties()));
+
 
     //containers
     public static final RegistryObject<MenuType<VenderBlockContainer>> VENDER_CONT = CONTAINERS.register("container_vending_machine", () -> IForgeMenuType.create((windowId, inv, buffer) -> {
@@ -106,7 +111,7 @@ public class Registration {
         if(tile == null){
             tile = (VendingMachineTile) world.getBlockEntity(pos.below());
         }
-        return new VenderPriceEditorContainer(windowId, inv, tile);
+        return new VenderPriceEditorContainer(windowId, inv, tile.inputSlot, tile);
     }));
 
     public static final RegistryObject<MenuType<ContainerControlCard>> CONTAINER_CONTROL_CARD = CONTAINERS.register("container_control_card", () -> IForgeMenuType.create((windowId, inv, buffer) -> {

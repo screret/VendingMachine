@@ -20,10 +20,11 @@ public class VendingMachineConfig extends ForgeConfigSpec.Builder {
         public final ForgeConfigSpec.ConfigValue<List<String>> itemPrices;
 
         public final ForgeConfigSpec.ConfigValue<String> paymentItem;
-        public final String defaultPaymentItem = "minecraft:emerald";
+        public final String defaultPaymentItem = "vendingmachine:money";
 
         public final ForgeConfigSpec.BooleanValue allowPriceEditing;
         public final ForgeConfigSpec.BooleanValue isStackPrices;
+        public final ForgeConfigSpec.ConfigValue<Integer> moneyAmount;
 
         public General(ForgeConfigSpec.Builder builder)
         {
@@ -33,6 +34,9 @@ public class VendingMachineConfig extends ForgeConfigSpec.Builder {
             this.paymentItem = builder.comment("The default payment item. Format is \"namespace:item\"")
                     .worldRestart()
                     .define("payment_item", defaultPaymentItem);
+            this.moneyAmount = builder.comment("Set to 0 if you don't want to give new players money, else set to the amount of money to give new players.", "only works in counts of 100.")
+                    .worldRestart()
+                    .define("start_money", 1000);
             this.itemPrices = builder.comment("Item prices. Format is \"namespace:item price\"")
                     .worldRestart()
                     .define("item_prices", itemDefaultPrices);

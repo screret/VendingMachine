@@ -21,7 +21,7 @@ public class VenderCustomizableButton extends Button {
     }
 
     public VenderCustomizableButton(ResourceLocation textureLoc, int x, int y, int xSize, int ySize, int u, int v, Component textComponent, OnPress pressable) {
-        this(textureLoc, x, y, xSize, ySize, u, v, textComponent, pressable, (OnTooltip)null);
+        this(textureLoc, x, y, xSize, ySize, u, v, textComponent, pressable, NO_TOOLTIP);
     }
 
     public VenderCustomizableButton(ResourceLocation textureLoc, int x, int y, int xSize, int ySize, int u, int v, Component textComponent, OnPress pressable, OnTooltip tooltip) {

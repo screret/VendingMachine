@@ -1,7 +1,6 @@
 package screret.vendingmachine.tileEntities;
 
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.IntTag;
@@ -11,6 +10,8 @@ import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.Container;
+import net.minecraft.world.Containers;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Inventory;
@@ -22,19 +23,16 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.wrapper.CombinedInvWrapper;
-import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
-import screret.vendingmachine.VendingMachine;
 import screret.vendingmachine.blocks.VendingMachineBlock;
 import screret.vendingmachine.configs.VendingMachineConfig;
 import screret.vendingmachine.containers.ItemStackHandlerMoney;
 import screret.vendingmachine.containers.ItemStackHandlerOutput;
 import screret.vendingmachine.containers.OwnedStackHandler;
 import screret.vendingmachine.containers.VenderBlockContainer;
-import screret.vendingmachine.events.packets.SendOwnerToClientPacket;
 import screret.vendingmachine.init.Registration;
 
 import java.util.HashMap;
@@ -106,16 +104,14 @@ public class VendingMachineTile extends BlockEntity implements MenuProvider {
 
     public void dropContents(){
         CombinedInvWrapper wrapper = new CombinedInvWrapper(inputSlot, moneySlot, outputSlot);
-        for(int i = 0; i < wrapper.getSlots(); i++){
-            ItemEntity entity = new ItemEntity(getLevel(), getBlockPos().getX(), getBlockPos().getY(), getBlockPos().getZ(), wrapper.getStackInSlot(i));
-            entity.spawnAtLocation(wrapper.getStackInSlot(i));
+        for(int slot = 0; slot < wrapper.getSlots(); slot++){
+            Containers.dropItemStack(this.level, this.worldPosition.getX(), this.worldPosition.getY(), this.worldPosition.getZ(), wrapper.getStackInSlot(slot));
         }
     }
 
     public void dropMoney(){
         BlockPos pos = getBlockPos().relative(this.getBlockState().getValue(VendingMachineBlock.FACING));
-        ItemEntity entity = new ItemEntity(getLevel(), pos.getX(), pos.getY(), pos.getZ(), moneySlot.getStackInSlot(0));
-        entity.spawnAtLocation(moneySlot.getStackInSlot(0));
+        Containers.dropItemStack(this.level, pos.getX(), pos.getY(), pos.getZ(), moneySlot.getStackInSlot(0));
         moneySlot.setStackInSlot(0, ItemStack.EMPTY);
     }
 
@@ -123,7 +119,7 @@ public class VendingMachineTile extends BlockEntity implements MenuProvider {
     public void handleUpdateTag(CompoundTag tag) {
         load(tag);
         if(!level.isClientSide){
-            VendingMachine.NETWORK_HANDLER.sendTo(new SendOwnerToClientPacket(this.worldPosition, this.owner), Minecraft.getInstance().getConnection().getConnection(), NetworkDirection.PLAY_TO_CLIENT);
+            //VendingMachine.NETWORK_HANDLER.sendTo(new SendOwnerToClientPacket(this.worldPosition, this.owner), Minecraft.getInstance().getConnection().getConnection(), NetworkDirection.PLAY_TO_CLIENT);
         }
     }
 

@@ -1,8 +1,15 @@
 package screret.vendingmachine;
 
 import net.minecraft.client.gui.screens.MenuScreens;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.item.ItemProperties;
+import net.minecraft.client.renderer.item.ItemPropertyFunction;
+import net.minecraft.core.NonNullList;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
@@ -18,6 +25,7 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
+import net.minecraftforge.registries.ForgeRegistries;
 import screret.vendingmachine.capabilities.ControlCardCapability;
 import screret.vendingmachine.configs.VendingMachineConfig;
 import screret.vendingmachine.containers.gui.ControlCardScreen;
@@ -25,7 +33,9 @@ import screret.vendingmachine.containers.gui.VenderBlockPriceScreen;
 import screret.vendingmachine.containers.gui.VenderBlockScreen;
 import screret.vendingmachine.events.packets.*;
 import screret.vendingmachine.init.Registration;
+import screret.vendingmachine.items.MoneyItem;
 
+import javax.annotation.Nullable;
 import java.util.Optional;
 
 //COMPLETELY RANDOM UUID AND USERNAME FOR TESTING: --uuid=76d4e724-c758-42b1-8006-00d5d676d4a7 --username=abgdef
@@ -39,6 +49,24 @@ public class VendingMachine {
         @Override
         public ItemStack makeIcon() {
             return new ItemStack(Registration.VENDER_ITEM_BLUE.get());
+        }
+
+        @Override
+        public void fillItemList(NonNullList<ItemStack> items) {
+            CompoundTag moneyValue;
+
+            for(int value = 0; value < MoneyItem.MONEY_VALUES.length; value++){
+                moneyValue = new CompoundTag();
+                moneyValue.putFloat(MoneyItem.MONEY_VALUE_TAG, MoneyItem.MONEY_VALUES[value]);
+                ItemStack stack = new ItemStack(Registration.MONEY.get());
+                stack.setTag(moneyValue);
+                items.add(stack);
+                moneyValue = null;
+            }
+
+            for(Item item : ForgeRegistries.ITEMS) {
+                item.fillItemCategory(this, items);
+            }
         }
     };
 
@@ -76,18 +104,20 @@ public class VendingMachine {
     private void setup(final FMLCommonSetupEvent event)
     {
         NETWORK_HANDLER.registerMessage(0, PacketSendBuy.class, PacketSendBuy::encode, PacketSendBuy::new, PacketSendBuy::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
-        NETWORK_HANDLER.registerMessage(1, PacketAllowItemTake.class, PacketAllowItemTake::encode, PacketAllowItemTake::new, PacketAllowItemTake::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        //NETWORK_HANDLER.registerMessage(1, PacketAllowItemTake.class, PacketAllowItemTake::encode, PacketAllowItemTake::new, PacketAllowItemTake::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
         NETWORK_HANDLER.registerMessage(2, OpenVenderGUIPacket.class, OpenVenderGUIPacket::encode, OpenVenderGUIPacket::new, OpenVenderGUIPacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
         NETWORK_HANDLER.registerMessage(3, ChangePricePacket.class, ChangePricePacket::encode, ChangePricePacket::new, ChangePricePacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
-        NETWORK_HANDLER.registerMessage(4, DropMoneyOnClosePacket.class, DropMoneyOnClosePacket::encode, DropMoneyOnClosePacket::new, DropMoneyOnClosePacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
-        NETWORK_HANDLER.registerMessage(5, SendOwnerToClientPacket.class, SendOwnerToClientPacket::encode, SendOwnerToClientPacket::new, SendOwnerToClientPacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
-        NETWORK_HANDLER.registerMessage(6, LoadChunkPacket.class, LoadChunkPacket::encode, LoadChunkPacket::new, LoadChunkPacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        //NETWORK_HANDLER.registerMessage(4, DropMoneyOnClosePacket.class, DropMoneyOnClosePacket::encode, DropMoneyOnClosePacket::new, DropMoneyOnClosePacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        //NETWORK_HANDLER.registerMessage(5, SendOwnerToClientPacket.class, SendOwnerToClientPacket::encode, SendOwnerToClientPacket::new, SendOwnerToClientPacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        //NETWORK_HANDLER.registerMessage(6, LoadChunkPacket.class, LoadChunkPacket::encode, LoadChunkPacket::new, LoadChunkPacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
     }
 
     private void doClientStuff(final FMLClientSetupEvent event) {
         event.enqueueWork(() -> MenuScreens.register(Registration.VENDER_CONT.get(), VenderBlockScreen::new));
         event.enqueueWork(() -> MenuScreens.register(Registration.VENDER_CONT_PRICES.get(), VenderBlockPriceScreen::new));
         event.enqueueWork(() -> MenuScreens.register(Registration.CONTAINER_CONTROL_CARD.get(), ControlCardScreen::new));
+
+        event.enqueueWork(() -> ItemProperties.register(Registration.MONEY.get(), new ResourceLocation(VendingMachine.MODID, "money_value"), (stack, world, holdingEntity, entityId) -> MoneyItem.getMoneyValue(stack)));
     }
 
     private void enqueueIMC(final InterModEnqueueEvent event)

@@ -24,7 +24,7 @@ public class PriceEditorContainerProvider implements MenuProvider {
 
     @Override
     public AbstractContainerMenu createMenu(int windowID, Inventory playerInventory, Player playerEntity) {
-        container = new VenderPriceEditorContainer(windowID, playerInventory, tile);
+        container = new VenderPriceEditorContainer(windowID, playerInventory, this.tile.inputSlot, tile);
         return container;
     }
 }

@@ -21,7 +21,6 @@ import screret.vendingmachine.events.packets.OpenVenderGUIPacket;
 
 public class ControlCardScreen extends AbstractContainerScreen<ContainerControlCard> {
     private final ResourceLocation textureLocation = new ResourceLocation(VendingMachine.MODID, "textures/gui/controller_gui.png");
-    private static Logger logger = LogManager.getLogger();
     private final ContainerControlCard backupMenu;
 
     public ControlCardScreen(ContainerControlCard container, Inventory playerInventory, Component name) {
