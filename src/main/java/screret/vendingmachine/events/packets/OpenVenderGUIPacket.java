@@ -6,7 +6,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.network.NetworkEvent;
 import net.minecraftforge.network.NetworkHooks;
-import screret.vendingmachine.tileEntities.VendingMachineTile;
+import screret.vendingmachine.blockEntities.VendingMachineBlockEntity;
 
 import java.util.function.Supplier;
 
@@ -32,15 +32,15 @@ public class OpenVenderGUIPacket {
     public static void handle(final OpenVenderGUIPacket packet, Supplier<NetworkEvent.Context> context) {
         ServerPlayer playerEntity = context.get().getSender();
 
-        BlockEntity tile = context.get().getSender().getLevel().getBlockEntity(packet.pos);
+        BlockEntity tile = playerEntity.getLevel().getBlockEntity(packet.pos);
 
         NetworkEvent.Context ctx = context.get();
         ctx.enqueueWork(() -> {
-            if(!packet.isMainWindow){
-                NetworkHooks.openGui(playerEntity, ((VendingMachineTile)tile).priceEditorContainerProvider, packet.pos);
+            if(!packet.isMainWindow && tile instanceof VendingMachineBlockEntity _tile){
+                NetworkHooks.openGui(playerEntity, _tile.priceEditorContainerProvider, packet.pos);
             }
-            else if(tile instanceof VendingMachineTile){
-                NetworkHooks.openGui(playerEntity, (VendingMachineTile)tile, packet.pos);
+            else if(tile instanceof VendingMachineBlockEntity _tile){
+                NetworkHooks.openGui(playerEntity, _tile, packet.pos);
             }
         });
 

@@ -24,7 +24,7 @@ import screret.vendingmachine.containers.VenderBlockContainer;
 import screret.vendingmachine.containers.VenderPriceEditorContainer;
 import screret.vendingmachine.items.ControlCardItem;
 import screret.vendingmachine.items.MoneyItem;
-import screret.vendingmachine.tileEntities.VendingMachineTile;
+import screret.vendingmachine.blockEntities.VendingMachineBlockEntity;
 
 import java.util.UUID;
 
@@ -63,8 +63,8 @@ public class Registration {
     }
 
     //tile entities
-    public static final RegistryObject<BlockEntityType<VendingMachineTile>> VENDER_TILE = TILES.register("vending_machine_tile", () ->
-            BlockEntityType.Builder.of(VendingMachineTile::new,
+    public static final RegistryObject<BlockEntityType<VendingMachineBlockEntity>> VENDER_TILE = TILES.register("vending_machine_tile", () ->
+            BlockEntityType.Builder.of(VendingMachineBlockEntity::new,
                     VENDER_BLUE.get(), VENDER_RED.get(), VENDER_WHITE.get(), VENDER_GRAY.get(), VENDER_LIGHT_GRAY.get(), VENDER_BLACK.get(), VENDER_ORANGE.get(), VENDER_MAGENTA.get(), VENDER_LIGHT_BLUE.get(), VENDER_YELLOW.get(), VENDER_LIME.get(), VENDER_PINK.get(), VENDER_CYAN.get(), VENDER_BROWN.get(), VENDER_PURPLE.get(), VENDER_GREEN.get()
                     ).build(null));
 
@@ -97,21 +97,21 @@ public class Registration {
     public static final RegistryObject<MenuType<VenderBlockContainer>> VENDER_CONT = CONTAINERS.register("container_vending_machine", () -> IForgeMenuType.create((windowId, inv, buffer) -> {
         BlockPos pos = buffer.readBlockPos();
         Level world = inv.player.getCommandSenderWorld();
-        VendingMachineTile tile = (VendingMachineTile) world.getBlockEntity(pos);
+        VendingMachineBlockEntity tile = (VendingMachineBlockEntity) world.getBlockEntity(pos);
         if(tile == null){
-            tile = (VendingMachineTile) world.getBlockEntity(pos.below());
+            tile = (VendingMachineBlockEntity) world.getBlockEntity(pos.below());
         }
-        return new VenderBlockContainer(windowId, inv, tile.inputSlot, tile.outputSlot, tile.moneySlot, tile);
+        return new VenderBlockContainer(windowId, inv, tile.inventory, tile.otherSlots, tile);
     }));
 
     public static final RegistryObject<MenuType<VenderPriceEditorContainer>> VENDER_CONT_PRICES = CONTAINERS.register("container_vending_machine_prices", () -> IForgeMenuType.create((windowId, inv, buffer) -> {
         BlockPos pos = buffer.readBlockPos();
         Level world = inv.player.getCommandSenderWorld();
-        VendingMachineTile tile = (VendingMachineTile) world.getBlockEntity(pos);
+        VendingMachineBlockEntity tile = (VendingMachineBlockEntity) world.getBlockEntity(pos);
         if(tile == null){
-            tile = (VendingMachineTile) world.getBlockEntity(pos.below());
+            tile = (VendingMachineBlockEntity) world.getBlockEntity(pos.below());
         }
-        return new VenderPriceEditorContainer(windowId, inv, tile.inputSlot, tile);
+        return new VenderPriceEditorContainer(windowId, inv, tile.inventory, tile);
     }));
 
     public static final RegistryObject<MenuType<ContainerControlCard>> CONTAINER_CONTROL_CARD = CONTAINERS.register("container_control_card", () -> IForgeMenuType.create((windowId, inv, buffer) -> {

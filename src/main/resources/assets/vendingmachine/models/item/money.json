@@ -1,0 +1,16 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "vendingmachine:item/money_1"
+  },
+  "overrides": [
+    { "predicate": { "vendingmachine:money_value": 1.0 }, "model": "vendingmachine:item/money_1" },
+    { "predicate": { "vendingmachine:money_value": 2.0 }, "model": "vendingmachine:item/money_2" },
+    { "predicate": { "vendingmachine:money_value": 5.0 }, "model": "vendingmachine:item/money_5" },
+    { "predicate": { "vendingmachine:money_value": 10.0 }, "model": "vendingmachine:item/money_10" },
+    { "predicate": { "vendingmachine:money_value": 20.0 }, "model": "vendingmachine:item/money_20" },
+    { "predicate": { "vendingmachine:money_value": 50.0 }, "model": "vendingmachine:item/money_50" },
+    { "predicate": { "vendingmachine:money_value": 100.0 }, "model": "vendingmachine:item/money_100" },
+    { "predicate": { "vendingmachine:money_value": 1000.0 }, "model": "vendingmachine:item/money_1000" }
+  ]
+}

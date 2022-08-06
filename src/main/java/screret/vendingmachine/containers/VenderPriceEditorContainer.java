@@ -9,7 +9,7 @@ import net.minecraftforge.items.SlotItemHandler;
 import net.minecraftforge.items.wrapper.PlayerInvWrapper;
 import org.jetbrains.annotations.NotNull;
 import screret.vendingmachine.init.Registration;
-import screret.vendingmachine.tileEntities.VendingMachineTile;
+import screret.vendingmachine.blockEntities.VendingMachineBlockEntity;
 
 import java.util.UUID;
 
@@ -17,14 +17,14 @@ import static screret.vendingmachine.containers.VenderBlockContainer.*;
 
 public class VenderPriceEditorContainer extends AbstractContainerMenu {
     private final PlayerInvWrapper playerInventory;
-    public final OwnedStackHandler inputInventory;
-    final VendingMachineTile tile;
+    public final LargeStackHandler inputInventory;
+    final VendingMachineBlockEntity tile;
 
     public boolean isAllowedToTakeItems = false;
     public SlotItemHandler selectedSlot;
 
 
-    public VenderPriceEditorContainer(int windowID, Inventory inv, OwnedStackHandler inputInv, VendingMachineTile tileEntity) {
+    public VenderPriceEditorContainer(int windowID, Inventory inv, LargeStackHandler inputInv, VendingMachineBlockEntity tileEntity) {
         super(Registration.VENDER_CONT_PRICES.get(), windowID);
         this.tile = tileEntity;
         this.playerInventory = new PlayerInvWrapper(inv);
@@ -37,9 +37,9 @@ public class VenderPriceEditorContainer extends AbstractContainerMenu {
             final int INPUT_SLOTS_XPOS = 8;
             final int INPUT_SLOTS_YPOS = 18;
 
-            for(int x = 0; x < INPUT_SLOTS_X_AMOUNT_PLUS_1; x++){
-                for(int y = 0; y < INPUT_SLOTS_Y_AMOUNT_PLUS_1; y++) {
-                    int slotNumber = y * INPUT_SLOTS_Y_AMOUNT + x;
+            for(int x = 0; x < INPUT_SLOTS_X_AMOUNT; x++){
+                for(int y = 0; y < INPUT_SLOTS_Y_AMOUNT; y++) {
+                    int slotNumber = y * (INPUT_SLOTS_Y_AMOUNT - 1) + x;
                     this.addSlot(MyHandler(this.inputInventory, slotNumber, INPUT_SLOTS_XPOS + SLOT_X_SPACING * x, INPUT_SLOTS_YPOS + SLOT_Y_SPACING * y));
                 }
             }
@@ -53,7 +53,7 @@ public class VenderPriceEditorContainer extends AbstractContainerMenu {
         layoutPlayerInventorySlots(8, 140);
     }
 
-    public VendingMachineTile getTile(){
+    public VendingMachineBlockEntity getTile(){
         return tile;
     }
 
@@ -89,7 +89,7 @@ public class VenderPriceEditorContainer extends AbstractContainerMenu {
     }
 
     public boolean checkPlayerAllowedToChangeInv(UUID currentPlayer) {
-        isAllowedToTakeItems = currentPlayer.equals(tile.owner) && !buyTestMode_REMOVE_LATER;
+        isAllowedToTakeItems = currentPlayer.equals(tile.owner);
         if(!isAllowedToTakeItems){
             selectedSlot = null;
         }

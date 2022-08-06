@@ -26,7 +26,7 @@ import screret.vendingmachine.capabilities.ControlCardCapability;
 import screret.vendingmachine.capabilities.Controller;
 import screret.vendingmachine.capabilities.IController;
 import screret.vendingmachine.containers.ContainerControlCard;
-import screret.vendingmachine.tileEntities.VendingMachineTile;
+import screret.vendingmachine.blockEntities.VendingMachineBlockEntity;
 
 import javax.annotation.Nonnull;
 import java.util.HashMap;
@@ -79,8 +79,8 @@ public class ControlCardItem extends Item {
             return InteractionResult.PASS;
         }
 
-        if(tileEntity instanceof VendingMachineTile && ((VendingMachineTile)tileEntity).owner.equals(this.owner) && !ControlCardItem.getController(itemControlCard, itemStack).hasMachine(pos)) {
-            sendTile((VendingMachineTile) tileEntity, null);
+        if(tileEntity instanceof VendingMachineBlockEntity && ((VendingMachineBlockEntity)tileEntity).owner.equals(this.owner) && !ControlCardItem.getController(itemControlCard, itemStack).hasMachine(pos)) {
+            sendTile((VendingMachineBlockEntity) tileEntity, null);
             level.getServer().sendMessage(new TranslatableComponent("msg.vendingmachine.addedcontrol"), this.owner);
         }
         return InteractionResult.PASS;
@@ -99,7 +99,7 @@ public class ControlCardItem extends Item {
 
     private final Map<Direction, LazyOptional<IController>> cache = new HashMap<>();
 
-    private void sendTile(VendingMachineTile tile, Direction direction) {
+    private void sendTile(VendingMachineBlockEntity tile, Direction direction) {
         LazyOptional<IController> targetCapability = cache.get(direction);
 
         if (targetCapability == null) {

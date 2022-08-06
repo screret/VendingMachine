@@ -7,7 +7,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.network.NetworkEvent;
-import screret.vendingmachine.tileEntities.VendingMachineTile;
+import screret.vendingmachine.blockEntities.VendingMachineBlockEntity;
 
 import java.util.function.Supplier;
 
@@ -33,8 +33,8 @@ public class DropMoneyOnClosePacket {
         ctx.enqueueWork(() -> {
             BlockEntity tile = playerEntity.getLevel().getBlockEntity(packet.pos);
 
-            if(tile instanceof VendingMachineTile){
-                VendingMachineTile finalTile = (VendingMachineTile) tile;
+            if(tile instanceof VendingMachineBlockEntity){
+                VendingMachineBlockEntity finalTile = (VendingMachineBlockEntity) tile;
                 DistExecutor.unsafeRunWhenOn(Dist.DEDICATED_SERVER, () -> finalTile::dropMoney);
             }
         });

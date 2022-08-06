@@ -24,9 +24,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.Nullable;
 import screret.vendingmachine.init.Registration;
-import screret.vendingmachine.tileEntities.VendingMachineTile;
-
-import java.util.UUID;
+import screret.vendingmachine.blockEntities.VendingMachineBlockEntity;
 
 public class VendingMachineBlock extends HorizontalDirectionalBlock implements EntityBlock {
     public static final EnumProperty<DoubleBlockHalf> HALF = BlockStateProperties.DOUBLE_BLOCK_HALF;
@@ -58,7 +56,7 @@ public class VendingMachineBlock extends HorizontalDirectionalBlock implements E
         }
 
         BlockEntity be = world.getBlockEntity(pos);
-        if(be instanceof VendingMachineTile venderBe){
+        if(be instanceof VendingMachineBlockEntity venderBe){
             if(venderBe.owner == null){
                 venderBe.owner = entity.getUUID();
             }
@@ -76,7 +74,7 @@ public class VendingMachineBlock extends HorizontalDirectionalBlock implements E
                 tileEntity = world.getBlockEntity(blockPos.below());
                 blockPos = blockPos.below();
             }
-            if (tileEntity instanceof VendingMachineTile finalTileEntity) {
+            if (tileEntity instanceof VendingMachineBlockEntity finalTileEntity) {
                 BlockPos finalBlockPos = blockPos;
                 NetworkHooks.openGui((ServerPlayer) player, finalTileEntity, buffer -> buffer.writeBlockPos(finalBlockPos));
 
@@ -93,7 +91,7 @@ public class VendingMachineBlock extends HorizontalDirectionalBlock implements E
     public void onRemove(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
         if(state.getValue(HALF) == DoubleBlockHalf.LOWER){
             BlockEntity blockEntity = worldIn.getBlockEntity(pos);
-            if(worldIn instanceof ServerLevel && blockEntity instanceof VendingMachineTile venderBe){
+            if(worldIn instanceof ServerLevel && blockEntity instanceof VendingMachineBlockEntity venderBe){
                 venderBe.dropContents();
             }
         }

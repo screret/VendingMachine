@@ -26,6 +26,8 @@ import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
 import net.minecraftforge.registries.ForgeRegistries;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import screret.vendingmachine.capabilities.ControlCardCapability;
 import screret.vendingmachine.configs.VendingMachineConfig;
 import screret.vendingmachine.containers.gui.ControlCardScreen;
@@ -70,6 +72,7 @@ public class VendingMachine {
         }
     };
 
+    public static final Logger LOGGER = LogManager.getLogger(VendingMachine.MODID);
 
     private static final String PROTOCOL_VERSION = "1";
     public static final SimpleChannel NETWORK_HANDLER = NetworkRegistry.newSimpleChannel(
@@ -93,7 +96,6 @@ public class VendingMachine {
         MinecraftForge.EVENT_BUS.register(this);
 
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, VendingMachineConfig.spec);
-        VendingMachineConfig.DECRYPTED_PRICES = VendingMachineConfig.decryptPrices();
 
         Registration.BLOCKS.register(FMLJavaModLoadingContext.get().getModEventBus());
         Registration.ITEMS.register(FMLJavaModLoadingContext.get().getModEventBus());

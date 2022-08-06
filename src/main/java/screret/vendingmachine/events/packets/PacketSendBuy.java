@@ -3,8 +3,9 @@ package screret.vendingmachine.events.packets;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraftforge.fml.util.thread.SidedThreadGroups;
 import net.minecraftforge.network.NetworkEvent;
-import screret.vendingmachine.tileEntities.VendingMachineTile;
+import screret.vendingmachine.blockEntities.VendingMachineBlockEntity;
 
 import java.util.function.Supplier;
 
@@ -36,9 +37,12 @@ public class PacketSendBuy {
 
         NetworkEvent.Context ctx = context.get();
         ctx.enqueueWork(() -> {
-            VendingMachineTile tile = (VendingMachineTile)playerEntity.getLevel().getBlockEntity(packet.pos);
+            VendingMachineBlockEntity tile = (VendingMachineBlockEntity)playerEntity.getLevel().getBlockEntity(packet.pos);
 
-            tile.buy(packet.slot, packet.amount);
+            if(Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER)
+                tile.buy(packet.slot, packet.amount);
+
+            //tile.buy(packet.slot, packet.amount);
             //DistExecutor.safeRunWhenOn(Dist.DEDICATED_SERVER, () -> openScreen(slot, context.get().getSender()));
         });
 

@@ -7,7 +7,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.network.NetworkEvent;
-import screret.vendingmachine.tileEntities.VendingMachineTile;
+import screret.vendingmachine.blockEntities.VendingMachineBlockEntity;
 
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -38,7 +38,7 @@ public class SendOwnerToClientPacket {
         ctx.enqueueWork(() -> {
             BlockEntity tile = playerEntity.getLevel().getBlockEntity(packet.pos);
 
-            if(tile instanceof VendingMachineTile finalTile && playerEntity.getLevel().isLoaded(packet.pos)){
+            if(tile instanceof VendingMachineBlockEntity finalTile && playerEntity.getLevel().isLoaded(packet.pos)){
                 DistExecutor.unsafeRunWhenOn(Dist.DEDICATED_SERVER, () -> () -> finalTile.owner = packet.owner);
             }
         });

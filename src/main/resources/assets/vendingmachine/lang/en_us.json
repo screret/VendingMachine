@@ -4,8 +4,11 @@
   "gui.vendingmachine.buytestbutton": "Buy test mode",
   "gui.vendingmachine.mainbutton": "Main page",
   "gui.vendingmachine.cancel": "Cancel",
-  "gui.vendingmachine.addprice": "Create Product",
+  "gui.vendingmachine.continue": "Continue",
+  "gui.vendingmachine.addprice": "Set Item Price",
   "gui.vendingmachine.tab_price": "Prices",
+  "gui.vendingmachine.tab_normal": "Main",
+
   "block.vendingmachine.vending_machine_white": "White vending machine",
   "block.vendingmachine.vending_machine_orange": "Orange vending machine",
   "block.vendingmachine.vending_machine_magenta": "Magenta vending machine",
@@ -22,9 +25,13 @@
   "block.vendingmachine.vending_machine_green": "Green vending machine",
   "block.vendingmachine.vending_machine_red": "Red vending machine",
   "block.vendingmachine.vending_machine_black": "Black vending machine",
+
+  "item.vendingmachine.money": "%s Dollar Bill",
+
   "itemGroup.vendingmachine": "Vending machines",
+
   "msg.vendingmachine.notenoughmoney": "§cYou appear to not have inserted enough money to the machine. \n§6You get what you can pay for.",
   "msg.vendingmachine.buy": "§6Bought %1$s §6for %2$s %3$s.",
-  "msg.vendingmachine.price": "§6Price: %1$s",
-  "msg.vendingmachine.rightclickprice": "§eLeft-Click To Change Price§r"
+  "msg.vendingmachine.price": "§6Price: %1$s Per %2$s",
+  "msg.vendingmachine.rightclickprice": "§eLeft-Click To Change Price"
 }

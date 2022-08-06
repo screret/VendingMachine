@@ -2,9 +2,9 @@ package screret.vendingmachine.configs;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.Items;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.registries.ForgeRegistries;
+import screret.vendingmachine.init.Registration;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,10 +21,11 @@ public class VendingMachineConfig extends ForgeConfigSpec.Builder {
 
         public final ForgeConfigSpec.ConfigValue<String> paymentItem;
         public final String defaultPaymentItem = "vendingmachine:money";
+        public final ForgeConfigSpec.IntValue startMoney;
 
         public final ForgeConfigSpec.BooleanValue allowPriceEditing;
         public final ForgeConfigSpec.BooleanValue isStackPrices;
-        public final ForgeConfigSpec.ConfigValue<Integer> moneyAmount;
+        public final ForgeConfigSpec.IntValue maxVenderStack;
 
         public General(ForgeConfigSpec.Builder builder)
         {
@@ -34,26 +35,32 @@ public class VendingMachineConfig extends ForgeConfigSpec.Builder {
             this.paymentItem = builder.comment("The default payment item. Format is \"namespace:item\"")
                     .worldRestart()
                     .define("payment_item", defaultPaymentItem);
-            this.moneyAmount = builder.comment("Set to 0 if you don't want to give new players money, else set to the amount of money to give new players.", "only works in counts of 100.")
+            this.startMoney = builder.comment("Set to 0 if you don't want to give new players money, else set to the amount of money to give new players.", "only works in counts of 100.", "Min=0;Max=2147483647")
                     .worldRestart()
-                    .define("start_money", 1000);
+                    .defineInRange("start_money", 1000, 0, Integer.MAX_VALUE);
             this.itemPrices = builder.comment("Item prices. Format is \"namespace:item price\"")
                     .worldRestart()
                     .define("item_prices", itemDefaultPrices);
             this.allowPriceEditing = builder.comment("Set to true if players can edit item prices per-machine.")
                     .worldRestart()
-                    .define("allow_editing", false);
+                    .define("allow_editing", true);
             this.isStackPrices = builder.comment("Set to true if prices are per-stack and not per-item")
                     .worldRestart()
                     .define("is_stack_price", false);
+            this.maxVenderStack = builder.comment("Maximum value of a stack inside a Vending Machine", "Min=1;Max=1024")
+                    .worldRestart()
+                    .defineInRange("max_stack", 1024, 1, 1024);
 
             builder.pop();
         }
     }
 
-    public static HashMap<Item, Integer> DECRYPTED_PRICES = decryptPrices();
+    public static HashMap<Item, Integer> DECRYPTED_PRICES;
 
-    public static HashMap<Item, Integer> decryptPrices(){
+    public static HashMap<Item, Integer> getDecryptedPrices(){
+        if(DECRYPTED_PRICES != null)
+            return DECRYPTED_PRICES;
+
         HashMap<Item, Integer> map = new HashMap<>();
 
         for (String string : GENERAL.itemPrices.get()){
@@ -66,16 +73,23 @@ public class VendingMachineConfig extends ForgeConfigSpec.Builder {
             }
         }
 
+        DECRYPTED_PRICES = map;
         return map;
     }
 
-    public static Item PAYMENT_ITEM = getPaymentItem();
+    public static Item PAYMENT_ITEM;
 
     public static Item getPaymentItem(){
+        if(PAYMENT_ITEM != null)
+            return PAYMENT_ITEM;
+
         if(ResourceLocation.isValidResourceLocation(GENERAL.paymentItem.get())) {
-            return ForgeRegistries.ITEMS.getValue(new ResourceLocation(GENERAL.paymentItem.get()));
+            Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(GENERAL.paymentItem.get()));
+            PAYMENT_ITEM = item;
+            return item;
         }
-        return Items.AIR;
+        PAYMENT_ITEM = Registration.MONEY.get();
+        return Registration.MONEY.get();
     }
 
 }

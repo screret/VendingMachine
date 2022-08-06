@@ -6,29 +6,32 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.registries.ForgeRegistries;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import screret.vendingmachine.configs.VendingMachineConfig;
 
 import javax.annotation.Nonnull;
 
-public class OwnedStackHandler extends ItemStackHandler {
+public class LargeStackHandler extends ItemStackHandler {
 
-    public OwnedStackHandler(int size){
+    private BlockEntity blockEntity;
+
+    public LargeStackHandler(int size, BlockEntity be){
         super(size);
+        this.blockEntity = be;
         //this.isAllowedToTakeItems = isAllowedToTakeItems;
     }
 
     @Override
     public int getSlotLimit(int slot) {
-        return 1024;
+        return VendingMachineConfig.GENERAL.maxVenderStack.get();
     }
 
     @Override
     protected int getStackLimit(int slot, @Nonnull ItemStack stack) {
-        return 1024;
+        return VendingMachineConfig.GENERAL.maxVenderStack.get();
     }
 
     @Override
@@ -112,6 +115,12 @@ public class OwnedStackHandler extends ItemStackHandler {
     }
 
     @Override
+    protected void onContentsChanged(int slot) {
+        super.onContentsChanged(slot);
+        blockEntity.setChanged();
+    }
+
+    @Override
     public CompoundTag serializeNBT()
     {
         ListTag nbtTagList = new ListTag();
@@ -121,7 +130,7 @@ public class OwnedStackHandler extends ItemStackHandler {
             {
                 CompoundTag itemTag = new CompoundTag();
                 itemTag.putInt("Slot", i);
-                saveItem(itemTag, stacks.get(i));
+                this.saveItem(itemTag, stacks.get(i));
                 nbtTagList.add(itemTag);
             }
         }
@@ -143,7 +152,7 @@ public class OwnedStackHandler extends ItemStackHandler {
 
             if (slot >= 0 && slot < stacks.size())
             {
-                stacks.set(slot, loadItem(itemTags));
+                stacks.set(slot, this.loadItem(itemTags));
             }
         }
         onLoad();
@@ -163,7 +172,7 @@ public class OwnedStackHandler extends ItemStackHandler {
         Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(nbt.getString("id")));
         int count = nbt.getInt("Count");
 
-        ItemStack stack = null;
+        ItemStack stack;
 
         if(nbt.contains("ForgeCaps")){
             stack = new ItemStack(item, count, nbt.getCompound("ForgeCaps"));

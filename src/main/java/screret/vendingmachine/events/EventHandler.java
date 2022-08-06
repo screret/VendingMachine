@@ -5,26 +5,29 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.config.ModConfigEvent;
+import screret.vendingmachine.VendingMachine;
 import screret.vendingmachine.blocks.VendingMachineBlock;
 import screret.vendingmachine.configs.VendingMachineConfig;
 import screret.vendingmachine.items.MoneyItem;
-import screret.vendingmachine.tileEntities.VendingMachineTile;
+import screret.vendingmachine.blockEntities.VendingMachineBlockEntity;
 
+@Mod.EventBusSubscriber(modid = VendingMachine.MODID)
 public class EventHandler {
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public static void protectedBreak(PlayerInteractEvent.LeftClickBlock e) {
-        Block brokeBlock = e.getWorld().getBlockState(e.getPos()).getBlock();
+    public static void protectedBreak(PlayerInteractEvent.LeftClickBlock event) {
+        Block brokeBlock = event.getWorld().getBlockState(event.getPos()).getBlock();
 
         if (brokeBlock instanceof VendingMachineBlock) {
-            BlockEntity tile = e.getWorld().getBlockEntity(e.getPos());
-            if(tile instanceof VendingMachineTile) {
-                if (!((e.getPlayer().getUUID().equals(((VendingMachineTile)tile).owner)) || e.getPlayer().isCreative())) {     //If not Owner (and not in creative) Can't Break
-                    e.setCanceled(true);
+            BlockEntity tile = event.getWorld().getBlockEntity(event.getPos());
+            if(tile instanceof VendingMachineBlockEntity) {
+                if (!((event.getPlayer().getUUID().equals(((VendingMachineBlockEntity)tile).owner)) || event.getPlayer().isCreative())) {     //If not Owner (and not in creative) Can't Break
+                    event.setCanceled(true);
                 }
             }
         }
@@ -38,10 +41,10 @@ public class EventHandler {
             return;
         }
 
-        if(VendingMachineConfig.GENERAL.moneyAmount.get() > 0){
+        if(VendingMachineConfig.GENERAL.startMoney.get() > 0){
             CompoundTag moneyItemTag = new CompoundTag();
             moneyItemTag.putFloat(MoneyItem.MONEY_VALUE_TAG, MoneyItem.MONEY_VALUES[6]);
-            int moneyCount = Math.round(VendingMachineConfig.GENERAL.moneyAmount.get() / MoneyItem.MONEY_VALUES[6]);
+            int moneyCount = Math.round(VendingMachineConfig.GENERAL.startMoney.get() / MoneyItem.MONEY_VALUES[6]);
             ItemStack stack = new ItemStack(VendingMachineConfig.getPaymentItem(), moneyCount);
             stack.setTag(moneyItemTag);
 
@@ -51,5 +54,14 @@ public class EventHandler {
 
         tag.putBoolean("has_logged_in", true);
         event.getPlayer().getPersistentData().put(Player.PERSISTED_NBT_TAG, tag);
+    }
+
+    @SubscribeEvent
+    public static void configLoaded(final ModConfigEvent.Loading event){
+        if(event.getConfig().getModId().equals(VendingMachine.MODID)){
+            VendingMachine.LOGGER.debug("Loading Vending Machine Configs");
+            VendingMachineConfig.getPaymentItem();
+            VendingMachineConfig.getDecryptedPrices();
+        }
     }
 }

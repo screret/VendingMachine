@@ -7,8 +7,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.DistExecutor;
+import net.minecraftforge.fml.util.thread.SidedThreadGroups;
 import net.minecraftforge.network.NetworkEvent;
-import screret.vendingmachine.tileEntities.VendingMachineTile;
+import screret.vendingmachine.VendingMachine;
+import screret.vendingmachine.blockEntities.VendingMachineBlockEntity;
 
 import java.util.function.Supplier;
 
@@ -46,11 +48,15 @@ public class ChangePricePacket {
         ctx.enqueueWork(() -> {
             BlockEntity tile = playerEntity.getLevel().getBlockEntity(packet.pos);
 
-            if(tile instanceof VendingMachineTile finalTile){
+            if(tile instanceof VendingMachineBlockEntity finalTile){
                 if(packet.add){
-                    DistExecutor.unsafeRunWhenOn(Dist.DEDICATED_SERVER, () -> () -> finalTile.addPrice(packet.item, packet.price));
+                    if(Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER)
+                        finalTile.addPrice(packet.item, packet.price);
+                    //DistExecutor.unsafeRunWhenOn(Dist.DEDICATED_SERVER, () -> () -> finalTile.addPrice(packet.item, packet.price));
                 } else {
-                    DistExecutor.unsafeRunWhenOn(Dist.DEDICATED_SERVER, () -> () -> finalTile.removePrice(packet.item));
+                    if(Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER)
+                        finalTile.removePrice(packet.item);
+                    //DistExecutor.unsafeRunWhenOn(Dist.DEDICATED_SERVER, () -> () -> finalTile.removePrice(packet.item));
                 }
             }
         });

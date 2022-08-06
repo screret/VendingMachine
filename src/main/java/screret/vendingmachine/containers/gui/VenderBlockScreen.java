@@ -14,9 +14,8 @@ import screret.vendingmachine.VendingMachine;
 import screret.vendingmachine.configs.VendingMachineConfig;
 import screret.vendingmachine.containers.VenderBlockContainer;
 import screret.vendingmachine.events.packets.OpenVenderGUIPacket;
-import screret.vendingmachine.events.packets.PacketAllowItemTake;
 import screret.vendingmachine.events.packets.PacketSendBuy;
-import screret.vendingmachine.tileEntities.VendingMachineTile;
+import screret.vendingmachine.blockEntities.VendingMachineBlockEntity;
 
 public class VenderBlockScreen extends AbstractContainerScreen<VenderBlockContainer> {
     private ResourceLocation widgets = new ResourceLocation(VendingMachine.MODID, "textures/gui/widgets.png");
@@ -44,8 +43,8 @@ public class VenderBlockScreen extends AbstractContainerScreen<VenderBlockContai
         //this.addRenderableWidget(new Button(leftPos + 133, topPos + 64, 18, 9, new TranslatableComponent("gui.vendingmachine.buytestbutton"), onTestButtonPress));
 
         if(menu.currentPlayer.equals(menu.getTile().owner)){
-            this.addRenderableWidget(new VenderTabButton(leftPos + this.imageWidth, topPos + 12, 32, 28, new TranslatableComponent("gui.vendingmachine.mainbutton"), onTabButtonPress(true), true, true));
-            this.addRenderableWidget(new VenderTabButton(leftPos + this.imageWidth, topPos + 40, 32, 28, new TranslatableComponent("gui.vendingmachine.tab_price"), onTabButtonPress(false), false, false));
+            this.addRenderableWidget(new VenderTabButton(leftPos + this.imageWidth, topPos + 2, 32, 28, new TranslatableComponent("gui.vendingmachine.mainbutton"), onTabButtonPress(true), true, true));
+            this.addRenderableWidget(new VenderTabButton(leftPos + this.imageWidth, topPos + 30, 32, 28, new TranslatableComponent("gui.vendingmachine.tab_price"), onTabButtonPress(false), false, false));
         }
     }
 
@@ -53,11 +52,12 @@ public class VenderBlockScreen extends AbstractContainerScreen<VenderBlockContai
     public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
         this.renderBackground(poseStack);
         super.render(poseStack, mouseX, mouseY, partialTicks);
-        this.renderTooltip(poseStack, mouseX, mouseY);
 
         if(menu.selectedSlot != null && !menu.isAllowedToTakeItems){
             fillGradient(poseStack, leftPos + menu.selectedSlot.x, topPos + menu.selectedSlot.y, leftPos + menu.selectedSlot.x + 16, topPos + menu.selectedSlot.y + 16, 0x7500FF00, 0x75009900);
         }
+
+        this.renderTooltip(poseStack, mouseX, mouseY);
     }
 
     @Override
@@ -72,19 +72,10 @@ public class VenderBlockScreen extends AbstractContainerScreen<VenderBlockContai
     protected void renderTooltip(PoseStack matrixStack, ItemStack itemStack, int x, int y) {
         Object price = this.menu.getTile().getPrices().get(itemStack.getItem());
         var tooltip = this.getTooltipFromItem(itemStack);
-        if(price != null && this.hoveredSlot.index < VenderBlockContainer.INPUT_SLOTS_X_AMOUNT_PLUS_1 * VenderBlockContainer.INPUT_SLOTS_Y_AMOUNT_PLUS_1) tooltip.add(1, new TranslatableComponent("msg.vendingmachine.price", price));
+        if(price != null && this.hoveredSlot.index < VenderBlockContainer.LAST_CONTAINER_SLOT_INDEX) tooltip.add(1, new TranslatableComponent("msg.vendingmachine.price", price, VendingMachineConfig.GENERAL.isStackPrices.get() ? itemStack.getMaxStackSize() : 1));
 
         this.renderTooltip(matrixStack, tooltip, itemStack.getTooltipImage(), x, y, this.font);
     }
-
-    public Button.OnPress onTestButtonPress = new Button.OnPress() {
-        @Override
-        public void onPress(Button button) {
-            VendingMachine.NETWORK_HANDLER.sendToServer(new PacketAllowItemTake(menu.getTile().getBlockPos(), menu.currentPlayer, !menu.buyTestMode_REMOVE_LATER));
-            menu.buyTestMode_REMOVE_LATER = !menu.buyTestMode_REMOVE_LATER;
-            menu.checkPlayerAllowedToChangeInv(menu.currentPlayer);
-        }
-    };
 
     public final Button.OnPress onBuyButtonPress = button -> {
         //menu.getTile().buy(menu.selectedSlot.getSlotIndex());
@@ -101,7 +92,7 @@ public class VenderBlockScreen extends AbstractContainerScreen<VenderBlockContai
 
     public Button.OnPress onTabButtonPress(boolean isMain){
         return button -> {
-            VendingMachineTile tile = menu.getTile();
+            VendingMachineBlockEntity tile = menu.getTile();
             if (!isMain) {
                 VendingMachine.NETWORK_HANDLER.sendToServer(new OpenVenderGUIPacket(tile.getBlockPos(), false));
             }

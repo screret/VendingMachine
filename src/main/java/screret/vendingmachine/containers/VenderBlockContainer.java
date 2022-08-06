@@ -7,11 +7,13 @@ import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
+import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.SlotItemHandler;
 import net.minecraftforge.items.wrapper.PlayerInvWrapper;
+import org.jetbrains.annotations.NotNull;
 import screret.vendingmachine.configs.VendingMachineConfig;
 import screret.vendingmachine.init.Registration;
-import screret.vendingmachine.tileEntities.VendingMachineTile;
+import screret.vendingmachine.blockEntities.VendingMachineBlockEntity;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -21,29 +23,25 @@ import java.util.UUID;
 public class VenderBlockContainer extends AbstractContainerMenu {
 
     private final PlayerInvWrapper playerInventory;
-    public final OwnedStackHandler inputInventory;
-    private final ItemStackHandlerMoney moneyInventory;
-    private final IItemHandler outputInventory;
+    public final LargeStackHandler inventory;
+    public final ItemStackHandler otherSlots;
 
     public boolean isAllowedToTakeItems = false;
-    public static boolean buyTestMode_REMOVE_LATER = false;
 
     public SlotItemHandler selectedSlot;
     public UUID currentPlayer;
-    private final VendingMachineTile tile;
+    private final VendingMachineBlockEntity tile;
 
-    public static final int INPUT_SLOTS_X_AMOUNT = 4;
-    public static final int INPUT_SLOTS_X_AMOUNT_PLUS_1 = INPUT_SLOTS_X_AMOUNT + 1;
-    public static final int INPUT_SLOTS_Y_AMOUNT = 5;
-    public static final int INPUT_SLOTS_Y_AMOUNT_PLUS_1 = INPUT_SLOTS_Y_AMOUNT + 1;
+    public static final int INPUT_SLOTS_X_AMOUNT = 5;
+    public static final int INPUT_SLOTS_Y_AMOUNT = 6;
+    public static int MONEY_SLOT_INDEX, OUTPUT_SLOT_INDEX, LAST_CONTAINER_SLOT_INDEX;
 
-    public VenderBlockContainer(int windowID, Inventory playerInventory, OwnedStackHandler inputInv, IItemHandler outputInv, ItemStackHandlerMoney moneyInv, VendingMachineTile tileEntity) {
+    public VenderBlockContainer(int windowID, Inventory playerInventory, LargeStackHandler inventory, ItemStackHandler otherSlots, VendingMachineBlockEntity tileEntity) {
         super(Registration.VENDER_CONT.get(), windowID);
         this.playerInventory = new PlayerInvWrapper(playerInventory);
         this.tile = tileEntity;
-        this.inputInventory = inputInv;
-        this.moneyInventory = moneyInv;
-        this.outputInventory = outputInv;
+        this.inventory = inventory;
+        this.otherSlots = otherSlots;
 
         final int SLOT_X_SPACING = 18;
         final int SLOT_Y_SPACING = 18;
@@ -53,21 +51,22 @@ public class VenderBlockContainer extends AbstractContainerMenu {
             final int INPUT_SLOTS_YPOS = 18;
             final int MONEY_SLOT_XPOS = 134;
             final int MONEY_SLOT_YPOS = 36;
+            final int OUTPUT_SLOTS_XPOS = 134;
+            final int OUTPUT_SLOTS_YPOS = 84;
 
-            for(int x = 0; x < INPUT_SLOTS_X_AMOUNT_PLUS_1; x++){
-                for(int y = 0; y < INPUT_SLOTS_Y_AMOUNT_PLUS_1; y++) {
-                    int slotNumber = y * INPUT_SLOTS_Y_AMOUNT + x;
-                    this.addSlot(MyHandler(this.inputInventory, slotNumber, INPUT_SLOTS_XPOS + SLOT_X_SPACING * x, INPUT_SLOTS_YPOS + SLOT_Y_SPACING * y));
-                }
-            }
             currentPlayer = playerInventory.player.getUUID();
             checkPlayerAllowedToChangeInv(currentPlayer);
 
-            this.addSlot(MyHandler(this.moneyInventory, 0, MONEY_SLOT_XPOS, MONEY_SLOT_YPOS));
+            for(int x = 0; x < INPUT_SLOTS_X_AMOUNT; x++){
+                for(int y = 0; y < INPUT_SLOTS_Y_AMOUNT; y++) {
+                    int slotNumber = y * (INPUT_SLOTS_Y_AMOUNT - 1) + x;
+                    int index = this.addSlot(MyHandler(this.inventory, slotNumber, INPUT_SLOTS_XPOS + SLOT_X_SPACING * x, INPUT_SLOTS_YPOS + SLOT_Y_SPACING * y, isAllowedToTakeItems)).index;
+                    LAST_CONTAINER_SLOT_INDEX = Math.max(LAST_CONTAINER_SLOT_INDEX, index);
+                }
+            }
+            MONEY_SLOT_INDEX = this.addSlot(MoneyHandler(this.otherSlots, 0, MONEY_SLOT_XPOS, MONEY_SLOT_YPOS)).index;
 
-            final int OUTPUT_SLOTS_XPOS = 134;
-            final int OUTPUT_SLOTS_YPOS = 90;
-            this.addSlot(new SlotItemHandler(this.outputInventory, 0, OUTPUT_SLOTS_XPOS, OUTPUT_SLOTS_YPOS));
+            OUTPUT_SLOT_INDEX = this.addSlot(OutputHandler(this.otherSlots, 1, OUTPUT_SLOTS_XPOS, OUTPUT_SLOTS_YPOS)).index;
 
             layoutPlayerInventorySlots(8, 140);
         } else {
@@ -76,18 +75,39 @@ public class VenderBlockContainer extends AbstractContainerMenu {
     }
 
     @Override
-    public ItemStack quickMoveStack(Player playerEntity, int slotId) {
+    public ItemStack quickMoveStack(Player player, int slotId) {
         ItemStack itemstack = ItemStack.EMPTY;
         SlotItemHandler slot = (SlotItemHandler) this.slots.get(slotId);
-        if((slot.getItemHandler() != playerInventory && slot.getItemHandler() != moneyInventory) && !isAllowedToTakeItems && !slot.getItemHandler().isItemValid(0, new ItemStack(VendingMachineConfig.PAYMENT_ITEM))) { return ItemStack.EMPTY; }
+        if((slot.getItemHandler() != playerInventory && slot.getItemHandler() != otherSlots) && !isAllowedToTakeItems  && !slot.mayPlace(new ItemStack(VendingMachineConfig.getPaymentItem()))) { return ItemStack.EMPTY; }
         if (slot != null && slot.hasItem()) {
+            int lastInvIndex = LAST_CONTAINER_SLOT_INDEX + 36;
+            int lastInvIndexNoHotbar = LAST_CONTAINER_SLOT_INDEX + 27;
+
             ItemStack itemstack1 = slot.getItem();
             itemstack = slot.getItem();
-            if (slotId < INPUT_SLOTS_X_AMOUNT_PLUS_1 * INPUT_SLOTS_Y_AMOUNT_PLUS_1) {
-                if (!this.moveItemStackTo(itemstack1, INPUT_SLOTS_X_AMOUNT_PLUS_1 * INPUT_SLOTS_Y_AMOUNT_PLUS_1, this.slots.size(), true)) {
+            if(slot.getItemHandler() == otherSlots && slotId == OUTPUT_SLOT_INDEX){
+                if(!this.moveItemStackTo(itemstack1, OUTPUT_SLOT_INDEX, playerInventory.getSlots(), false)){
                     return ItemStack.EMPTY;
                 }
-            } else if (!this.moveItemStackTo(itemstack1, 0, INPUT_SLOTS_X_AMOUNT_PLUS_1 * INPUT_SLOTS_Y_AMOUNT_PLUS_1, false)) {
+
+                slot.onQuickCraft(itemstack1, itemstack);
+            } else if (slotId != OUTPUT_SLOT_INDEX && slotId != MONEY_SLOT_INDEX) {
+                if(itemstack1.is(VendingMachineConfig.getPaymentItem())){
+                    if(!this.moveItemStackTo(itemstack1, OUTPUT_SLOT_INDEX, MONEY_SLOT_INDEX, false)){
+                        return ItemStack.EMPTY;
+                    }
+                }else if(isAllowedToTakeItems){
+                    if(!this.moveItemStackTo(itemstack1, MONEY_SLOT_INDEX, LAST_CONTAINER_SLOT_INDEX, false)){
+                        return ItemStack.EMPTY;
+                    }
+                } else if (slotId >= LAST_CONTAINER_SLOT_INDEX && slotId < lastInvIndexNoHotbar) {
+                    if (!this.moveItemStackTo(itemstack1, lastInvIndexNoHotbar, lastInvIndex, false)) {
+                        return ItemStack.EMPTY;
+                    }
+                } else if (slotId >= LAST_CONTAINER_SLOT_INDEX && slotId < lastInvIndex && !this.moveItemStackTo(itemstack1, LAST_CONTAINER_SLOT_INDEX, lastInvIndex, false)) {
+                    return ItemStack.EMPTY;
+                }
+            }else if (!this.moveItemStackTo(itemstack1, LAST_CONTAINER_SLOT_INDEX, lastInvIndex, false)) {
                 return ItemStack.EMPTY;
             }
 
@@ -96,6 +116,12 @@ public class VenderBlockContainer extends AbstractContainerMenu {
             } else {
                 slot.setChanged();
             }
+
+            if (itemstack1.getCount() == itemstack.getCount()) {
+                return ItemStack.EMPTY;
+            }
+
+            slot.onTake(player, itemstack1);
         }
 
         return itemstack;
@@ -129,20 +155,23 @@ public class VenderBlockContainer extends AbstractContainerMenu {
 
     @Override
     public void clicked(int slotId, int dragType, ClickType clickTypeIn, Player player) {
-        if (slotId > INPUT_SLOTS_X_AMOUNT_PLUS_1 * INPUT_SLOTS_Y_AMOUNT_PLUS_1) {
-            SlotItemHandler slot = (SlotItemHandler) this.slots.get(slotId);
+        if(slotId < 0){
+            this.doClick(slotId, dragType, clickTypeIn, player);
+            return;
+        }
+
+        SlotItemHandler slot = (SlotItemHandler) this.slots.get(slotId);
+        if (slot.getItemHandler() == inventory) {
             if(!checkPlayerAllowedToChangeInv(player.getUUID())) {
-                if (slot.getItemHandler() == inputInventory) {
-                    selectedSlot = slot;
-                    return;
-                }
+                selectedSlot = slot;
+                return;
             }
         }
         this.doClick(slotId, dragType, clickTypeIn, player);
     }
 
     public boolean checkPlayerAllowedToChangeInv(UUID currentPlayer) {
-        isAllowedToTakeItems = currentPlayer.equals(tile.owner) && !buyTestMode_REMOVE_LATER;
+        isAllowedToTakeItems = currentPlayer.equals(tile.owner);
         if(!isAllowedToTakeItems){
             selectedSlot = null;
         }
@@ -154,48 +183,44 @@ public class VenderBlockContainer extends AbstractContainerMenu {
         return playerEntity.position().distanceToSqr(this.tile.getBlockPos().getX(), this.tile.getBlockPos().getY(), this.tile.getBlockPos().getZ()) < 8 * 8;
     }
 
-    public VendingMachineTile getTile(){
+    public VendingMachineBlockEntity getTile(){
         return tile;
     }
 
     @Override
-    protected boolean moveItemStackTo(ItemStack stack, int slotIndex1, int slotIndex2, boolean simulate) {
+    protected boolean moveItemStackTo(ItemStack stack, int slotIn, int slotOut, boolean simulate) {
         boolean flag = false;
-        int i = slotIndex1;
+        int i = slotIn;
         if (simulate) {
-            i = slotIndex2 - 1;
+            i = slotOut - 1;
         }
 
         if (stack.isStackable()) {
             while(!stack.isEmpty()) {
                 if (simulate) {
-                    if (i < slotIndex1) {
+                    if (i < slotIn) {
                         break;
                     }
-                } else if (i >= slotIndex2) {
+                } else if (i >= slotOut) {
                     break;
                 }
 
                 SlotItemHandler slot = (SlotItemHandler) this.slots.get(i);
                 ItemStack itemstack = slot.getItem();
-                if(slot.getItemHandler() == inputInventory && !isAllowedToTakeItems){
+                if(slot.getItemHandler() == this.inventory && i < LAST_CONTAINER_SLOT_INDEX && !isAllowedToTakeItems){
                     return false;
                 }
 
-                if (!itemstack.isEmpty() && ItemStack.isSameItemSameTags(stack, itemstack)) {
-                    int j = itemstack.getCount() + stack.getCount();
-                    int maxSize = slot.getMaxStackSize();
-                    if (j <= maxSize) {
-                        stack.setCount(0);
-                        itemstack.setCount(j);
-                        slot.setChanged();
-                        flag = true;
-                    } else if (itemstack.getCount() < maxSize) {
-                        stack.shrink(maxSize - itemstack.getCount());
-                        itemstack.setCount(maxSize);
-                        slot.setChanged();
-                        flag = true;
+                if (itemstack.isEmpty() && slot.mayPlace(stack)) {
+                    if (stack.getCount() > slot.getMaxStackSize()) {
+                        slot.set(stack.split(slot.getMaxStackSize()));
+                    } else {
+                        slot.set(stack.split(stack.getCount()));
                     }
+
+                    slot.setChanged();
+                    flag = true;
+                    break;
                 }
 
                 if (simulate) {
@@ -208,17 +233,17 @@ public class VenderBlockContainer extends AbstractContainerMenu {
 
         if (!stack.isEmpty()) {
             if (simulate) {
-                i = slotIndex2 - 1;
+                i = slotOut - 1;
             } else {
-                i = slotIndex1;
+                i = slotIn;
             }
 
             while(true) {
                 if (simulate) {
-                    if (i < slotIndex1) {
+                    if (i < slotIn) {
                         break;
                     }
-                } else if (i >= slotIndex2) {
+                } else if (i >= slotOut) {
                     break;
                 }
 
@@ -247,7 +272,7 @@ public class VenderBlockContainer extends AbstractContainerMenu {
         return flag;
     }
 
-    public SlotItemHandler MyHandler(IItemHandler itemHandler, int index, int xPosition, int yPosition){
+    public SlotItemHandler MyHandler(IItemHandler itemHandler, int index, int xPosition, int yPosition, boolean isAllowedToTakeItems){
         return new SlotItemHandler(itemHandler, index, xPosition, yPosition){
             @Override
             public int getMaxStackSize(@Nonnull ItemStack stack)
@@ -258,8 +283,7 @@ public class VenderBlockContainer extends AbstractContainerMenu {
                 maxAdd.setCount(maxInput);
 
                 ItemStack currentStack = handler.getStackInSlot(index);
-                if (handler instanceof IItemHandlerModifiable) {
-                    IItemHandlerModifiable handlerModifiable = (IItemHandlerModifiable) handler;
+                if (handler instanceof IItemHandlerModifiable handlerModifiable) {
 
                     handlerModifiable.setStackInSlot(index, ItemStack.EMPTY);
 
@@ -278,12 +302,41 @@ public class VenderBlockContainer extends AbstractContainerMenu {
                     return current + added;
                 }
             }
+
+            @Override
+            public boolean mayPlace(@NotNull ItemStack stack) {
+                return isAllowedToTakeItems;
+            }
+
+            @Override
+            public boolean mayPickup(Player playerIn) {
+                return isAllowedToTakeItems;
+            }
+        };
+    }
+
+    public SlotItemHandler OutputHandler(IItemHandler itemHandler, int index, int xPosition, int yPosition){
+        return new SlotItemHandler(itemHandler, index, xPosition, yPosition){
+            @Override
+            public boolean mayPlace(@NotNull ItemStack stack) {
+                return false;
+            }
+        };
+    }
+
+    public SlotItemHandler MoneyHandler(IItemHandler itemHandler, int index, int xPosition, int yPosition){
+        return new SlotItemHandler(itemHandler, index, xPosition, yPosition){
+            @Override
+            public boolean mayPlace(@NotNull ItemStack stack) {
+                //return ItemStack.isSame(stack, VendingMachineConfig.getPaymentItem().getDefaultInstance());
+                return stack.is(VendingMachineConfig.getPaymentItem());
+            }
         };
     }
 
     @Override
     protected void doClick(int slotId, int dragType, ClickType clickType, Player player) {
-        InventoryMenu playerInventory = player.inventoryMenu;
+        Inventory inventory = player.getInventory();
         if (clickType == ClickType.QUICK_CRAFT) {
             int i = this.quickcraftStatus;
             this.quickcraftStatus = getQuickcraftHeader(dragType);
@@ -323,8 +376,9 @@ public class VenderBlockContainer extends AbstractContainerMenu {
                             ItemStack itemstack2 = itemstack3.copy();
                             int j = slot1.hasItem() ? slot1.getItem().getCount() : 0;
                             getQuickCraftSlotCount(this.quickcraftSlots, this.quickcraftType, itemstack2, j);
-                            if (itemstack2.getCount() > slot1.getMaxStackSize(itemstack2)) {
-                                itemstack2.setCount(slot1.getMaxStackSize(itemstack2));
+                            int k = slot1.getMaxStackSize(itemstack2);
+                            if (itemstack2.getCount() > k) {
+                                itemstack2.setCount(k);
                             }
 
                             j1 -= itemstack2.getCount() - j;
@@ -372,7 +426,7 @@ public class VenderBlockContainer extends AbstractContainerMenu {
                     return;
                 }
 
-                Slot slot7 = this.slots.get(slotId);
+                SlotItemHandler slot7 = (SlotItemHandler) this.slots.get(slotId);
                 ItemStack itemstack10 = slot7.getItem();
                 ItemStack itemstack11 = this.getCarried();
                 player.updateTutorialInventoryAction(itemstack11, slot7.getItem(), clickaction);
@@ -410,36 +464,75 @@ public class VenderBlockContainer extends AbstractContainerMenu {
 
                 slot7.setChanged();
             }
+        } else if (clickType == ClickType.SWAP) {
+            SlotItemHandler slot2 = (SlotItemHandler) this.slots.get(slotId);
+            ItemStack itemstack4 = inventory.getItem(dragType);
+            ItemStack itemstack7 = slot2.getItem();
+            if (!itemstack4.isEmpty() || !itemstack7.isEmpty()) {
+                if (itemstack4.isEmpty()) {
+                    if (slot2.mayPickup(player)) {
+                        inventory.setItem(dragType, itemstack7);
+                        slot2.onSwapCraft(itemstack7.getCount());
+                        slot2.set(ItemStack.EMPTY);
+                        slot2.onTake(player, itemstack7);
+                    }
+                } else if (itemstack7.isEmpty()) {
+                    if (slot2.mayPlace(itemstack4)) {
+                        int l1 = slot2.getMaxStackSize(itemstack4);
+                        if (itemstack4.getCount() > l1) {
+                            slot2.set(itemstack4.split(l1));
+                        } else {
+                            inventory.setItem(dragType, ItemStack.EMPTY);
+                            slot2.set(itemstack4);
+                        }
+                    }
+                } else if (slot2.mayPickup(player) && slot2.mayPlace(itemstack4)) {
+                    int i2 = slot2.getMaxStackSize(itemstack4);
+                    if (itemstack4.getCount() > i2) {
+                        slot2.set(itemstack4.split(i2));
+                        slot2.onTake(player, itemstack7);
+                        if (!inventory.add(itemstack7)) {
+                            player.drop(itemstack7, true);
+                        }
+                    } else {
+                        inventory.setItem(dragType, itemstack7);
+                        slot2.set(itemstack4);
+                        slot2.onTake(player, itemstack7);
+                    }
+                }
+            }
+        } else if (clickType == ClickType.CLONE && player.getAbilities().instabuild && this.getCarried().isEmpty() && slotId >= 0) {
+            SlotItemHandler slot5 = (SlotItemHandler) this.slots.get(slotId);
+            if (slot5.hasItem()) {
+                ItemStack itemstack6 = slot5.getItem().copy();
+                itemstack6.setCount(itemstack6.getMaxStackSize());
+                this.setCarried(itemstack6);
+            }
+        } else if (clickType == ClickType.THROW && this.getCarried().isEmpty() && slotId >= 0) {
+            Slot slot4 = this.slots.get(slotId);
+            int i1 = dragType == 0 ? 1 : slot4.getItem().getCount();
+            ItemStack itemstack8 = slot4.safeTake(i1, Integer.MAX_VALUE, player);
+            player.drop(itemstack8, true);
         } else if (clickType == ClickType.PICKUP_ALL && slotId >= 0) {
-            Slot slot2 = this.slots.get(slotId);
-            ItemStack itemstack5 = playerInventory.getCarried();
-            if (!itemstack5.isEmpty() && (slot2 == null || !slot2.hasItem() || !slot2.mayPickup(player))) {
-                int j1 = dragType == 0 ? 0 : this.slots.size() - 1;
-                int i2 = dragType == 0 ? 1 : -1;
+            SlotItemHandler slot3 = (SlotItemHandler) this.slots.get(slotId);
+            ItemStack itemstack5 = this.getCarried();
+            if (!itemstack5.isEmpty() && (!slot3.hasItem() || !slot3.mayPickup(player))) {
+                int k1 = dragType == 0 ? 0 : this.slots.size() - 1;
+                int j2 = dragType == 0 ? 1 : -1;
 
-                for(int j = 0; j < 2; ++j) {
-                    for(int k = j1; k >= 0 && k < this.slots.size() && itemstack5.getCount() < itemstack5.getMaxStackSize(); k += i2) {
-                        Slot slot1 = this.slots.get(k);
-                        if (slot1.hasItem() && canItemQuickReplace(slot1, itemstack5, true) && slot1.mayPickup(player) && this.canTakeItemForPickAll(itemstack5, slot1)) {
-                            ItemStack itemstack3 = slot1.getItem();
-                            if (j != 0 || itemstack3.getCount() != itemstack3.getMaxStackSize()) {
-                                int l = Math.min(itemstack5.getMaxStackSize() - itemstack5.getCount(), itemstack3.getCount());
-                                ItemStack itemstack4 = slot1.remove(l);
-                                itemstack5.grow(l);
-                                if (itemstack4.isEmpty()) {
-                                    slot1.set(ItemStack.EMPTY);
-                                }
-
-                                slot1.onTake(player, itemstack4);
+                for(int k2 = 0; k2 < 2; ++k2) {
+                    for(int k3 = k1; k3 >= 0 && k3 < this.slots.size() && itemstack5.getCount() < itemstack5.getMaxStackSize(); k3 += j2) {
+                        SlotItemHandler slot8 = (SlotItemHandler) this.slots.get(k3);
+                        if (slot8.hasItem() && canItemQuickReplace(slot8, itemstack5, true) && slot8.mayPickup(player) && this.canTakeItemForPickAll(itemstack5, slot8)) {
+                            ItemStack itemstack12 = slot8.getItem();
+                            if (k2 != 0 || itemstack12.getCount() != itemstack12.getMaxStackSize()) {
+                                ItemStack itemstack13 = slot8.safeTake(itemstack12.getCount(), itemstack5.getMaxStackSize() - itemstack5.getCount(), player);
+                                itemstack5.grow(itemstack13.getCount());
                             }
                         }
                     }
                 }
             }
-            this.broadcastChanges();
-
-        } else {
-            super.doClick(slotId, dragType, clickType, player);
         }
 
     }

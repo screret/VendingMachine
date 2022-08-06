@@ -5,7 +5,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.network.NetworkEvent;
-import screret.vendingmachine.tileEntities.VendingMachineTile;
+import screret.vendingmachine.blockEntities.VendingMachineBlockEntity;
 
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -40,9 +40,8 @@ public class PacketAllowItemTake {
         ctx.enqueueWork(() -> {
             BlockEntity tile = playerEntity.getLevel().getBlockEntity(packet.pos);
 
-            if(tile instanceof VendingMachineTile){
-                ((VendingMachineTile) tile).container.buyTestMode_REMOVE_LATER = packet.value;
-                ((VendingMachineTile) tile).container.checkPlayerAllowedToChangeInv(packet.user);
+            if(tile instanceof VendingMachineBlockEntity){
+                ((VendingMachineBlockEntity) tile).container.checkPlayerAllowedToChangeInv(packet.user);
             }
         });
 
