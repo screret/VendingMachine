@@ -1,14 +1,17 @@
 package screret.vendingmachine.events.packets;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.fml.util.thread.SidedThreadGroups;
-import net.minecraftforge.network.NetworkEvent;
-import screret.vendingmachine.blockEntities.VendingMachineBlockEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.item.ItemStack;
+import net.minecraft.network.PacketBuffer;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.math.BlockPos;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.DistExecutor;
+import net.minecraftforge.fml.network.NetworkEvent;
+import org.omg.PortableInterceptor.LOCATION_FORWARD;
+import screret.vendingmachine.tileEntities.VendingMachineTile;
 
+import java.util.UUID;
 import java.util.function.Supplier;
 
 public class ChangePricePacket {
@@ -16,44 +19,48 @@ public class ChangePricePacket {
     private final int price;
     private final ItemStack item;
     private final boolean add;
+    private final UUID executor;
 
-    public ChangePricePacket(FriendlyByteBuf buf) {
+    public ChangePricePacket(PacketBuffer buf) {
         pos = buf.readBlockPos();
         item = buf.readItem();
         price = buf.readInt();
         add = buf.readBoolean();
+        executor = buf.readUUID();
     }
 
-    public ChangePricePacket(BlockPos pos, ItemStack item, int price, boolean add) {
+    public ChangePricePacket(BlockPos pos, ItemStack item, int price, boolean add, UUID executor) {
         this.pos = pos;
         this.item = item;
         this.price = price;
         this.add = add;
+        this.executor = executor;
     }
 
-    public static void encode(ChangePricePacket packet, FriendlyByteBuf buf) {
+    public static void encode(ChangePricePacket packet, PacketBuffer buf) {
         buf.writeBlockPos(packet.pos);
         buf.writeItem(packet.item);
         buf.writeInt(packet.price);
         buf.writeBoolean(packet.add);
+        buf.writeUUID(packet.executor);
     }
 
     public static void handle(final ChangePricePacket packet, Supplier<NetworkEvent.Context> context) {
-        ServerPlayer playerEntity = context.get().getSender();
+        ServerPlayerEntity playerEntity = context.get().getSender();
 
         NetworkEvent.Context ctx = context.get();
         ctx.enqueueWork(() -> {
-            BlockEntity tile = playerEntity.getLevel().getBlockEntity(packet.pos);
+            TileEntity tile = playerEntity.getLevel().getBlockEntity(packet.pos);
 
-            if(tile instanceof VendingMachineBlockEntity finalTile){
+            if(tile instanceof VendingMachineTile){
+                VendingMachineTile finalTile = (VendingMachineTile) tile;
+                if(finalTile.owner == packet.executor)
                 if(packet.add){
-                    if(Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER)
-                        finalTile.addPrice(packet.item, packet.price);
                     //DistExecutor.unsafeRunWhenOn(Dist.DEDICATED_SERVER, () -> () -> finalTile.addPrice(packet.item, packet.price));
+                    finalTile.addPrice(packet.item, packet.price);
                 } else {
-                    if(Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER)
-                        finalTile.removePrice(packet.item);
                     //DistExecutor.unsafeRunWhenOn(Dist.DEDICATED_SERVER, () -> () -> finalTile.removePrice(packet.item));
+                    finalTile.removePrice(packet.item);
                 }
             }
         });

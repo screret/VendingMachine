@@ -1,37 +1,50 @@
 package screret.vendingmachine.init;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.inventory.MenuType;
-import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.DyeColor;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.world.level.material.Material;
-import net.minecraftforge.common.extensions.IForgeMenuType;
+import net.minecraft.block.*;
+import net.minecraft.block.material.Material;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.model.RenderMaterial;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.ai.attributes.Attribute;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.inventory.container.ContainerType;
+import net.minecraft.item.*;
+import net.minecraft.item.crafting.IRecipeSerializer;
+import net.minecraft.tileentity.TileEntityType;
+import net.minecraft.util.Hand;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
+import net.minecraftforge.common.ToolType;
+import net.minecraftforge.common.extensions.IForgeContainerType;
+import net.minecraftforge.fml.RegistryObject;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
 import screret.vendingmachine.VendingMachine;
 import screret.vendingmachine.blocks.VendingMachineBlock;
+import screret.vendingmachine.capabilities.ControlCardCapability;
+import screret.vendingmachine.capabilities.Controller;
 import screret.vendingmachine.containers.ContainerControlCard;
 import screret.vendingmachine.containers.VenderBlockContainer;
 import screret.vendingmachine.containers.VenderPriceEditorContainer;
 import screret.vendingmachine.items.ControlCardItem;
 import screret.vendingmachine.items.MoneyItem;
-import screret.vendingmachine.blockEntities.VendingMachineBlockEntity;
+import screret.vendingmachine.tileEntities.VendingMachineTile;
 
-import java.util.UUID;
+import java.util.Arrays;
+import java.util.Comparator;
 
 public class Registration {
 
     //registries
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, VendingMachine.MODID);
+    public static final DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(ForgeRegistries.ENTITIES, VendingMachine.MODID);
+    public static final DeferredRegister<Attribute> ENTITY_ATTRIBUTES = DeferredRegister.create(ForgeRegistries.ATTRIBUTES, VendingMachine.MODID);
     public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, VendingMachine.MODID);
-    public static final DeferredRegister<BlockEntityType<?>> TILES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, VendingMachine.MODID);
-    public static final DeferredRegister<MenuType<?>> CONTAINERS = DeferredRegister.create(ForgeRegistries.MENU_TYPES, VendingMachine.MODID);
+    public static final DeferredRegister<TileEntityType<?>> TILES = DeferredRegister.create(ForgeRegistries.TILE_ENTITIES, VendingMachine.MODID);
+    public static final DeferredRegister<ContainerType<?>> CONTAINERS = DeferredRegister.create(ForgeRegistries.CONTAINERS, VendingMachine.MODID);
+    public static final DeferredRegister<IRecipeSerializer<?>> RECIPE_SERIALIZERS = DeferredRegister.create(ForgeRegistries.RECIPE_SERIALIZERS, VendingMachine.MODID);
 
 
     //blocks
@@ -53,14 +66,11 @@ public class Registration {
     public static final RegistryObject<Block> VENDER_GREEN = BLOCKS.register("vending_machine_green", () -> vender(DyeColor.GREEN));
 
     private static VendingMachineBlock vender(DyeColor color) {
-        return new VendingMachineBlock(color, Block.Properties.of(Material.HEAVY_METAL).strength(3.5F).lightLevel(a -> 10));
+        return new VendingMachineBlock(color, AbstractBlock.Properties.of(Material.HEAVY_METAL).harvestTool(ToolType.PICKAXE).strength(3.5F).lightLevel(a -> 10));
     }
 
     //tile entities
-    public static final RegistryObject<BlockEntityType<VendingMachineBlockEntity>> VENDER_TILE = TILES.register("vending_machine_tile", () ->
-            BlockEntityType.Builder.of(VendingMachineBlockEntity::new,
-                    VENDER_BLUE.get(), VENDER_RED.get(), VENDER_WHITE.get(), VENDER_GRAY.get(), VENDER_LIGHT_GRAY.get(), VENDER_BLACK.get(), VENDER_ORANGE.get(), VENDER_MAGENTA.get(), VENDER_LIGHT_BLUE.get(), VENDER_YELLOW.get(), VENDER_LIME.get(), VENDER_PINK.get(), VENDER_CYAN.get(), VENDER_BROWN.get(), VENDER_PURPLE.get(), VENDER_GREEN.get()
-                    ).build(null));
+    public static final RegistryObject<TileEntityType<VendingMachineTile>> VENDER_TILE = TILES.register("vending_machine_tile", () -> TileEntityType.Builder.of(VendingMachineTile::new, VENDER_BLUE.get()).build(null));
 
 
 
@@ -82,34 +92,43 @@ public class Registration {
     public static final RegistryObject<Item> VENDER_ITEM_RED = ITEMS.register("vending_machine_red", () -> new BlockItem(Registration.VENDER_RED.get(), new Item.Properties().tab(VendingMachine.MOD_TAB)));
     public static final RegistryObject<Item> VENDER_ITEM_BLACK = ITEMS.register("vending_machine_black", () -> new BlockItem(Registration.VENDER_BLACK.get(), new Item.Properties().tab(VendingMachine.MOD_TAB)));
 
-    //public static final RegistryObject<Item> VENDER_CONTROL_CARD = ITEMS.register("vender_controller", () -> new ControlCardItem(new Item.Properties().tab(VendingMachine.MOD_TAB)));
+    //TODO: make this work
+    //public static final RegistryObject<Item> VENDER_CONTROL_CARD = ITEMS.register("vending_machine_controller", () -> new ControlCardItem(new Item.Properties().tab(VendingMachine.MOD_TAB).stacksTo(1), null));
 
     public static final RegistryObject<Item> MONEY = ITEMS.register("money", () -> new MoneyItem(new Item.Properties()));
 
-
     //containers
-    public static final RegistryObject<MenuType<VenderBlockContainer>> VENDER_CONT = CONTAINERS.register("container_vending_machine", () -> IForgeMenuType.create((windowId, inv, buffer) -> {
+    public static final RegistryObject<ContainerType<VenderBlockContainer>> VENDER_CONT = CONTAINERS.register("container_vending_machine", () -> IForgeContainerType.create((windowId, inv, buffer) -> {
         BlockPos pos = buffer.readBlockPos();
-        Level world = inv.player.getCommandSenderWorld();
-        VendingMachineBlockEntity tile = (VendingMachineBlockEntity) world.getBlockEntity(pos);
+        World world = inv.player.getCommandSenderWorld();
+        VendingMachineTile tile = (VendingMachineTile) world.getBlockEntity(pos);
         if(tile == null){
-            tile = (VendingMachineBlockEntity) world.getBlockEntity(pos.below());
+            tile = (VendingMachineTile) world.getBlockEntity(pos.below());
         }
-        return new VenderBlockContainer(windowId, inv, tile.inventory, tile.otherSlots, tile);
+        return new VenderBlockContainer(windowId, inv, tile.inputSlot, tile.outputSlot, tile.moneySlot, tile);
     }));
 
-    public static final RegistryObject<MenuType<VenderPriceEditorContainer>> VENDER_CONT_PRICES = CONTAINERS.register("container_vending_machine_prices", () -> IForgeMenuType.create((windowId, inv, buffer) -> {
+    public static final RegistryObject<ContainerType<VenderPriceEditorContainer>> VENDER_CONT_PRICES = CONTAINERS.register("container_vending_machine_prices", () -> IForgeContainerType.create((windowId, inv, buffer) -> {
         BlockPos pos = buffer.readBlockPos();
-        Level world = inv.player.getCommandSenderWorld();
-        VendingMachineBlockEntity tile = (VendingMachineBlockEntity) world.getBlockEntity(pos);
+        World world = inv.player.getCommandSenderWorld();
+        VendingMachineTile tile = (VendingMachineTile) world.getBlockEntity(pos);
         if(tile == null){
-            tile = (VendingMachineBlockEntity) world.getBlockEntity(pos.below());
+            tile = (VendingMachineTile) world.getBlockEntity(pos.below());
         }
-        return new VenderPriceEditorContainer(windowId, inv, tile.inventory, tile);
+        return new VenderPriceEditorContainer(windowId, inv, tile);
     }));
 
-    public static final RegistryObject<MenuType<ContainerControlCard>> CONTAINER_CONTROL_CARD = CONTAINERS.register("container_control_card", () -> IForgeMenuType.create((windowId, inv, buffer) -> {
-        UUID uuid = inv.player.getUUID();
-        return new ContainerControlCard(windowId, inv, uuid, ControlCardItem.getController((ControlCardItem) inv.player.getItemInHand(InteractionHand.MAIN_HAND).getItem(), inv.player.getUseItem()));
+    public static final RegistryObject<ContainerType<ContainerControlCard>> CONTAINER_CONTROL_CARD = CONTAINERS.register("container_control_card", () -> IForgeContainerType.create((windowId, inv, buffer) -> {
+        PlayerEntity player = inv.player;
+        ItemStack stack = player.getItemInHand(Hand.MAIN_HAND);
+        if(stack.isEmpty()){
+            stack = player.getItemInHand(Hand.OFF_HAND);
+        }
+        ControlCardItem item = (ControlCardItem) stack.getItem();
+
+        if(item.getOwner() == null){
+            item.setOwner(inv.player.getUUID());
+        }
+        return new ContainerControlCard(windowId, inv, item.getOwner(), ControlCardItem.getController(item, stack));
     }));
 }

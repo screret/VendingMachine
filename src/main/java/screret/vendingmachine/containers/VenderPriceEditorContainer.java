@@ -1,90 +1,63 @@
 package screret.vendingmachine.containers;
 
-import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.inventory.IInventory;
+import net.minecraft.inventory.container.Container;
+import net.minecraft.inventory.container.StonecutterContainer;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.SlotItemHandler;
 import net.minecraftforge.items.wrapper.PlayerInvWrapper;
-import org.jetbrains.annotations.NotNull;
 import screret.vendingmachine.init.Registration;
-import screret.vendingmachine.blockEntities.VendingMachineBlockEntity;
+import screret.vendingmachine.tileEntities.VendingMachineTile;
 
-import java.util.UUID;
-
-import static screret.vendingmachine.containers.VenderBlockContainer.*;
-
-public class VenderPriceEditorContainer extends AbstractContainerMenu {
+public class VenderPriceEditorContainer extends Container {
     private final PlayerInvWrapper playerInventory;
-    public final LargeStackHandler inputInventory;
-    final VendingMachineBlockEntity tile;
+    final VendingMachineTile tile;
 
-    public boolean isAllowedToTakeItems = false;
-    public SlotItemHandler selectedSlot;
+    private Runnable slotUpdateListener = () -> { };
 
+    public int selectedItemIndex = -1;
 
-    public VenderPriceEditorContainer(int windowID, Inventory inv, LargeStackHandler inputInv, VendingMachineBlockEntity tileEntity) {
+    public VenderPriceEditorContainer(int windowID, PlayerInventory inv, VendingMachineTile tile) {
         super(Registration.VENDER_CONT_PRICES.get(), windowID);
-        this.tile = tileEntity;
+        this.tile = tile;
         this.playerInventory = new PlayerInvWrapper(inv);
-        this.inputInventory = inputInv;
 
-        final int SLOT_X_SPACING = 18;
-        final int SLOT_Y_SPACING = 18;
-
-        if (tileEntity != null) {
-            final int INPUT_SLOTS_XPOS = 8;
-            final int INPUT_SLOTS_YPOS = 18;
-
-            for(int x = 0; x < INPUT_SLOTS_X_AMOUNT; x++){
-                for(int y = 0; y < INPUT_SLOTS_Y_AMOUNT; y++) {
-                    int slotNumber = y * (INPUT_SLOTS_Y_AMOUNT - 1) + x;
-                    this.addSlot(MyHandler(this.inputInventory, slotNumber, INPUT_SLOTS_XPOS + SLOT_X_SPACING * x, INPUT_SLOTS_YPOS + SLOT_Y_SPACING * y));
-                }
-            }
-            checkPlayerAllowedToChangeInv(inv.player.getUUID());
-
-            layoutPlayerInventorySlots(8, 140);
-        } else {
-            throw new IllegalStateException("TileEntity is null");
-        }
-
-        layoutPlayerInventorySlots(8, 140);
+        //layoutPlayerInventorySlots(8, 140);
     }
 
-    public VendingMachineBlockEntity getTile(){
+    public boolean hasPricesSet(){
+        return tile.getPrices().size() > 0;
+    }
+
+    public VendingMachineTile getTile(){
         return tile;
     }
 
-    public ItemStack quickMoveStack(Player p_39253_, int p_39254_) {
-        ItemStack itemstack = ItemStack.EMPTY;
-        Slot slot = this.slots.get(p_39254_);
-        if (slot != null && slot.hasItem()) {
-            ItemStack itemstack1 = slot.getItem();
-            itemstack = itemstack1.copy();
-            if (p_39254_ < LAST_CONTAINER_SLOT_INDEX) {
-                if (!this.moveItemStackTo(itemstack1, LAST_CONTAINER_SLOT_INDEX + 1, LAST_CONTAINER_SLOT_INDEX + 36, true)) {
-                    return ItemStack.EMPTY;
-                }
-            } else if (!this.moveItemStackTo(itemstack1, 0, LAST_CONTAINER_SLOT_INDEX + 1, false)) {
-                return ItemStack.EMPTY;
-            }
-
-            if (itemstack1.isEmpty()) {
-                slot.set(ItemStack.EMPTY);
-            } else {
-                slot.setChanged();
-            }
+    @Override
+    public boolean clickMenuButton(PlayerEntity playerEntity, int index) {
+        if (this.isValidPriceIndex(index)) {
+            this.selectedItemIndex = index;
         }
+        return true;
+    }
 
-        return itemstack;
+    private boolean isValidPriceIndex(int index) {
+        return index >= 0 && index < this.tile.getPrices().size();
     }
 
     @Override
-    public boolean stillValid(Player playerEntity) {
+    public boolean stillValid(PlayerEntity playerEntity) {
         return playerEntity.position().distanceToSqr(this.tile.getBlockPos().getX(), this.tile.getBlockPos().getY(), this.tile.getBlockPos().getZ()) < 8 * 8;
+    }
+
+    public void registerUpdateListener(Runnable runnable) {
+        this.slotUpdateListener = runnable;
+    }
+
+    public void updateGUI(){
+        this.slotUpdateListener.run();
     }
 
     private int addSlotRange(IItemHandler handler, int index, int x, int y, int amount, int dx) {
@@ -111,33 +84,5 @@ public class VenderPriceEditorContainer extends AbstractContainerMenu {
         // Hotbar
         topRow += 58;
         addSlotRange(playerInventory, 0, leftCol, topRow, 9, 18);
-    }
-
-    public boolean checkPlayerAllowedToChangeInv(UUID currentPlayer) {
-        isAllowedToTakeItems = currentPlayer.equals(tile.owner);
-        if(!isAllowedToTakeItems){
-            selectedSlot = null;
-        }
-        return isAllowedToTakeItems;
-    }
-
-    public SlotItemHandler MyHandler(IItemHandler itemHandler, int index, int xPosition, int yPosition){
-        return new SlotItemHandler(itemHandler, index, xPosition, yPosition){
-            /*@Override
-            public int getMaxStackSize(@Nonnull ItemStack stack)
-            {
-                return 1;
-            }//*/
-
-            @Override
-            public boolean mayPickup(Player playerIn) {
-                return false;
-            }
-
-            @Override
-            public boolean mayPlace(@NotNull ItemStack stack) {
-                return false;
-            }
-        };
     }
 }

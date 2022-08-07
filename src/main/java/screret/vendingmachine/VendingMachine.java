@@ -1,35 +1,27 @@
 package screret.vendingmachine;
 
-import net.minecraft.client.gui.screens.MenuScreens;
-import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.renderer.item.ItemProperties;
-import net.minecraft.client.renderer.item.ItemPropertyFunction;
-import net.minecraft.core.NonNullList;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.client.gui.ScreenManager;
+import net.minecraft.client.world.ClientWorld;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.item.*;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.NonNullList;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.InterModEnqueueEvent;
-import net.minecraftforge.fml.event.lifecycle.InterModProcessEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkRegistry;
-import net.minecraftforge.network.simple.SimpleChannel;
+import net.minecraftforge.fml.network.NetworkDirection;
+import net.minecraftforge.fml.network.NetworkRegistry;
+import net.minecraftforge.fml.network.simple.SimpleChannel;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import screret.vendingmachine.capabilities.ControlCardCapability;
-import screret.vendingmachine.configs.VendingMachineConfig;
+import screret.vendingmachine.capabilities.configs.VendingMachineConfig;
 import screret.vendingmachine.containers.gui.ControlCardScreen;
 import screret.vendingmachine.containers.gui.VenderBlockPriceScreen;
 import screret.vendingmachine.containers.gui.VenderBlockScreen;
@@ -47,7 +39,9 @@ import java.util.Optional;
 public class VendingMachine {
     public static final String MODID = "vendingmachine";
 
-    public static final CreativeModeTab MOD_TAB = new CreativeModeTab("vendingmachine") {
+    public static final Logger LOGGER = LogManager.getLogger();
+
+    public static final ItemGroup MOD_TAB = new ItemGroup("vendingmachine") {
         @Override
         public ItemStack makeIcon() {
             return new ItemStack(Registration.VENDER_ITEM_BLUE.get());
@@ -55,10 +49,10 @@ public class VendingMachine {
 
         @Override
         public void fillItemList(NonNullList<ItemStack> items) {
-            CompoundTag moneyValue;
+            CompoundNBT moneyValue;
 
             for(int value = 0; value < MoneyItem.MONEY_VALUES.length; value++){
-                moneyValue = new CompoundTag();
+                moneyValue = new CompoundNBT();
                 moneyValue.putFloat(MoneyItem.MONEY_VALUE_TAG, MoneyItem.MONEY_VALUES[value]);
                 ItemStack stack = new ItemStack(Registration.MONEY.get());
                 stack.setTag(moneyValue);
@@ -72,7 +66,6 @@ public class VendingMachine {
         }
     };
 
-    public static final Logger LOGGER = LogManager.getLogger(VendingMachine.MODID);
 
     private static final String PROTOCOL_VERSION = "1";
     public static final SimpleChannel NETWORK_HANDLER = NetworkRegistry.newSimpleChannel(
@@ -85,10 +78,6 @@ public class VendingMachine {
     public VendingMachine() {
         // Register the setup method for modloading
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
-        // Register the enqueueIMC method for modloading
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::enqueueIMC);
-        // Register the processIMC method for modloading
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::processIMC);
         // Register the doClientStuff method for modloading
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::doClientStuff);
 
@@ -96,6 +85,7 @@ public class VendingMachine {
         MinecraftForge.EVENT_BUS.register(this);
 
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, VendingMachineConfig.spec);
+        VendingMachineConfig.DECRYPTED_PRICES = VendingMachineConfig.decryptPrices();
 
         Registration.BLOCKS.register(FMLJavaModLoadingContext.get().getModEventBus());
         Registration.ITEMS.register(FMLJavaModLoadingContext.get().getModEventBus());
@@ -105,43 +95,24 @@ public class VendingMachine {
 
     private void setup(final FMLCommonSetupEvent event)
     {
+        ControlCardCapability.register();
         NETWORK_HANDLER.registerMessage(0, PacketSendBuy.class, PacketSendBuy::encode, PacketSendBuy::new, PacketSendBuy::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
-        //NETWORK_HANDLER.registerMessage(1, PacketAllowItemTake.class, PacketAllowItemTake::encode, PacketAllowItemTake::new, PacketAllowItemTake::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        NETWORK_HANDLER.registerMessage(1, PacketAllowItemTake.class, PacketAllowItemTake::encode, PacketAllowItemTake::new, PacketAllowItemTake::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
         NETWORK_HANDLER.registerMessage(2, OpenVenderGUIPacket.class, OpenVenderGUIPacket::encode, OpenVenderGUIPacket::new, OpenVenderGUIPacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
         NETWORK_HANDLER.registerMessage(3, ChangePricePacket.class, ChangePricePacket::encode, ChangePricePacket::new, ChangePricePacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
-        //NETWORK_HANDLER.registerMessage(4, DropMoneyOnClosePacket.class, DropMoneyOnClosePacket::encode, DropMoneyOnClosePacket::new, DropMoneyOnClosePacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
-        //NETWORK_HANDLER.registerMessage(5, SendOwnerToClientPacket.class, SendOwnerToClientPacket::encode, SendOwnerToClientPacket::new, SendOwnerToClientPacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
-        //NETWORK_HANDLER.registerMessage(6, LoadChunkPacket.class, LoadChunkPacket::encode, LoadChunkPacket::new, LoadChunkPacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        NETWORK_HANDLER.registerMessage(4, DropMoneyOnClosePacket.class, DropMoneyOnClosePacket::encode, DropMoneyOnClosePacket::new, DropMoneyOnClosePacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
     }
 
     private void doClientStuff(final FMLClientSetupEvent event) {
-        event.enqueueWork(() -> MenuScreens.register(Registration.VENDER_CONT.get(), VenderBlockScreen::new));
-        event.enqueueWork(() -> MenuScreens.register(Registration.VENDER_CONT_PRICES.get(), VenderBlockPriceScreen::new));
-        event.enqueueWork(() -> MenuScreens.register(Registration.CONTAINER_CONTROL_CARD.get(), ControlCardScreen::new));
+        event.enqueueWork(() -> ScreenManager.register(Registration.VENDER_CONT.get(), VenderBlockScreen::new));
+        event.enqueueWork(() -> ScreenManager.register(Registration.VENDER_CONT_PRICES.get(), VenderBlockPriceScreen::new));
+        event.enqueueWork(() -> ScreenManager.register(Registration.CONTAINER_CONTROL_CARD.get(), ControlCardScreen::new));
 
-        event.enqueueWork(() -> ItemProperties.register(Registration.MONEY.get(), new ResourceLocation(VendingMachine.MODID, "money_value"), (stack, world, holdingEntity, entityId) -> MoneyItem.getMoneyValue(stack)));
+        event.enqueueWork(() -> ItemModelsProperties.register(Registration.MONEY.get(), new ResourceLocation(VendingMachine.MODID, "money_value"), new IItemPropertyGetter() {
+            @Override
+            public float call(ItemStack stack, @Nullable ClientWorld world, @Nullable LivingEntity holdingEntity) {
+                return MoneyItem.getMoneyValue(stack);
+            }
+        }));
     }
-
-    private void enqueueIMC(final InterModEnqueueEvent event)
-    {
-        // some example code to dispatch IMC to another mod
-
-    }
-
-    @SubscribeEvent
-    public void registerCaps(RegisterCapabilitiesEvent event) {
-        ControlCardCapability.register(event);
-    }
-
-    private void processIMC(final InterModProcessEvent event)
-    {
-        // some example code to receive and process InterModComms from other mods
-
-    }
-    // You can use SubscribeEvent and let the Event Bus discover methods to call
-    /*@SubscribeEvent
-    public void onServerStarting(FMLServerStartingEvent event) {
-        // do something when the server starts
-        LOGGER.info("HELLO from server starting");
-    }*/
 }

@@ -1,27 +1,26 @@
 package screret.vendingmachine.containers;
 
-import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.inventory.container.Container;
 import screret.vendingmachine.capabilities.Controller;
 import screret.vendingmachine.init.Registration;
 
 import java.util.UUID;
 
-public class ContainerControlCard extends AbstractContainerMenu {
+public class ContainerControlCard extends Container {
     private final UUID ownerUUID;
     private final Controller controller;
-    private final Inventory inv;
+    private final PlayerInventory inv;
 
-    public ContainerControlCard(int windowID, Inventory inv, UUID uuid, Controller controller) {
+    public ContainerControlCard(int windowID, PlayerInventory inv, UUID uuid, Controller controller) {
         super(Registration.CONTAINER_CONTROL_CARD.get(), windowID);
         this.inv = inv;
         ownerUUID = uuid;
         this.controller = controller;
     }
 
-    public Player getCurrentPlayer(){
+    public PlayerEntity getCurrentPlayer(){
         return this.inv.player;
     }
 
@@ -34,12 +33,7 @@ public class ContainerControlCard extends AbstractContainerMenu {
     }
 
     @Override
-    public ItemStack quickMoveStack(Player p_38941_, int p_38942_) {
-        return ItemStack.EMPTY;
-    }
-
-    @Override
-    public boolean stillValid(Player player) {
+    public boolean stillValid(PlayerEntity player) {
         return true;
     }
 }

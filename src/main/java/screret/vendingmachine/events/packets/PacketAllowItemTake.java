@@ -1,11 +1,15 @@
 package screret.vendingmachine.events.packets;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.network.NetworkEvent;
-import screret.vendingmachine.blockEntities.VendingMachineBlockEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.network.PacketBuffer;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.math.BlockPos;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.DistExecutor;
+import net.minecraftforge.fml.network.NetworkEvent;
+import org.apache.logging.log4j.core.jmx.Server;
+import screret.vendingmachine.containers.VenderBlockContainer;
+import screret.vendingmachine.tileEntities.VendingMachineTile;
 
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -15,7 +19,7 @@ public class PacketAllowItemTake {
     private final boolean value;
     private final BlockPos pos;
 
-    public PacketAllowItemTake(FriendlyByteBuf buf) {
+    public PacketAllowItemTake(PacketBuffer buf) {
         user = buf.readUUID();
         value = buf.readBoolean();
         pos = buf.readBlockPos();
@@ -27,21 +31,22 @@ public class PacketAllowItemTake {
         this.pos = pos;
     }
 
-    public static void encode(PacketAllowItemTake packet, FriendlyByteBuf buf) {
+    public static void encode(PacketAllowItemTake packet, PacketBuffer buf) {
         buf.writeUUID(packet.user);
         buf.writeBoolean(packet.value);
         buf.writeBlockPos(packet.pos);
     }
 
     public static void handle(final PacketAllowItemTake packet, Supplier<NetworkEvent.Context> context) {
-        ServerPlayer playerEntity = context.get().getSender();
+        ServerPlayerEntity playerEntity = context.get().getSender();
 
         NetworkEvent.Context ctx = context.get();
         ctx.enqueueWork(() -> {
-            BlockEntity tile = playerEntity.getLevel().getBlockEntity(packet.pos);
+            TileEntity tile = playerEntity.getLevel().getBlockEntity(packet.pos);
 
-            if(tile instanceof VendingMachineBlockEntity){
-                ((VendingMachineBlockEntity) tile).container.checkPlayerAllowedToChangeInv(packet.user);
+            if(tile instanceof VendingMachineTile){
+                ((VendingMachineTile) tile).container.buyTestMode_REMOVE_LATER = packet.value;
+                ((VendingMachineTile) tile).container.checkPlayerAllowedToChangeInv(packet.user);
             }
         });
 

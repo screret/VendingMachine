@@ -1,20 +1,17 @@
 package screret.vendingmachine.items;
 
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
 
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
-import java.util.Locale;
+import javax.xml.soap.Text;
 
 public class MoneyItem extends Item {
 
     public static String MONEY_VALUE_TAG = "money_value";
-
-    private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("0", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 
     public static float[] MONEY_VALUES = new float[]{
             1f,
@@ -32,8 +29,8 @@ public class MoneyItem extends Item {
     }
 
     @Override
-    public Component getName(ItemStack stack) {
-        return Component.translatable(this.getDescriptionId(stack), DECIMAL_FORMAT.format(MoneyItem.getMoneyValue(stack)));
+    public ITextComponent getName(ItemStack stack) {
+        return new TranslationTextComponent(this.getDescriptionId(stack), MoneyItem.getMoneyValue(stack));
     }
 
     public static float getMoneyValue(ItemStack stack){
@@ -41,7 +38,7 @@ public class MoneyItem extends Item {
     }
 
     public static void setMoneyValue(ItemStack stack, float value){
-        CompoundTag tag = stack.getOrCreateTag();
+        CompoundNBT tag = stack.getOrCreateTag();
         tag.putFloat(MONEY_VALUE_TAG, value);
     }
 }
