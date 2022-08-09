@@ -3,11 +3,14 @@ package screret.vendingmachine.events.packets;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraftforge.fml.util.thread.SidedThreadGroups;
 import net.minecraftforge.network.NetworkEvent;
 import net.minecraftforge.network.NetworkHooks;
 import screret.vendingmachine.blockEntities.VendingMachineBlockEntity;
+import screret.vendingmachine.init.Registration;
 
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 public class OpenVenderGUIPacket {
@@ -31,16 +34,21 @@ public class OpenVenderGUIPacket {
 
     public static void handle(final OpenVenderGUIPacket packet, Supplier<NetworkEvent.Context> context) {
         ServerPlayer playerEntity = context.get().getSender();
-
-        BlockEntity tile = playerEntity.getLevel().getBlockEntity(packet.pos);
-
         NetworkEvent.Context ctx = context.get();
+
+        AtomicReference<Optional<VendingMachineBlockEntity>> tile = new AtomicReference<>();
+
+        ctx.enqueueWork(() -> tile.set(playerEntity.getLevel().getBlockEntity(packet.pos, Registration.VENDER_TILE.get())));
+
+        var b = playerEntity.getLevel().getBlockState(packet.pos);
+
         ctx.enqueueWork(() -> {
-            if(!packet.isMainWindow && tile instanceof VendingMachineBlockEntity _tile){
-                NetworkHooks.openScreen(playerEntity, _tile.priceEditorContainerProvider, packet.pos);
-            }
-            else if(tile instanceof VendingMachineBlockEntity _tile){
-                NetworkHooks.openScreen(playerEntity, _tile, packet.pos);
+            if(Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER && tile.get().isPresent()){
+                if (packet.isMainWindow) {
+                    NetworkHooks.openScreen(playerEntity, tile.get().get(), packet.pos);
+                } else {
+                    NetworkHooks.openScreen(playerEntity, tile.get().get().priceEditorContainerProvider, packet.pos);
+                }
             }
         });
 

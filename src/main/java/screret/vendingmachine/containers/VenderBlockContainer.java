@@ -52,7 +52,7 @@ public class VenderBlockContainer extends AbstractContainerMenu {
             final int MONEY_SLOT_XPOS = 134;
             final int MONEY_SLOT_YPOS = 36;
             final int OUTPUT_SLOTS_XPOS = 134;
-            final int OUTPUT_SLOTS_YPOS = 84;
+            final int OUTPUT_SLOTS_YPOS = 81;
 
             currentPlayer = playerInventory.player.getUUID();
             checkPlayerAllowedToChangeInv(currentPlayer);
@@ -64,6 +64,7 @@ public class VenderBlockContainer extends AbstractContainerMenu {
                     LAST_CONTAINER_SLOT_INDEX = Math.max(LAST_CONTAINER_SLOT_INDEX, index);
                 }
             }
+            ++LAST_CONTAINER_SLOT_INDEX;
             MONEY_SLOT_INDEX = this.addSlot(MoneyHandler(this.otherSlots, 0, MONEY_SLOT_XPOS, MONEY_SLOT_YPOS)).index;
 
             OUTPUT_SLOT_INDEX = this.addSlot(OutputHandler(this.otherSlots, 1, OUTPUT_SLOTS_XPOS, OUTPUT_SLOTS_YPOS)).index;
@@ -155,7 +156,7 @@ public class VenderBlockContainer extends AbstractContainerMenu {
 
     @Override
     public void clicked(int slotId, int dragType, ClickType clickTypeIn, Player player) {
-        if(slotId < 0){
+        if(slotId < LAST_CONTAINER_SLOT_INDEX){
             this.doClick(slotId, dragType, clickTypeIn, player);
             return;
         }

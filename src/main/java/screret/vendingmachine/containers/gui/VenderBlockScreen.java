@@ -12,9 +12,11 @@ import net.minecraft.world.item.ItemStack;
 import screret.vendingmachine.VendingMachine;
 import screret.vendingmachine.configs.VendingMachineConfig;
 import screret.vendingmachine.containers.VenderBlockContainer;
+import screret.vendingmachine.events.packets.CashOutPacket;
 import screret.vendingmachine.events.packets.OpenVenderGUIPacket;
 import screret.vendingmachine.events.packets.PacketSendBuy;
 import screret.vendingmachine.blockEntities.VendingMachineBlockEntity;
+import screret.vendingmachine.items.MoneyItem;
 
 public class VenderBlockScreen extends AbstractContainerScreen<VenderBlockContainer> {
     private ResourceLocation widgets = new ResourceLocation(VendingMachine.MODID, "textures/gui/widgets.png");
@@ -27,9 +29,6 @@ public class VenderBlockScreen extends AbstractContainerScreen<VenderBlockContai
         this.inventoryLabelX = 5;
         this.inventoryLabelY = 128;
     }
-
-    final static int COOK_BAR_XPOS = 49;
-    final static  int COOK_BAR_YPOS = 60;
 
     @Override
     public void init(){
@@ -44,6 +43,7 @@ public class VenderBlockScreen extends AbstractContainerScreen<VenderBlockContai
         if(menu.currentPlayer.equals(menu.getTile().owner)){
             this.addRenderableWidget(new VenderTabButton(leftPos + this.imageWidth, topPos + 2, 32, 28, Component.translatable("gui.vendingmachine.mainbutton"), onTabButtonPress(true), true, true));
             this.addRenderableWidget(new VenderTabButton(leftPos + this.imageWidth, topPos + 30, 32, 28, Component.translatable("gui.vendingmachine.tab_price"), onTabButtonPress(false), false, false));
+            this.addRenderableWidget(new Button(leftPos + 134, topPos + 60, 16, 8, Component.empty(), onCashOutButtonPress, onCashOutButtonTooltip));
         }
     }
 
@@ -71,7 +71,7 @@ public class VenderBlockScreen extends AbstractContainerScreen<VenderBlockContai
     protected void renderTooltip(PoseStack matrixStack, ItemStack itemStack, int x, int y) {
         Object price = this.menu.getTile().getPrices().get(itemStack.getItem());
         var tooltip = this.getTooltipFromItem(itemStack);
-        if(price != null && this.hoveredSlot.index < VenderBlockContainer.LAST_CONTAINER_SLOT_INDEX) tooltip.add(1, Component.translatable("msg.vendingmachine.price", price, VendingMachineConfig.GENERAL.isStackPrices.get() ? itemStack.getMaxStackSize() : 1));
+        if(price != null && this.hoveredSlot.index < VenderBlockContainer.LAST_CONTAINER_SLOT_INDEX) tooltip.add(1, Component.translatable("tooltip.vendingmachine.price", MoneyItem.DECIMAL_FORMAT.format(price), VendingMachineConfig.GENERAL.isStackPrices.get() ? itemStack.getMaxStackSize() : 1));
 
         this.renderTooltip(matrixStack, tooltip, itemStack.getTooltipImage(), x, y, this.font);
     }
@@ -89,7 +89,7 @@ public class VenderBlockScreen extends AbstractContainerScreen<VenderBlockContai
         }
     }; //VendingMachine.SIMPLE_CHANNEL.sendToServer(new PacketSendBuy(menu.selectedSlot)); };
 
-    public Button.OnPress onTabButtonPress(boolean isMain){
+    private Button.OnPress onTabButtonPress(boolean isMain){
         return button -> {
             VendingMachineBlockEntity tile = menu.getTile();
             if (!isMain) {
@@ -97,4 +97,16 @@ public class VenderBlockScreen extends AbstractContainerScreen<VenderBlockContai
             }
         };
     }
+
+    private Button.OnPress onCashOutButtonPress = button -> {
+            VendingMachineBlockEntity tile = menu.getTile();
+            VendingMachine.NETWORK_HANDLER.sendToServer(new CashOutPacket(tile.getBlockPos()));
+        };
+
+    private static final Component buttonTooltip = Component.translatable("tooltip.vendingmachine.cash_out");
+
+    private Button.OnTooltip onCashOutButtonTooltip = (button, poseStack, x, y) -> {
+        VenderBlockScreen.super.renderTooltip(poseStack, buttonTooltip, x, y);
+    };
+
 }

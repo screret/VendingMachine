@@ -3,6 +3,7 @@ package screret.vendingmachine.blockEntities;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.FloatTag;
 import net.minecraft.nbt.IntTag;
 import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
@@ -15,19 +16,19 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.RecordItem;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.registries.ForgeRegistries;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import screret.vendingmachine.blocks.VendingMachineBlock;
 import screret.vendingmachine.configs.VendingMachineConfig;
 import screret.vendingmachine.containers.LargeStackHandler;
 import screret.vendingmachine.containers.VenderBlockContainer;
 import screret.vendingmachine.init.Registration;
+import screret.vendingmachine.items.MoneyItem;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -37,11 +38,13 @@ public class VendingMachineBlockEntity extends BlockEntity implements MenuProvid
     private static final int OUTPUT_SLOT_INDEX = 1, MONEY_SLOT_INDEX = 0;
     public LargeStackHandler inventory = new LargeStackHandler(30, this);
     public ItemStackHandler otherSlots = createOthersInv();
-    public static Logger LOGGER = LogManager.getLogger();
+    private float collectedMoney;
 
     public UUID owner;
+    public Player currentPlayer;
+    public float currentPlayerInsertedMoney = 0;
 
-    private Map<Item, Integer> priceMap = new HashMap<>();
+    private Map<Item, Float> priceMap = new HashMap<>();
 
     public VendingMachineBlockEntity(BlockPos pos, BlockState state) {
         super(Registration.VENDER_TILE.get(), pos, state);
@@ -55,17 +58,19 @@ public class VendingMachineBlockEntity extends BlockEntity implements MenuProvid
         parentNBTTagCompound.put("OtherSlots", otherSlots.serializeNBT());
         //parentNBTTagCompound.put("OutputSlot", outputSlot.serializeNBT());
         parentNBTTagCompound.put("Prices", savePrices());
+        parentNBTTagCompound.putFloat("CollectedMoney", collectedMoney);
+        parentNBTTagCompound.putFloat("InsertedMoney", currentPlayerInsertedMoney);
     }
 
     protected CompoundTag savePrices() {
         CompoundTag nbt = new CompoundTag();
         if(VendingMachineConfig.GENERAL.allowPriceEditing.get()){
-            for (Map.Entry<Item, Integer> entry : priceMap.entrySet()){
-                nbt.put(ForgeRegistries.ITEMS.getKey(entry.getKey()).toString(), IntTag.valueOf(entry.getValue()));
+            for (Map.Entry<Item, Float> entry : priceMap.entrySet()){
+                nbt.put(ForgeRegistries.ITEMS.getKey(entry.getKey()).toString(), FloatTag.valueOf(entry.getValue()));
             }
         } else {
-            for (Map.Entry<Item, Integer> entry : VendingMachineConfig.getDecryptedPrices().entrySet()){
-                nbt.put(ForgeRegistries.ITEMS.getKey(entry.getKey()).toString(), IntTag.valueOf(entry.getValue()));
+            for (Map.Entry<Item, Float> entry : VendingMachineConfig.getDecryptedPrices().entrySet()){
+                nbt.put(ForgeRegistries.ITEMS.getKey(entry.getKey()).toString(), FloatTag.valueOf(entry.getValue()));
             }
         }
         return nbt;
@@ -80,14 +85,17 @@ public class VendingMachineBlockEntity extends BlockEntity implements MenuProvid
         otherSlots.deserializeNBT(parentNBTTagCompound.getCompound("OtherSlots"));
         //outputSlot.deserializeNBT(parentNBTTagCompound.getCompound("OutputSlot"));
         priceMap = loadPrices(parentNBTTagCompound.getCompound("Prices"));
+
+        collectedMoney = parentNBTTagCompound.getFloat("CollectedMoney");
+        currentPlayerInsertedMoney = parentNBTTagCompound.getFloat("InsertedMoney");
         //LOGGER.debug(world.getRecipeManager().getRecipesForType(BlenderRecipeSerializer.BLENDING));
     }
 
-    protected Map<Item, Integer> loadPrices(CompoundTag tag){
-        Map<Item, Integer> map = new HashMap<>();
+    protected Map<Item, Float> loadPrices(CompoundTag tag){
+        Map<Item, Float> map = new HashMap<>();
 
         for (String entry : tag.getAllKeys()){
-            map.put(ForgeRegistries.ITEMS.getValue(new ResourceLocation(entry)), tag.getInt(entry));
+            map.put(ForgeRegistries.ITEMS.getValue(new ResourceLocation(entry)), tag.getFloat(entry));
         }
         return map;
     }
@@ -100,6 +108,11 @@ public class VendingMachineBlockEntity extends BlockEntity implements MenuProvid
     }
 
     public void dropMoney(){
+        if(VendingMachineConfig.getPaymentItem() == Registration.MONEY.get()){
+            cashOut();
+            return;
+        }
+
         BlockPos pos = getBlockPos().relative(this.getBlockState().getValue(VendingMachineBlock.FACING));
         Containers.dropItemStack(this.level, pos.getX(), pos.getY(), pos.getZ(), otherSlots.getStackInSlot(MONEY_SLOT_INDEX));
         otherSlots.setStackInSlot(MONEY_SLOT_INDEX, ItemStack.EMPTY);
@@ -135,6 +148,7 @@ public class VendingMachineBlockEntity extends BlockEntity implements MenuProvid
 
     @Override
     public VenderBlockContainer createMenu(int windowID, Inventory playerInventory, Player playerEntity) {
+        currentPlayer = playerEntity;
         this.container = new VenderBlockContainer(windowID, playerInventory, this.inventory, this.otherSlots, this);
         return this.container;
     }
@@ -143,28 +157,191 @@ public class VendingMachineBlockEntity extends BlockEntity implements MenuProvid
 
     public void buy(int slotIndex, int amount) {
         if(!container.isAllowedToTakeItems) {
-            ItemStack money = otherSlots.getStackInSlot(MONEY_SLOT_INDEX);
             ItemStack stack = inventory.getStackInSlot(slotIndex);
-            int price = VendingMachineConfig.GENERAL.allowPriceEditing.get() ? this.priceMap.getOrDefault(stack.getItem(), 0) : VendingMachineConfig.getDecryptedPrices().getOrDefault(stack.getItem(), 0);
+            float price = VendingMachineConfig.GENERAL.allowPriceEditing.get() ? this.priceMap.getOrDefault(stack.getItem(), 0f) : VendingMachineConfig.getDecryptedPrices().getOrDefault(stack.getItem(), 0f);
             ItemStack stack1 = new ItemStack(stack.getItem(), Math.min(stack.getCount(), amount));
-            if (!stack.isEmpty() && price * amount < money.getCount()) {
-                otherSlots.setStackInSlot(OUTPUT_SLOT_INDEX, new ItemStack(stack1.getItem(), stack1.getCount() + otherSlots.getStackInSlot(OUTPUT_SLOT_INDEX).getCount()));
-                inventory.extractItem(slotIndex, amount, false);
-                otherSlots.extractItem(MONEY_SLOT_INDEX, amount * price, false);
-                this.getLevel().getPlayerByUUID(this.container.currentPlayer).displayClientMessage(Component.translatable("msg.vendingmachine.buy", stack1.toString(), amount * price, ((MutableComponent) VendingMachineConfig.getPaymentItem().getDescription()).withStyle(ChatFormatting.DARK_GREEN)), true);
-            } else if (price * amount > money.getCount()) {
-                amount = money.getCount() / price;
-                stack1 = new ItemStack(stack.getItem(), amount);
-                otherSlots.setStackInSlot(OUTPUT_SLOT_INDEX, new ItemStack(stack1.getItem(), stack1.getCount() + otherSlots.getStackInSlot(OUTPUT_SLOT_INDEX).getCount()));
-                inventory.extractItem(slotIndex, amount, false);
-                otherSlots.extractItem(MONEY_SLOT_INDEX, amount * price, false);
+            float _price = price * amount;
 
-                this.getLevel().getPlayerByUUID(this.container.currentPlayer).displayClientMessage(Component.translatable("msg.vendingmachine.notenoughmoney"), true);
+            if(VendingMachineConfig.getPaymentItem() == Registration.MONEY.get()){
+                if (_price > currentPlayerInsertedMoney) {
+                    var _amount = Math.min((int)(collectedMoney / price), amount);
+                    stack1 = new ItemStack(stack.getItem(), _amount);
+
+                    currentPlayer.displayClientMessage(Component.translatable("msg.vendingmachine.notenoughmoney"), true);
+                }else{
+                    giveChange(_price, currentPlayerInsertedMoney);
+                }
+            } else {
+                ItemStack money = otherSlots.getStackInSlot(MONEY_SLOT_INDEX);
+
+                if (_price > money.getCount()) {
+                    var _amount = Math.min((int)(money.getCount() / price), amount);
+                    stack1 = new ItemStack(stack.getItem(), amount);
+
+                    currentPlayer.displayClientMessage(Component.translatable("msg.vendingmachine.notenoughmoney"), true);
+                }
+                otherSlots.extractItem(MONEY_SLOT_INDEX, (int) (_price), false);
+            }
+            otherSlots.insertItem(OUTPUT_SLOT_INDEX, new ItemStack(stack1.getItem(), stack1.getCount() + otherSlots.getStackInSlot(OUTPUT_SLOT_INDEX).getCount()), false);
+            inventory.extractItem(slotIndex, amount, false);
+            currentPlayerInsertedMoney = 0;
+            currentPlayer.displayClientMessage(Component.translatable("msg.vendingmachine.buy", stack1.toString(), MoneyItem.DECIMAL_FORMAT.format(amount * price), ((MutableComponent) VendingMachineConfig.getPaymentItem().getDescription()).withStyle(ChatFormatting.DARK_GREEN)), true);
+        }
+    }
+
+    private void giveChange(float price, float insertedMoney){
+        float change = insertedMoney - price;
+        if(collectedMoney < change)
+            return;
+
+        if(!level.isClientSide() && change > 0){
+            float amount = change;
+            float[] moneyOut = new float[8];
+
+            moneyOut[7] = amount / 1000f;
+            amount -= moneyOut[7] * 1000f;
+
+            moneyOut[6] = amount / 100f;
+            amount -= moneyOut[6] * 100f;
+
+            moneyOut[5] = amount / 50f;
+            amount -= moneyOut[5] * 50f;
+
+            moneyOut[4] = amount / 20f;
+            amount -= moneyOut[4] * 20f;
+
+            moneyOut[3] = amount / 10f;
+            amount -= moneyOut[3] * 10f;
+
+            moneyOut[2] = amount / 5f;
+            amount -= moneyOut[2] * 5f;
+
+            moneyOut[1] = amount / 2f;
+            amount -= moneyOut[1] * 2f;
+
+            moneyOut[0] = amount;
+
+            for(int i = 0; i < moneyOut.length; ++i){
+                ItemStack itemStack = new ItemStack(Registration.MONEY.get());
+                MoneyItem.setMoneyValue(itemStack, i);
+                itemStack.setCount((int)moneyOut[i]);
+
+                boolean check = moneyOut[i] != 0;
+
+                if(check){
+                    boolean playerInGui = false;
+                    if(this.currentPlayer != null) playerInGui = true;
+
+                    if(playerInGui){
+                        Inventory playerInv = this.currentPlayer.getInventory();
+                        boolean placed = false;
+
+                        searchLoop:
+                        for(int j = 0; j < playerInv.items.size(); ++j){
+                            ItemStack playerStack = playerInv.items.get(j);
+                            if(ItemStack.isSame(itemStack, playerStack)){
+                                if(playerStack.getCount() + itemStack.getCount() <= playerStack.getMaxStackSize()){
+                                    playerStack.setCount(playerStack.getCount() + itemStack.getCount());
+                                    placed = true;
+                                    break searchLoop;
+                                }
+                            }
+                        }
+
+                        if(!placed){
+                            if(playerInv.getFreeSlot() != -1){
+                                playerInv.setItem(playerInv.getFreeSlot(), itemStack);
+                            }else{
+                                playerInGui = false;
+                            }
+                        }
+                    }
+                    if (!playerInGui) {       //If no room, spawn
+                        BlockPos pos = getBlockPos().relative(this.getBlockState().getValue(VendingMachineBlock.FACING));
+                        Containers.dropItemStack(this.level, pos.getX(), pos.getY(), pos.getZ(), itemStack);
+                    }
+                }
+            }
+
+            collectedMoney -= change;
+        }
+    }
+
+    public void cashOut(){
+        if(!level.isClientSide() && this.collectedMoney > 0) {
+            float amount = collectedMoney;
+            float[] moneyOut = new float[8];
+
+            moneyOut[7] = amount / 1000f;
+            amount -= moneyOut[7] * 1000f;
+
+            moneyOut[6] = amount / 100f;
+            amount -= moneyOut[6] * 100f;
+
+            moneyOut[5] = amount / 50f;
+            amount -= moneyOut[5] * 50f;
+
+            moneyOut[4] = amount / 20f;
+            amount -= moneyOut[4] * 20f;
+
+            moneyOut[3] = amount / 10f;
+            amount -= moneyOut[3] * 10f;
+
+            moneyOut[2] = amount / 5f;
+            amount -= moneyOut[2] * 5f;
+
+            moneyOut[1] = amount / 2f;
+            amount -= moneyOut[1] * 2f;
+
+            moneyOut[0] = amount;
+
+            collectedMoney = 0;
+
+            for(int i = 0; i < moneyOut.length; ++i){
+                ItemStack itemStack = new ItemStack(Registration.MONEY.get());
+                MoneyItem.setMoneyValue(itemStack, i);
+                itemStack.setCount((int)moneyOut[i]);
+
+                boolean check = moneyOut[i] != 0;
+
+                if(check){
+                    boolean playerInGui = false;
+                    if(this.currentPlayer != null) playerInGui = true;
+
+                    if(playerInGui){
+                        Inventory playerInv = this.currentPlayer.getInventory();
+                        boolean placed = false;
+
+                        searchLoop:
+                        for(int j = 0; j < playerInv.items.size(); ++j){
+                            ItemStack playerStack = playerInv.items.get(j);
+                            if(ItemStack.isSame(itemStack, playerStack)){
+                                if(playerStack.getCount() + itemStack.getCount() <= playerStack.getMaxStackSize()){
+                                    playerStack.setCount(playerStack.getCount() + itemStack.getCount());
+                                    placed = true;
+                                    break searchLoop;
+                                }
+                            }
+                        }
+
+                        if(!placed){
+                            if(playerInv.getFreeSlot() != -1){
+                                playerInv.setItem(playerInv.getFreeSlot(), itemStack);
+                            }else{
+                                playerInGui = false;
+                            }
+                        }
+                    }
+                    if (!playerInGui) {       //If no room, spawn
+                        BlockPos pos = getBlockPos().relative(this.getBlockState().getValue(VendingMachineBlock.FACING));
+                        Containers.dropItemStack(this.level, pos.getX(), pos.getY(), pos.getZ(), itemStack);
+                    }
+                }
             }
         }
     }
 
-    public void addPrice(ItemStack item, int price){
+    public void addPrice(ItemStack item, float price){
         priceMap.put(item.getItem(), price);
         this.setChanged();
     }
@@ -174,7 +351,7 @@ public class VendingMachineBlockEntity extends BlockEntity implements MenuProvid
         this.setChanged();
     }
 
-    public Map<Item, Integer> getPrices(){
+    public Map<Item, Float> getPrices(){
         return priceMap;
     }
 
@@ -183,16 +360,52 @@ public class VendingMachineBlockEntity extends BlockEntity implements MenuProvid
             @NotNull
             @Override
             public ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
-                VendingMachineBlockEntity.this.setChanged();
+                //VendingMachineBlockEntity.this.setChanged();
+
                 return super.insertItem(slot, stack, simulate);
+            }
+
+            @Override
+            public void setStackInSlot(int slot, @NotNull ItemStack stack)
+            {
+                validateSlotIndex(slot);
+
+                if(slot == MONEY_SLOT_INDEX){
+                    if(stack.is(Registration.MONEY.get()) && VendingMachineConfig.getPaymentItem() == Registration.MONEY.get()){
+                        float moneyTagValue = MoneyItem.getMoneyValue(stack);
+                        float value = stack.getCount() * moneyTagValue;
+                        VendingMachineBlockEntity.this.collectedMoney += value;
+                        VendingMachineBlockEntity.this.currentPlayerInsertedMoney += value;
+
+                        onContentsChanged(slot);
+                        return;
+                    }
+                }
+
+                this.stacks.set(slot, stack);
+                onContentsChanged(slot);
             }
 
             @NotNull
             @Override
             public ItemStack extractItem(int slot, int amount, boolean simulate) {
-                VendingMachineBlockEntity.this.setChanged();
+                //VendingMachineBlockEntity.this.setChanged();
                 return super.extractItem(slot, amount, simulate);
             }
+
+            @Override
+            protected void onContentsChanged(int slot) {
+                VendingMachineBlockEntity.this.setChanged();
+                super.onContentsChanged(slot);
+            }
         };
+    }
+
+    public float getCollectedMoney() {
+        return this.collectedMoney;
+    }
+
+    public void setCollectedMoney(float moneyCount){
+        this.collectedMoney = moneyCount;
     }
 }

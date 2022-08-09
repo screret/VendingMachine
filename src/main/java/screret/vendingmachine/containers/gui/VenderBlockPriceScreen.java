@@ -19,6 +19,7 @@ import screret.vendingmachine.containers.VenderPriceEditorContainer;
 import screret.vendingmachine.events.packets.ChangePricePacket;
 import screret.vendingmachine.events.packets.OpenVenderGUIPacket;
 import screret.vendingmachine.blockEntities.VendingMachineBlockEntity;
+import screret.vendingmachine.items.MoneyItem;
 
 import javax.annotation.Nullable;
 
@@ -98,14 +99,20 @@ public class VenderBlockPriceScreen extends AbstractContainerScreen<VenderPriceE
         }
     }
 
-    private static final Component toolTipRightClickAddPrice = Component.translatable("msg.vendingmachine.rightclickprice");
+    private static final Component toolTipLeftClickAddPrice = Component.translatable("tooltip.vendingmachine.leftclickprice");
+    private static final Component toolTipRightClickRemovePrice = Component.translatable("tooltip.vendingmachine.rightclickprice");
 
     @Override
     protected void renderTooltip(PoseStack poseStack, ItemStack itemStack, int mouseX, int mouseY) {
-        var tooltip = this.getTooltipFromItem(itemStack);
-        tooltip.add(1, Component.translatable("msg.vendingmachine.price", this.menu.getTile().getPrices().get(itemStack.getItem()), VendingMachineConfig.GENERAL.isStackPrices.get() ? itemStack.getMaxStackSize() : 1));
-        tooltip.add(2, toolTipRightClickAddPrice);
-        this.renderTooltip(poseStack, this.getTooltipFromItem(itemStack), itemStack.getTooltipImage(), mouseX, mouseY);
+        if(!renderPriceMenu){
+            Object _price = this.menu.getTile().getPrices().get(itemStack.getItem());
+            float price = _price == null ? 0 : (float) _price;
+            var tooltip = this.getTooltipFromItem(itemStack);
+            tooltip.add(1, Component.translatable("tooltip.vendingmachine.price", MoneyItem.DECIMAL_FORMAT.format(price), VendingMachineConfig.GENERAL.isStackPrices.get() ? itemStack.getMaxStackSize() : 1));
+            tooltip.add(2, toolTipLeftClickAddPrice);
+            tooltip.add(3, toolTipRightClickRemovePrice);
+            this.renderTooltip(poseStack, tooltip, itemStack.getTooltipImage(), mouseX, mouseY);
+        }
     }
 
     @Override
