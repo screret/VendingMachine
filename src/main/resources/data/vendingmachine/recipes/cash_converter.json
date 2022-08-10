@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "#x#",
+    "xyx",
+    "#x#"
+  ],
+  "key": {
+    "#": {
+      "item": "minecraft:iron_ingot"
+    },
+    "x": {
+      "item": "minecraft:redstone"
+    },
+    "y": {
+      "tag": "minecraft:wool"
+    }
+  },
+  "result": {
+    "item": "vendingmachine:cash_converter",
+    "count": 1
+  }
+}

@@ -1,18 +1,17 @@
 package screret.vendingmachine;
 
 import net.minecraft.client.gui.screens.MenuScreens;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.item.ItemProperties;
-import net.minecraft.client.renderer.item.ItemPropertyFunction;
 import net.minecraft.core.NonNullList;
+import net.minecraft.data.DataGenerator;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
+import net.minecraftforge.data.event.GatherDataEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
@@ -30,14 +29,15 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import screret.vendingmachine.capabilities.ControlCardCapability;
 import screret.vendingmachine.configs.VendingMachineConfig;
+import screret.vendingmachine.containers.gui.CashConverterScreen;
 import screret.vendingmachine.containers.gui.ControlCardScreen;
 import screret.vendingmachine.containers.gui.VenderBlockPriceScreen;
 import screret.vendingmachine.containers.gui.VenderBlockScreen;
 import screret.vendingmachine.events.packets.*;
 import screret.vendingmachine.init.Registration;
 import screret.vendingmachine.items.MoneyItem;
+import screret.vendingmachine.recipes.builders.MoneyConversionRecipeProvider;
 
-import javax.annotation.Nullable;
 import java.util.Optional;
 
 //COMPLETELY RANDOM UUID AND USERNAME FOR TESTING: --uuid=76d4e724-c758-42b1-8006-00d5d676d4a7 --username=abgdef
@@ -67,7 +67,8 @@ public class VendingMachine {
             }
 
             for(Item item : ForgeRegistries.ITEMS) {
-                item.fillItemCategory(this, items);
+                if(item != Registration.MONEY.get())
+                    item.fillItemCategory(this, items);
             }
         }
     };
@@ -83,24 +84,29 @@ public class VendingMachine {
     );
 
     public VendingMachine() {
+        var modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         // Register the setup method for modloading
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
+        modEventBus.addListener(this::setup);
         // Register the enqueueIMC method for modloading
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::enqueueIMC);
+        modEventBus.addListener(this::enqueueIMC);
         // Register the processIMC method for modloading
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::processIMC);
+        modEventBus.addListener(this::processIMC);
         // Register the doClientStuff method for modloading
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::doClientStuff);
+        modEventBus.addListener(this::doClientStuff);
+        //register datagen for modloading
+        modEventBus.addListener(this::gatherData);
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
 
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, VendingMachineConfig.spec);
 
-        Registration.BLOCKS.register(FMLJavaModLoadingContext.get().getModEventBus());
-        Registration.ITEMS.register(FMLJavaModLoadingContext.get().getModEventBus());
-        Registration.CONTAINERS.register(FMLJavaModLoadingContext.get().getModEventBus());
-        Registration.TILES.register(FMLJavaModLoadingContext.get().getModEventBus());
+        Registration.BLOCKS.register(modEventBus);
+        Registration.ITEMS.register(modEventBus);
+        Registration.CONTAINERS.register(modEventBus);
+        Registration.TILES.register(modEventBus);
+        Registration.RECIPE_SERIALIZERS.register(modEventBus);
+        Registration.RECIPE_TYPES.register(modEventBus);
     }
 
     private void setup(final FMLCommonSetupEvent event)
@@ -118,6 +124,7 @@ public class VendingMachine {
         event.enqueueWork(() -> MenuScreens.register(Registration.VENDER_CONT.get(), VenderBlockScreen::new));
         event.enqueueWork(() -> MenuScreens.register(Registration.VENDER_CONT_PRICES.get(), VenderBlockPriceScreen::new));
         event.enqueueWork(() -> MenuScreens.register(Registration.CONTAINER_CONTROL_CARD.get(), ControlCardScreen::new));
+        event.enqueueWork(() -> MenuScreens.register(Registration.CASH_CONVERTER_CONT.get(), CashConverterScreen::new));
 
         event.enqueueWork(() -> ItemProperties.register(Registration.MONEY.get(), new ResourceLocation(VendingMachine.MODID, "money_value"), (stack, world, holdingEntity, entityId) -> MoneyItem.getMoneyValue(stack)));
     }
@@ -144,4 +151,10 @@ public class VendingMachine {
         // do something when the server starts
         LOGGER.info("HELLO from server starting");
     }*/
+
+    private void gatherData(final GatherDataEvent event){
+        DataGenerator gen = event.getGenerator();
+
+        gen.addProvider(event.includeServer(), new MoneyConversionRecipeProvider(gen));
+    }
 }

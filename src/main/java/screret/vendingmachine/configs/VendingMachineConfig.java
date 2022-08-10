@@ -22,7 +22,7 @@ public class VendingMachineConfig extends ForgeConfigSpec.Builder {
 
         public final ForgeConfigSpec.ConfigValue<String> paymentItem;
         public final String defaultPaymentItem = "vendingmachine:money";
-        public final ForgeConfigSpec.IntValue startMoney;
+        public final ForgeConfigSpec.DoubleValue startMoney;
 
         public final ForgeConfigSpec.BooleanValue allowPriceEditing;
         public final ForgeConfigSpec.BooleanValue isStackPrices;
@@ -36,9 +36,9 @@ public class VendingMachineConfig extends ForgeConfigSpec.Builder {
             this.paymentItem = builder.comment("The default payment item. Format is \"namespace:item\"")
                     .worldRestart()
                     .define("payment_item", defaultPaymentItem);
-            this.startMoney = builder.comment("Set to 0 if you don't want to give new players money, else set to the amount of money to give new players.", "only works in counts of 100.", "Min=0;Max=2147483647")
+            this.startMoney = builder.comment("Set to 0 if you don't want to give new players money, else set to the amount of money to give new players.")
                     .worldRestart()
-                    .defineInRange("start_money", 1000, 0, Integer.MAX_VALUE);
+                    .defineInRange("start_money", 1000d, 0d, Double.MAX_VALUE);
             this.itemPrices = builder.comment("Item prices. Format is \"namespace:item price\"")
                     .worldRestart()
                     .define("item_prices", itemDefaultPrices);
@@ -48,7 +48,7 @@ public class VendingMachineConfig extends ForgeConfigSpec.Builder {
             this.isStackPrices = builder.comment("Set to true if prices are per-stack and not per-item")
                     .worldRestart()
                     .define("is_stack_price", false);
-            this.maxVenderStack = builder.comment("Maximum value of a stack inside a Vending Machine", "Min=1;Max=1024")
+            this.maxVenderStack = builder.comment("Maximum value of a stack inside a Vending Machine")
                     .worldRestart()
                     .defineInRange("max_stack", 1024, 1, 1024);
 

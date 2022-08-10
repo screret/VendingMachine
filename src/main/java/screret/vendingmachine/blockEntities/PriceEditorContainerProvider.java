@@ -18,7 +18,7 @@ public class PriceEditorContainerProvider implements MenuProvider {
 
     @Override
     public Component getDisplayName() {
-        return Component.translatable("gui.vendingmachine.vendingmachine");
+        return Component.translatable("container.vendingmachine.vendingmachine");
     }
 
     @Override

@@ -115,12 +115,12 @@ public class VendingMachineBlock extends HorizontalDirectionalBlock implements E
     }
 
     @Override
-    public MenuProvider getMenuProvider(BlockState state, Level world, BlockPos pos) {
-        BlockEntity tileentity = world.getBlockEntity(pos);
-        if(tileentity == null){
-            tileentity = world.getBlockEntity(pos.below());
+    public MenuProvider getMenuProvider(BlockState state, Level level, BlockPos pos) {
+        BlockEntity blockEntity = level.getBlockEntity(pos);
+        if(blockEntity == null){
+            blockEntity = level.getBlockEntity(pos.below());
         }
-        return tileentity instanceof MenuProvider ? (MenuProvider)tileentity : null;
+        return blockEntity instanceof MenuProvider ? (MenuProvider)blockEntity : null;
     }
 
     @Nullable

@@ -20,7 +20,7 @@ import screret.vendingmachine.items.MoneyItem;
 
 public class VenderBlockScreen extends AbstractContainerScreen<VenderBlockContainer> {
     private ResourceLocation widgets = new ResourceLocation(VendingMachine.MODID, "textures/gui/widgets.png");
-    private ResourceLocation gui = new ResourceLocation(VendingMachine.MODID, "textures/gui/vending_machine_gui.png");
+    private static final ResourceLocation GUI = new ResourceLocation(VendingMachine.MODID, "textures/gui/vending_machine_gui.png");
 
     public VenderBlockScreen(VenderBlockContainer container, Inventory inv, Component name) {
         super(container, inv, name);
@@ -40,7 +40,7 @@ public class VenderBlockScreen extends AbstractContainerScreen<VenderBlockContai
         this.addRenderableWidget(new Button(leftPos + 110, topPos + 108, 53, 18, Component.translatable("gui.vendingmachine.buybutton"), onBuyButtonPress));
         //this.addRenderableWidget(new Button(leftPos + 133, topPos + 64, 18, 9, new TranslatableComponent("gui.vendingmachine.buytestbutton"), onTestButtonPress));
 
-        if(menu.currentPlayer.equals(menu.getTile().owner)){
+        if(menu.checkPlayerAllowedToChangeInv(menu.currentPlayer)){
             this.addRenderableWidget(new VenderTabButton(leftPos + this.imageWidth, topPos + 2, 32, 28, Component.translatable("gui.vendingmachine.mainbutton"), onTabButtonPress(true), true, true));
             this.addRenderableWidget(new VenderTabButton(leftPos + this.imageWidth, topPos + 30, 32, 28, Component.translatable("gui.vendingmachine.tab_price"), onTabButtonPress(false), false, false));
             this.addRenderableWidget(new Button(leftPos + 134, topPos + 60, 16, 8, Component.empty(), onCashOutButtonPress, onCashOutButtonTooltip));
@@ -63,7 +63,7 @@ public class VenderBlockScreen extends AbstractContainerScreen<VenderBlockContai
     protected void renderBg(PoseStack poseStack, float partialTicks, int mouseX, int mouseY) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderSystem.setShaderTexture(0, this.gui);
+        RenderSystem.setShaderTexture(0, this.GUI);
         this.blit(poseStack, leftPos, topPos, 0, 0, this.getXSize(), this.getYSize());
     }
 
@@ -71,7 +71,7 @@ public class VenderBlockScreen extends AbstractContainerScreen<VenderBlockContai
     protected void renderTooltip(PoseStack matrixStack, ItemStack itemStack, int x, int y) {
         Object price = this.menu.getTile().getPrices().get(itemStack.getItem());
         var tooltip = this.getTooltipFromItem(itemStack);
-        if(price != null && this.hoveredSlot.index < VenderBlockContainer.LAST_CONTAINER_SLOT_INDEX) tooltip.add(1, Component.translatable("tooltip.vendingmachine.price", MoneyItem.DECIMAL_FORMAT.format(price), VendingMachineConfig.GENERAL.isStackPrices.get() ? itemStack.getMaxStackSize() : 1));
+        if(this.hoveredSlot.index < VenderBlockContainer.LAST_CONTAINER_SLOT_INDEX) tooltip.add(1, Component.translatable("tooltip.vendingmachine.price", MoneyItem.DECIMAL_FORMAT.format(price == null ? 0 : price), VendingMachineConfig.GENERAL.isStackPrices.get() ? itemStack.getMaxStackSize() : 1));
 
         this.renderTooltip(matrixStack, tooltip, itemStack.getTooltipImage(), x, y, this.font);
     }

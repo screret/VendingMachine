@@ -23,6 +23,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
+import screret.vendingmachine.VendingMachine;
 import screret.vendingmachine.blocks.VendingMachineBlock;
 import screret.vendingmachine.configs.VendingMachineConfig;
 import screret.vendingmachine.containers.LargeStackHandler;
@@ -30,6 +31,7 @@ import screret.vendingmachine.containers.VenderBlockContainer;
 import screret.vendingmachine.init.Registration;
 import screret.vendingmachine.items.MoneyItem;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -141,7 +143,7 @@ public class VendingMachineBlockEntity extends BlockEntity implements MenuProvid
 
     @Override
     public Component getDisplayName() {
-        return Component.translatable("gui.vendingmachine.vendingmachine");
+        return Component.translatable("container.vendingmachine.vendingmachine");
     }
 
     public VenderBlockContainer container;
@@ -162,73 +164,92 @@ public class VendingMachineBlockEntity extends BlockEntity implements MenuProvid
             ItemStack stack1 = new ItemStack(stack.getItem(), Math.min(stack.getCount(), amount));
             float _price = price * amount;
 
+            if (!otherSlots.getStackInSlot(OUTPUT_SLOT_INDEX).isEmpty()) {
+                Inventory playerInv = currentPlayer.getInventory();
+                ItemStack outputStack = otherSlots.getStackInSlot(OUTPUT_SLOT_INDEX).copy();
+                otherSlots.setStackInSlot(OUTPUT_SLOT_INDEX, ItemStack.EMPTY);
+                if (!playerInv.add(outputStack)) {
+                    BlockPos pos = getBlockPos().relative(this.getBlockState().getValue(VendingMachineBlock.FACING));
+                    Containers.dropItemStack(this.level, pos.getX(), pos.getY(), pos.getZ(), outputStack);
+                }
+            }
+
             if(VendingMachineConfig.getPaymentItem() == Registration.MONEY.get()){
                 if (_price > currentPlayerInsertedMoney) {
                     var _amount = Math.min((int)(collectedMoney / price), amount);
                     stack1 = new ItemStack(stack.getItem(), _amount);
 
-                    currentPlayer.displayClientMessage(Component.translatable("msg.vendingmachine.notenoughmoney"), true);
+                    currentPlayer.sendSystemMessage(Component.translatable("msg.vendingmachine.notenoughmoney"));
                 }else{
                     giveChange(_price, currentPlayerInsertedMoney);
                 }
+                currentPlayerInsertedMoney -= _price;
             } else {
                 ItemStack money = otherSlots.getStackInSlot(MONEY_SLOT_INDEX);
 
                 if (_price > money.getCount()) {
                     var _amount = Math.min((int)(money.getCount() / price), amount);
-                    stack1 = new ItemStack(stack.getItem(), amount);
+                    stack1 = new ItemStack(stack.getItem(), _amount);
 
-                    currentPlayer.displayClientMessage(Component.translatable("msg.vendingmachine.notenoughmoney"), true);
+                    currentPlayer.sendSystemMessage(Component.translatable("msg.vendingmachine.notenoughmoney"));
                 }
                 otherSlots.extractItem(MONEY_SLOT_INDEX, (int) (_price), false);
             }
             otherSlots.insertItem(OUTPUT_SLOT_INDEX, new ItemStack(stack1.getItem(), stack1.getCount() + otherSlots.getStackInSlot(OUTPUT_SLOT_INDEX).getCount()), false);
             inventory.extractItem(slotIndex, amount, false);
-            currentPlayerInsertedMoney = 0;
-            currentPlayer.displayClientMessage(Component.translatable("msg.vendingmachine.buy", stack1.toString(), MoneyItem.DECIMAL_FORMAT.format(amount * price), ((MutableComponent) VendingMachineConfig.getPaymentItem().getDescription()).withStyle(ChatFormatting.DARK_GREEN)), true);
+            currentPlayer.sendSystemMessage(Component.translatable("msg.vendingmachine.buy", stack1.toString(), MoneyItem.DECIMAL_FORMAT.format(amount * price), ((MutableComponent) VendingMachineConfig.getPaymentItem().getDescription()).withStyle(ChatFormatting.DARK_GREEN)));
         }
     }
 
     private void giveChange(float price, float insertedMoney){
         float change = insertedMoney - price;
-        if(collectedMoney < change)
-            return;
 
         if(!level.isClientSide() && change > 0){
             float amount = change;
             float[] moneyOut = new float[8];
 
             moneyOut[7] = amount / 1000f;
-            amount -= moneyOut[7] * 1000f;
+            amount -= (moneyOut[7] * 1000f);
 
             moneyOut[6] = amount / 100f;
-            amount -= moneyOut[6] * 100f;
+            amount -= (moneyOut[6] * 100f);
 
             moneyOut[5] = amount / 50f;
-            amount -= moneyOut[5] * 50f;
+            amount -= (moneyOut[5] * 50f);
 
             moneyOut[4] = amount / 20f;
-            amount -= moneyOut[4] * 20f;
+            amount -= (moneyOut[4] * 20f);
 
             moneyOut[3] = amount / 10f;
-            amount -= moneyOut[3] * 10f;
+            amount -= (moneyOut[3] * 10f);
 
             moneyOut[2] = amount / 5f;
-            amount -= moneyOut[2] * 5f;
+            amount -= (moneyOut[2] * 5f);
 
             moneyOut[1] = amount / 2f;
-            amount -= moneyOut[1] * 2f;
+            amount -= (moneyOut[1] * 2f);
 
-            moneyOut[0] = amount;
+            moneyOut[0] = Math.round(amount);
 
-            for(int i = 0; i < moneyOut.length; ++i){
-                ItemStack itemStack = new ItemStack(Registration.MONEY.get());
-                MoneyItem.setMoneyValue(itemStack, i);
-                itemStack.setCount((int)moneyOut[i]);
+            for (int i = 0; i < moneyOut.length; ++i) {
+                if(collectedMoney < moneyOut[i])
+                    return;
 
                 boolean check = moneyOut[i] != 0;
 
                 if(check){
+                    ArrayList<ItemStack> stacks = new ArrayList<>();
+
+                    var itemStack = new ItemStack(Registration.MONEY.get());
+                    stacks.add(itemStack);
+
+                    MoneyItem.setMoneyValue(itemStack, MoneyItem.MONEY_VALUES[i]);
+                    itemStack.setCount((int)moneyOut[i]);
+
+                    while(itemStack.getCount() > itemStack.getMaxStackSize()){
+                        stacks.add(itemStack.split(itemStack.getMaxStackSize()));
+                    }
+
                     boolean playerInGui = false;
                     if(this.currentPlayer != null) playerInGui = true;
 
@@ -239,31 +260,39 @@ public class VendingMachineBlockEntity extends BlockEntity implements MenuProvid
                         searchLoop:
                         for(int j = 0; j < playerInv.items.size(); ++j){
                             ItemStack playerStack = playerInv.items.get(j);
-                            if(ItemStack.isSame(itemStack, playerStack)){
-                                if(playerStack.getCount() + itemStack.getCount() <= playerStack.getMaxStackSize()){
-                                    playerStack.setCount(playerStack.getCount() + itemStack.getCount());
-                                    placed = true;
-                                    break searchLoop;
+                            for (var stack : stacks){
+                                if(ItemStack.isSameItemSameTags(stack, playerStack)){
+                                    if(playerStack.getCount() + stack.getCount() <= playerStack.getMaxStackSize()){
+                                        playerStack.setCount(playerStack.getCount() + stack.getCount());
+                                        stack = ItemStack.EMPTY;
+                                        placed = true;
+                                        break searchLoop;
+                                    }
                                 }
                             }
                         }
 
                         if(!placed){
-                            if(playerInv.getFreeSlot() != -1){
-                                playerInv.setItem(playerInv.getFreeSlot(), itemStack);
-                            }else{
-                                playerInGui = false;
+                            for(var stack : stacks){
+                                if(playerInv.getFreeSlot() != -1){
+                                    playerInv.add(stack);
+                                    stack = ItemStack.EMPTY;
+                                }else{
+                                    playerInGui = false;
+                                }
                             }
                         }
                     }
                     if (!playerInGui) {       //If no room, spawn
                         BlockPos pos = getBlockPos().relative(this.getBlockState().getValue(VendingMachineBlock.FACING));
-                        Containers.dropItemStack(this.level, pos.getX(), pos.getY(), pos.getZ(), itemStack);
+                        for(var stack : stacks){
+                            Containers.dropItemStack(this.level, pos.getX(), pos.getY(), pos.getZ(), stack);
+                        }
                     }
+
+                    collectedMoney -= change;
                 }
             }
-
-            collectedMoney -= change;
         }
     }
 
@@ -272,39 +301,47 @@ public class VendingMachineBlockEntity extends BlockEntity implements MenuProvid
             float amount = collectedMoney;
             float[] moneyOut = new float[8];
 
-            moneyOut[7] = amount / 1000f;
-            amount -= moneyOut[7] * 1000f;
+            moneyOut[7] = (int)(amount / 1000);
+            amount -= moneyOut[7] * 1000;
 
-            moneyOut[6] = amount / 100f;
-            amount -= moneyOut[6] * 100f;
+            moneyOut[6] = (int)(amount / 100);
+            amount -= moneyOut[6] * 100;
 
-            moneyOut[5] = amount / 50f;
-            amount -= moneyOut[5] * 50f;
+            moneyOut[5] = (int)(amount / 50);
+            amount -= moneyOut[5] * 50;
 
-            moneyOut[4] = amount / 20f;
-            amount -= moneyOut[4] * 20f;
+            moneyOut[4] = (int)(amount / 20);
+            amount -= moneyOut[4] * 20;
 
-            moneyOut[3] = amount / 10f;
-            amount -= moneyOut[3] * 10f;
+            moneyOut[3] = (int)(amount / 10);
+            amount -= moneyOut[3] * 10;
 
-            moneyOut[2] = amount / 5f;
-            amount -= moneyOut[2] * 5f;
+            moneyOut[2] = (int)(amount / 5);
+            amount -= moneyOut[2] * 5;
 
-            moneyOut[1] = amount / 2f;
-            amount -= moneyOut[1] * 2f;
+            moneyOut[1] = (int)(amount / 2);
+            amount -= moneyOut[1] * 2;
 
             moneyOut[0] = amount;
 
             collectedMoney = 0;
 
             for(int i = 0; i < moneyOut.length; ++i){
-                ItemStack itemStack = new ItemStack(Registration.MONEY.get());
-                MoneyItem.setMoneyValue(itemStack, i);
-                itemStack.setCount((int)moneyOut[i]);
-
                 boolean check = moneyOut[i] != 0;
 
                 if(check){
+                    ArrayList<ItemStack> stacks = new ArrayList<>();
+
+                    var itemStack = new ItemStack(Registration.MONEY.get());
+                    stacks.add(itemStack);
+
+                    MoneyItem.setMoneyValue(itemStack, MoneyItem.MONEY_VALUES[i]);
+                    itemStack.setCount((int)moneyOut[i]);
+
+                    while(itemStack.getCount() > itemStack.getMaxStackSize()){
+                        stacks.add(itemStack.split(itemStack.getMaxStackSize()));
+                    }
+
                     boolean playerInGui = false;
                     if(this.currentPlayer != null) playerInGui = true;
 
@@ -315,26 +352,34 @@ public class VendingMachineBlockEntity extends BlockEntity implements MenuProvid
                         searchLoop:
                         for(int j = 0; j < playerInv.items.size(); ++j){
                             ItemStack playerStack = playerInv.items.get(j);
-                            if(ItemStack.isSame(itemStack, playerStack)){
-                                if(playerStack.getCount() + itemStack.getCount() <= playerStack.getMaxStackSize()){
-                                    playerStack.setCount(playerStack.getCount() + itemStack.getCount());
-                                    placed = true;
-                                    break searchLoop;
+                            for (var stack : stacks){
+                                if(ItemStack.isSameItemSameTags(stack, playerStack)){
+                                    if(playerStack.getCount() + stack.getCount() <= playerStack.getMaxStackSize()){
+                                        playerStack.setCount(playerStack.getCount() + stack.getCount());
+                                        stack = ItemStack.EMPTY;
+                                        placed = true;
+                                        break searchLoop;
+                                    }
                                 }
                             }
                         }
 
                         if(!placed){
-                            if(playerInv.getFreeSlot() != -1){
-                                playerInv.setItem(playerInv.getFreeSlot(), itemStack);
-                            }else{
-                                playerInGui = false;
+                            for(var stack : stacks){
+                                if(playerInv.getFreeSlot() != -1){
+                                    playerInv.add(stack);
+                                    stack = ItemStack.EMPTY;
+                                }else{
+                                    playerInGui = false;
+                                }
                             }
                         }
                     }
                     if (!playerInGui) {       //If no room, spawn
                         BlockPos pos = getBlockPos().relative(this.getBlockState().getValue(VendingMachineBlock.FACING));
-                        Containers.dropItemStack(this.level, pos.getX(), pos.getY(), pos.getZ(), itemStack);
+                        for(var stack : stacks){
+                            Containers.dropItemStack(this.level, pos.getX(), pos.getY(), pos.getZ(), stack);
+                        }
                     }
                 }
             }

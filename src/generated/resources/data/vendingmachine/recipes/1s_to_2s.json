@@ -1,0 +1,13 @@
+{
+  "type": "vendingmachine:money_conversion",
+  "group": "vendingmachine",
+  "ingredient": {
+    "count": 2,
+    "item": "vendingmachine:money",
+    "nbtTag": "{money_value:1.0f}"
+  },
+  "result": {
+    "item": "vendingmachine:money",
+    "tag": "{money_value:2.0f}"
+  }
+}

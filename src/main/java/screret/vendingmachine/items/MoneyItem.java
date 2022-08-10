@@ -43,12 +43,13 @@ public class MoneyItem extends Item {
     }
 
     public static float getMoneyValue(ItemStack stack){
-        return stack.is(Registration.MONEY.get()) ? stack.getTag().getFloat(MONEY_VALUE_TAG) : -1;
+        return stack.is(Registration.MONEY.get()) && stack.hasTag() ? stack.getTag().getFloat(MONEY_VALUE_TAG) : -1;
     }
 
-    public static void setMoneyValue(ItemStack stack, float value){
+    public static ItemStack setMoneyValue(ItemStack stack, float value){
         CompoundTag tag = stack.getOrCreateTag();
         tag.putFloat(MONEY_VALUE_TAG, value);
+        return stack;
     }
 
     private float getTotalOfMoney(ItemStackHandler stackHandler, float moneyType) {

@@ -84,45 +84,45 @@ public class VenderBlockContainer extends AbstractContainerMenu {
             int lastInvIndex = LAST_CONTAINER_SLOT_INDEX + 36;
             int lastInvIndexNoHotbar = LAST_CONTAINER_SLOT_INDEX + 27;
 
-            ItemStack itemstack1 = slot.getItem();
+            ItemStack itemStack1 = slot.getItem();
             itemstack = slot.getItem();
             if(slot.getItemHandler() == otherSlots && slotId == OUTPUT_SLOT_INDEX){
-                if(!this.moveItemStackTo(itemstack1, OUTPUT_SLOT_INDEX, playerInventory.getSlots(), false)){
+                if(!this.moveItemStackTo(itemStack1, OUTPUT_SLOT_INDEX, playerInventory.getSlots(), false)){
                     return ItemStack.EMPTY;
                 }
 
-                slot.onQuickCraft(itemstack1, itemstack);
+                slot.onQuickCraft(itemStack1, itemstack);
             } else if (slotId != OUTPUT_SLOT_INDEX && slotId != MONEY_SLOT_INDEX) {
-                if(itemstack1.is(VendingMachineConfig.getPaymentItem())){
-                    if(!this.moveItemStackTo(itemstack1, OUTPUT_SLOT_INDEX, MONEY_SLOT_INDEX, false)){
+                if(itemStack1.is(VendingMachineConfig.getPaymentItem())){
+                    if(!this.moveItemStackTo(itemStack1, OUTPUT_SLOT_INDEX, MONEY_SLOT_INDEX, false)){
                         return ItemStack.EMPTY;
                     }
                 }else if(isAllowedToTakeItems){
-                    if(!this.moveItemStackTo(itemstack1, MONEY_SLOT_INDEX, LAST_CONTAINER_SLOT_INDEX, false)){
+                    if(!this.moveItemStackTo(itemStack1, MONEY_SLOT_INDEX, LAST_CONTAINER_SLOT_INDEX, false)){
                         return ItemStack.EMPTY;
                     }
                 } else if (slotId >= LAST_CONTAINER_SLOT_INDEX && slotId < lastInvIndexNoHotbar) {
-                    if (!this.moveItemStackTo(itemstack1, lastInvIndexNoHotbar, lastInvIndex, false)) {
+                    if (!this.moveItemStackTo(itemStack1, lastInvIndexNoHotbar, lastInvIndex, false)) {
                         return ItemStack.EMPTY;
                     }
-                } else if (slotId >= LAST_CONTAINER_SLOT_INDEX && slotId < lastInvIndex && !this.moveItemStackTo(itemstack1, LAST_CONTAINER_SLOT_INDEX, lastInvIndex, false)) {
+                } else if (slotId >= LAST_CONTAINER_SLOT_INDEX && slotId < lastInvIndex && !this.moveItemStackTo(itemStack1, LAST_CONTAINER_SLOT_INDEX, lastInvIndex, false)) {
                     return ItemStack.EMPTY;
                 }
-            }else if (!this.moveItemStackTo(itemstack1, LAST_CONTAINER_SLOT_INDEX, lastInvIndex, false)) {
+            }else if (!this.moveItemStackTo(itemStack1, LAST_CONTAINER_SLOT_INDEX, lastInvIndex, false)) {
                 return ItemStack.EMPTY;
             }
 
-            if (itemstack1.isEmpty()) {
+            if (itemStack1.isEmpty()) {
                 slot.set(ItemStack.EMPTY);
             } else {
                 slot.setChanged();
             }
 
-            if (itemstack1.getCount() == itemstack.getCount()) {
+            if (itemStack1.getCount() == itemstack.getCount()) {
                 return ItemStack.EMPTY;
             }
 
-            slot.onTake(player, itemstack1);
+            slot.onTake(player, itemStack1);
         }
 
         return itemstack;
@@ -156,7 +156,7 @@ public class VenderBlockContainer extends AbstractContainerMenu {
 
     @Override
     public void clicked(int slotId, int dragType, ClickType clickTypeIn, Player player) {
-        if(slotId < LAST_CONTAINER_SLOT_INDEX){
+        if(slotId > LAST_CONTAINER_SLOT_INDEX || slotId < 0){
             this.doClick(slotId, dragType, clickTypeIn, player);
             return;
         }
@@ -316,7 +316,7 @@ public class VenderBlockContainer extends AbstractContainerMenu {
         };
     }
 
-    public SlotItemHandler OutputHandler(IItemHandler itemHandler, int index, int xPosition, int yPosition){
+    private SlotItemHandler OutputHandler(IItemHandler itemHandler, int index, int xPosition, int yPosition){
         return new SlotItemHandler(itemHandler, index, xPosition, yPosition){
             @Override
             public boolean mayPlace(@NotNull ItemStack stack) {
@@ -325,7 +325,7 @@ public class VenderBlockContainer extends AbstractContainerMenu {
         };
     }
 
-    public SlotItemHandler MoneyHandler(IItemHandler itemHandler, int index, int xPosition, int yPosition){
+    private SlotItemHandler MoneyHandler(IItemHandler itemHandler, int index, int xPosition, int yPosition){
         return new SlotItemHandler(itemHandler, index, xPosition, yPosition){
             @Override
             public boolean mayPlace(@NotNull ItemStack stack) {

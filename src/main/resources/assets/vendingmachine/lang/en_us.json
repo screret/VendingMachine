@@ -1,5 +1,7 @@
 {
-  "gui.vendingmachine.vendingmachine": "Vending Machine",
+  "container.vendingmachine.vendingmachine": "Vending Machine",
+  "container.vendingmachine.cash_converter": "Cash Converter",
+
   "gui.vendingmachine.buybutton": "Buy item",
   "gui.vendingmachine.buytestbutton": "Buy test mode",
   "gui.vendingmachine.mainbutton": "Main page",
@@ -25,6 +27,7 @@
   "block.vendingmachine.vending_machine_green": "Green Vending Machine",
   "block.vendingmachine.vending_machine_red": "Red Vending Machine",
   "block.vendingmachine.vending_machine_black": "Black Vending Machine",
+  "block.vendingmachine.cash_converter": "Cash Converter",
 
   "item.vendingmachine.money": "%1$s Dollar %2$s",
   "item.vendingmachine.money.bill": "Bill",

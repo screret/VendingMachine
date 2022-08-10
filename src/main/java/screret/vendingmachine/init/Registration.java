@@ -2,10 +2,15 @@ package screret.vendingmachine.init;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.SimpleMenuProvider;
+import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.world.inventory.CraftingMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -15,13 +20,16 @@ import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 import screret.vendingmachine.VendingMachine;
+import screret.vendingmachine.blocks.CashConverterBlock;
 import screret.vendingmachine.blocks.VendingMachineBlock;
+import screret.vendingmachine.containers.CashConverterContainer;
 import screret.vendingmachine.containers.ContainerControlCard;
 import screret.vendingmachine.containers.VenderBlockContainer;
 import screret.vendingmachine.containers.VenderPriceEditorContainer;
 import screret.vendingmachine.items.ControlCardItem;
 import screret.vendingmachine.items.MoneyItem;
 import screret.vendingmachine.blockEntities.VendingMachineBlockEntity;
+import screret.vendingmachine.recipes.MoneyConversionRecipe;
 
 import java.util.UUID;
 
@@ -32,6 +40,8 @@ public class Registration {
     public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, VendingMachine.MODID);
     public static final DeferredRegister<BlockEntityType<?>> TILES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, VendingMachine.MODID);
     public static final DeferredRegister<MenuType<?>> CONTAINERS = DeferredRegister.create(ForgeRegistries.MENU_TYPES, VendingMachine.MODID);
+    public static final DeferredRegister<RecipeType<?>> RECIPE_TYPES = DeferredRegister.create(ForgeRegistries.RECIPE_TYPES, VendingMachine.MODID);
+    public static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS = DeferredRegister.create(ForgeRegistries.RECIPE_SERIALIZERS, VendingMachine.MODID);
 
 
     //blocks
@@ -51,6 +61,8 @@ public class Registration {
     public static final RegistryObject<Block> VENDER_BROWN = BLOCKS.register("vending_machine_brown", () -> vender(DyeColor.BROWN));
     public static final RegistryObject<Block> VENDER_PURPLE = BLOCKS.register("vending_machine_purple", () -> vender(DyeColor.PURPLE));
     public static final RegistryObject<Block> VENDER_GREEN = BLOCKS.register("vending_machine_green", () -> vender(DyeColor.GREEN));
+
+    public static final RegistryObject<Block> CASH_CONVERTER = BLOCKS.register("cash_converter", () -> new CashConverterBlock(Block.Properties.of(Material.HEAVY_METAL).strength(3.5f).lightLevel(a -> 10)));
 
     private static VendingMachineBlock vender(DyeColor color) {
         return new VendingMachineBlock(color, Block.Properties.of(Material.HEAVY_METAL).strength(3.5F).lightLevel(a -> 10));
@@ -81,10 +93,15 @@ public class Registration {
     public static final RegistryObject<Item> VENDER_ITEM_GREEN = ITEMS.register("vending_machine_green", () -> new BlockItem(Registration.VENDER_GREEN.get(), new Item.Properties().tab(VendingMachine.MOD_TAB)));
     public static final RegistryObject<Item> VENDER_ITEM_RED = ITEMS.register("vending_machine_red", () -> new BlockItem(Registration.VENDER_RED.get(), new Item.Properties().tab(VendingMachine.MOD_TAB)));
     public static final RegistryObject<Item> VENDER_ITEM_BLACK = ITEMS.register("vending_machine_black", () -> new BlockItem(Registration.VENDER_BLACK.get(), new Item.Properties().tab(VendingMachine.MOD_TAB)));
+    public static final RegistryObject<Item> CASH_CONVERTER_ITEM = ITEMS.register("cash_converter", () -> new BlockItem(Registration.CASH_CONVERTER.get(), new Item.Properties().tab(VendingMachine.MOD_TAB)));
 
     //public static final RegistryObject<Item> VENDER_CONTROL_CARD = ITEMS.register("vender_controller", () -> new ControlCardItem(new Item.Properties().tab(VendingMachine.MOD_TAB)));
 
-    public static final RegistryObject<Item> MONEY = ITEMS.register("money", () -> new MoneyItem(new Item.Properties()));
+    public static final RegistryObject<Item> MONEY = ITEMS.register("money", () -> new MoneyItem(new Item.Properties().tab(VendingMachine.MOD_TAB)));
+
+    //recipe types
+    public static final RegistryObject<RecipeType<MoneyConversionRecipe>> MONEY_CONVERSION_RECIPE_TYPE = RECIPE_TYPES.register("money_conversion", MoneyConversionRecipe.RecipeType::new);
+    public static final RegistryObject<RecipeSerializer<MoneyConversionRecipe>> MONEY_CONVERSION_RECIPE_SERIALIZER = RECIPE_SERIALIZERS.register("money_conversion", MoneyConversionRecipe.Serializer::new);
 
 
     //containers
@@ -106,6 +123,10 @@ public class Registration {
             tile = (VendingMachineBlockEntity) world.getBlockEntity(pos.below());
         }
         return new VenderPriceEditorContainer(windowId, inv, tile.inventory, tile);
+    }));
+
+    public static final RegistryObject<MenuType<CashConverterContainer>> CASH_CONVERTER_CONT = CONTAINERS.register("container_cash_converter", () -> IForgeMenuType.create((windowId, inv, buffer) -> {
+        return new CashConverterContainer(windowId, inv, ContainerLevelAccess.create(inv.player.getCommandSenderWorld(), buffer.readBlockPos()));
     }));
 
     public static final RegistryObject<MenuType<ContainerControlCard>> CONTAINER_CONTROL_CARD = CONTAINERS.register("container_control_card", () -> IForgeMenuType.create((windowId, inv, buffer) -> {

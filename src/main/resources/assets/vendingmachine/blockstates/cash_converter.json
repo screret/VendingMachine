@@ -1,0 +1,8 @@
+{
+  "variants":{
+    "facing=north": { "model": "vendingmachine:block/cash_converter" },
+    "facing=south": { "model": "vendingmachine:block/cash_converter", "y":180 },
+    "facing=west": { "model": "vendingmachine:block/cash_converter", "y":270 },
+    "facing=east": { "model": "vendingmachine:block/cash_converter", "y":90 }
+  }
+}
