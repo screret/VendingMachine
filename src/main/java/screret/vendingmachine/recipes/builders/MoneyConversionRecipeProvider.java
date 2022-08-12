@@ -62,12 +62,12 @@ public class MoneyConversionRecipeProvider extends RecipeProvider {
         conversion(consumer, 1000, 1,2, 500, "2s_to_1000s");
         conversion(consumer, 1000, 1,5, 250, "5s_to_1000s");
         conversion(consumer, 1000, 1,10, 100, "10s_to_1000s");
-        conversion(consumer, 1000, 1,20, 20, "20s_to_1000s");
+        conversion(consumer, 1000, 1,20, 50, "20s_to_1000s");
         conversion(consumer, 1000, 1,50, 20, "50s_to_1000s");
         conversion(consumer, 1000, 1,100, 10, "100s_to_1000s");
     }
 
     protected static void conversion(Consumer<FinishedRecipe> recipe, float resultMoneyValue, int resultCount, float ingredientMoneyValue, int ingredientCount, String id) {
-        MoneyConversionRecipeBuilder.conversion(MoneyItem.setMoneyValue(new ItemStack(Registration.MONEY.get(), resultCount), resultMoneyValue)).requires(MoneyItem.setMoneyValue(new ItemStack(Registration.MONEY.get(), ingredientCount), ingredientMoneyValue)).group("vendingmachine").unlockedBy("has_money", has(Registration.MONEY.get())).save(recipe, new ResourceLocation(VendingMachine.MODID, id));
+        MoneyConversionRecipeBuilder.conversion(MoneyItem.setMoneyValue(new ItemStack(Registration.MONEY.get(), resultCount), resultMoneyValue)).requires(MoneyItem.setMoneyValue(new ItemStack(Registration.MONEY.get(), ingredientCount), ingredientMoneyValue)).group("money_conversion").unlockedBy("has_money", has(Registration.MONEY.get())).save(recipe, new ResourceLocation(VendingMachine.MODID, id));
     }
 }

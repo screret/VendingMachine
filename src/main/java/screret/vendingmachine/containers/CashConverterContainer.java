@@ -1,5 +1,6 @@
 package screret.vendingmachine.containers;
 
+import com.illusivesoulworks.polymorph.common.crafting.RecipeSelection;
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
@@ -11,9 +12,13 @@ import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraftforge.fml.ModList;
+import net.minecraftforge.fml.ModLoader;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.SlotItemHandler;
 import net.minecraftforge.items.wrapper.InvWrapper;
+import screret.vendingmachine.VendingMachine;
 import screret.vendingmachine.containers.gui.CraftOutputItemHandler;
 import screret.vendingmachine.init.Registration;
 import screret.vendingmachine.recipes.MoneyConversionRecipe;
@@ -31,7 +36,7 @@ public class CashConverterContainer extends AbstractContainerMenu {
     };
     private final ConversionResultStackHandler outputSlot = new ConversionResultStackHandler(1);
 
-    private final int slotInputIndex, slotOutputIndex;
+    public final int slotInputIndex, slotOutputIndex;
 
     private static final int SLOT_INPUT_X = 44, SLOT_INPUT_Y = 36, SLOT_OUTPUT_X = 116, SLOT_OUTPUT_Y = 36, SLOT_INV_START_X = 8, SLOT_INV_START_Y = 86;
     private static final int LAST_MENU_SLOT = 1, INV_SLOTS_AMOUNT = 36;
@@ -52,28 +57,33 @@ public class CashConverterContainer extends AbstractContainerMenu {
         layoutPlayerInventorySlots(SLOT_INV_START_X, SLOT_INV_START_Y);
     }
 
-    protected static void slotChangedCraftingGrid(AbstractContainerMenu menu, Level level, Player player, CraftingContainer inputSlot, ConversionResultStackHandler outputSlot) {
+    protected static void slotChangedCraftingGrid(AbstractContainerMenu menu, Level level, Player player, CraftingContainer inputSlot, ConversionResultStackHandler outputSlot, int slotOutputIndex) {
         if (!level.isClientSide) {
             ServerPlayer serverplayer = (ServerPlayer)player;
-            ItemStack itemStack = ItemStack.EMPTY;
-            Optional<MoneyConversionRecipe> recipe = level.getServer().getRecipeManager().getRecipeFor(Registration.MONEY_CONVERSION_RECIPE_TYPE.get(), inputSlot, level);
-            if (recipe.isPresent()) {
-                MoneyConversionRecipe actualRecipe = recipe.get();
-                if (outputSlot.setRecipeUsed(level, serverplayer, actualRecipe)) {
-                    itemStack = actualRecipe.assemble(inputSlot);
+            ItemStack output = ItemStack.EMPTY;
+
+            if (outputSlot.getRecipeUsed() instanceof MoneyConversionRecipe recipe && recipe.matches(inputSlot, level)) {
+                output = recipe.assemble(inputSlot);
+            } else {
+                Optional<MoneyConversionRecipe> maybeRecipe = ModList.get().isLoaded(VendingMachine.POLYMORPH_MODID) ? RecipeSelection.getPlayerRecipe(menu, Registration.MONEY_CONVERSION_RECIPE_TYPE.get(), inputSlot, level, player) :  level.getRecipeManager().getRecipeFor(Registration.MONEY_CONVERSION_RECIPE_TYPE.get(), inputSlot, level);
+                if (maybeRecipe.isPresent()) {
+                    MoneyConversionRecipe recipe = maybeRecipe.get();
+                    if (outputSlot.setRecipeUsed(level, serverplayer, recipe)) {
+                        output = recipe.assemble(inputSlot);
+                    }
                 }
             }
 
-            outputSlot.setStackInSlot(0, itemStack);
-            menu.setRemoteSlot(0, itemStack);
-            serverplayer.connection.send(new ClientboundContainerSetSlotPacket(menu.containerId, menu.incrementStateId(), 0, itemStack));
+            outputSlot.setStackInSlot(0, output);
+            menu.setRemoteSlot(slotOutputIndex, output);
+            serverplayer.connection.send(new ClientboundContainerSetSlotPacket(menu.containerId, menu.incrementStateId(), slotOutputIndex, output));
         }
     }
 
     @Override
     public void slotsChanged(Container container) {
         this.access.execute((level, pos) -> {
-            slotChangedCraftingGrid(this, level, this.player, this.inputSlot, this.outputSlot);
+            slotChangedCraftingGrid(this, level, this.player, this.inputSlot, this.outputSlot, this.slotOutputIndex);
         });
         //this.broadcastChanges();
     }
@@ -86,32 +96,25 @@ public class CashConverterContainer extends AbstractContainerMenu {
     }
 
     @Override
-    public ItemStack quickMoveStack(Player player, int slotId) {
+    public ItemStack quickMoveStack(Player player, int index) {
         ItemStack stack = ItemStack.EMPTY;
-        Slot slot = this.slots.get(slotId);
+        Slot slot = this.slots.get(index);
         if (slot != null && slot.hasItem()) {
             final int lastSlot = LAST_MENU_SLOT + INV_SLOTS_AMOUNT;
             final int firstInvSlot = slotOutputIndex + 1;
 
             ItemStack slotStack = slot.getItem();
             stack = slotStack.copy();
-            if (slotId == slotOutputIndex) {
+            if (index == slotOutputIndex) {
                 this.access.execute((level, pos) -> slotStack.getItem().onCraftedBy(slotStack, level, player));
                 if (!this.moveItemStackTo(slotStack, firstInvSlot, lastSlot, true)) {
                     return ItemStack.EMPTY;
                 }
 
                 slot.onQuickCraft(slotStack, stack);
-            } else if (slotId >= firstInvSlot && slotId < lastSlot) {
-                if (!this.moveItemStackTo(slotStack, slotInputIndex, firstInvSlot, false)) {
-                    if (slotId < INV_SLOTS_AMOUNT) {
-                        if (!this.moveItemStackTo(slotStack, slotInputIndex, lastSlot, false)) {
-                            return ItemStack.EMPTY;
-                        }
-                    } else if (!this.moveItemStackTo(slotStack, firstInvSlot, INV_SLOTS_AMOUNT, false)) {
-                        return ItemStack.EMPTY;
-                    }
-                }
+            } else if (index != slotInputIndex) {
+                if (index < INV_SLOTS_AMOUNT + 2 && !moveItemStackTo(slotStack, slotInputIndex, slotOutputIndex, false))
+                    return ItemStack.EMPTY;
             } else if (!this.moveItemStackTo(slotStack, firstInvSlot, lastSlot, false)) {
                 return ItemStack.EMPTY;
             }
@@ -127,7 +130,7 @@ public class CashConverterContainer extends AbstractContainerMenu {
             }
 
             slot.onTake(player, slotStack);
-            this.broadcastChanges();
+            //this.broadcastChanges();
         }
 
         return stack;
@@ -141,6 +144,18 @@ public class CashConverterContainer extends AbstractContainerMenu {
     @Override
     public boolean stillValid(Player player) {
         return stillValid(access, player, Registration.CASH_CONVERTER.get());
+    }
+
+    public CraftingContainer getInputSlot(){
+        return inputSlot;
+    }
+
+    public ConversionResultStackHandler getOutputSlot(){
+        return outputSlot;
+    }
+
+    public Player getPlayer(){
+        return player;
     }
 
     private int addSlotRange(IItemHandler handler, int index, int x, int y, int amount, int dx) {

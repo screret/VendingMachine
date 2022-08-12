@@ -240,11 +240,8 @@ public class VendingMachineBlockEntity extends BlockEntity implements MenuProvid
                 if(check){
                     ArrayList<ItemStack> stacks = new ArrayList<>();
 
-                    var itemStack = new ItemStack(Registration.MONEY.get());
+                    var itemStack = MoneyItem.setMoneyValue(new ItemStack(Registration.MONEY.get(), (int)moneyOut[i]), MoneyItem.MONEY_VALUES[i]);
                     stacks.add(itemStack);
-
-                    MoneyItem.setMoneyValue(itemStack, MoneyItem.MONEY_VALUES[i]);
-                    itemStack.setCount((int)moneyOut[i]);
 
                     while(itemStack.getCount() > itemStack.getMaxStackSize()){
                         stacks.add(itemStack.split(itemStack.getMaxStackSize()));
@@ -332,11 +329,8 @@ public class VendingMachineBlockEntity extends BlockEntity implements MenuProvid
                 if(check){
                     ArrayList<ItemStack> stacks = new ArrayList<>();
 
-                    var itemStack = new ItemStack(Registration.MONEY.get());
+                    var itemStack = MoneyItem.setMoneyValue(new ItemStack(Registration.MONEY.get(), (int)moneyOut[i]), MoneyItem.MONEY_VALUES[i]);
                     stacks.add(itemStack);
-
-                    MoneyItem.setMoneyValue(itemStack, MoneyItem.MONEY_VALUES[i]);
-                    itemStack.setCount((int)moneyOut[i]);
 
                     while(itemStack.getCount() > itemStack.getMaxStackSize()){
                         stacks.add(itemStack.split(itemStack.getMaxStackSize()));

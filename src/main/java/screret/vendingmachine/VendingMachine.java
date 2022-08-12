@@ -1,5 +1,7 @@
 package screret.vendingmachine;
 
+import com.illusivesoulworks.polymorph.common.integration.AbstractCompatibilityModule;
+import com.illusivesoulworks.polymorph.common.integration.PolymorphIntegrations;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.core.NonNullList;
@@ -13,6 +15,7 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.data.event.GatherDataEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
@@ -35,10 +38,13 @@ import screret.vendingmachine.containers.gui.VenderBlockPriceScreen;
 import screret.vendingmachine.containers.gui.VenderBlockScreen;
 import screret.vendingmachine.events.packets.*;
 import screret.vendingmachine.init.Registration;
+import screret.vendingmachine.integration.polymorph.VendingMachinesCompatibilityModule;
 import screret.vendingmachine.items.MoneyItem;
+import screret.vendingmachine.mixin.AccessorPolymorphIntegrations;
 import screret.vendingmachine.recipes.builders.MoneyConversionRecipeProvider;
 
 import java.util.Optional;
+import java.util.function.Supplier;
 
 //COMPLETELY RANDOM UUID AND USERNAME FOR TESTING: --uuid=76d4e724-c758-42b1-8006-00d5d676d4a7 --username=abgdef
 
@@ -46,6 +52,7 @@ import java.util.Optional;
 @Mod(VendingMachine.MODID)
 public class VendingMachine {
     public static final String MODID = "vendingmachine";
+    public static final String POLYMORPH_MODID = "polymorph";
 
     public static final CreativeModeTab MOD_TAB = new CreativeModeTab("vendingmachine") {
         @Override
@@ -82,6 +89,15 @@ public class VendingMachine {
             PROTOCOL_VERSION::equals,
             PROTOCOL_VERSION::equals
     );
+
+    static {
+        if(ModList.get().isLoaded(POLYMORPH_MODID)){
+            final Supplier<AbstractCompatibilityModule> sup = VendingMachinesCompatibilityModule::new;
+            AccessorPolymorphIntegrations.getConfigActivated().add(MODID);
+            AccessorPolymorphIntegrations.getIntegrations().put(MODID, () -> sup);
+            AccessorPolymorphIntegrations.getActiveIntegrations().add(sup.get());
+        }
+    }
 
     public VendingMachine() {
         var modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
@@ -127,6 +143,8 @@ public class VendingMachine {
         event.enqueueWork(() -> MenuScreens.register(Registration.CASH_CONVERTER_CONT.get(), CashConverterScreen::new));
 
         event.enqueueWork(() -> ItemProperties.register(Registration.MONEY.get(), new ResourceLocation(VendingMachine.MODID, "money_value"), (stack, world, holdingEntity, entityId) -> MoneyItem.getMoneyValue(stack)));
+
+        //event.enqueueWork(() -> PolymorphIntegrations.clientSetup());
     }
 
     private void enqueueIMC(final InterModEnqueueEvent event)

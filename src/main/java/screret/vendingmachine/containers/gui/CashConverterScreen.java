@@ -3,20 +3,16 @@ package screret.vendingmachine.containers.gui;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.gui.screens.recipebook.RecipeBookComponent;
-import net.minecraft.client.gui.screens.recipebook.RecipeUpdateListener;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import screret.vendingmachine.VendingMachine;
 import screret.vendingmachine.containers.CashConverterContainer;
-import screret.vendingmachine.containers.VenderPriceEditorContainer;
 
 public class CashConverterScreen extends AbstractContainerScreen<CashConverterContainer> {
 
     private static final ResourceLocation GUI = new ResourceLocation(VendingMachine.MODID, "textures/gui/cash_converter.png");
-
 
     public CashConverterScreen(CashConverterContainer container, Inventory inventory, Component name) {
         super(container, inventory, name);

@@ -15,6 +15,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraftforge.common.crafting.StrictNBTIngredient;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.Nullable;
 import screret.vendingmachine.init.Registration;
@@ -24,9 +25,7 @@ import java.util.function.Consumer;
 public class MoneyConversionRecipeBuilder implements RecipeBuilder {
 
     private final ItemStack result;
-    private Ingredient ingredient;
-    private CompoundTag ingredientTag;
-    private int ingredientCount;
+    private StrictNBTIngredient ingredient;
     @Nullable
     private String group;
     private final Advancement.Builder advancement = Advancement.Builder.advancement();
@@ -45,30 +44,18 @@ public class MoneyConversionRecipeBuilder implements RecipeBuilder {
         return this;
     }
 
-    public MoneyConversionRecipeBuilder requires(TagKey<Item> tag) {
-        return this.requires(Ingredient.of(tag));
-    }
-
     public MoneyConversionRecipeBuilder requires(Item item) {
         return this.requires(new ItemStack(item));
     }
 
     public MoneyConversionRecipeBuilder requires(ItemStack stack) {
-        this.requires(Ingredient.of(stack));
-        this.ingredientCount = stack.getCount();
-        this.ingredientTag = stack.getTag();
+        this.requires(StrictNBTIngredient.of(stack));
 
         return this;
     }
 
-    public MoneyConversionRecipeBuilder requires(Ingredient ingredient) {
-        this.requires(ingredient, 1);
-        return this;
-    }
-
-    public MoneyConversionRecipeBuilder requires(Ingredient ingredient, int count) {
+    public MoneyConversionRecipeBuilder requires(StrictNBTIngredient ingredient) {
         this.ingredient = ingredient;
-        this.ingredientCount = count;
         return this;
     }
 
@@ -87,7 +74,7 @@ public class MoneyConversionRecipeBuilder implements RecipeBuilder {
     public void save(Consumer<FinishedRecipe> recipe, ResourceLocation recipeId) {
         this.ensureValid(recipeId);
         this.advancement.parent(ROOT_RECIPE_ADVANCEMENT).addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(recipeId)).rewards(AdvancementRewards.Builder.recipe(recipeId)).requirements(RequirementsStrategy.OR);
-        recipe.accept(new MoneyConversionRecipeBuilder.Result(recipeId, this.group == null ? "" : this.group, this.ingredient, this.ingredientTag, this.ingredientCount, this.result, this.advancement, new ResourceLocation(recipeId.getNamespace(), "recipes/" + this.result.getItem().getItemCategory().getRecipeFolderName() + "/" + recipeId.getPath())));
+        recipe.accept(new MoneyConversionRecipeBuilder.Result(recipeId, this.group == null ? "" : this.group, this.ingredient, this.result, this.advancement, new ResourceLocation(recipeId.getNamespace(), "recipes/" + this.result.getItem().getItemCategory().getRecipeFolderName() + "/" + recipeId.getPath())));
     }
 
     private void ensureValid(ResourceLocation p_126330_) {
@@ -99,19 +86,15 @@ public class MoneyConversionRecipeBuilder implements RecipeBuilder {
     public static class Result implements FinishedRecipe {
         private final ResourceLocation id;
         private final String group;
-        private final Ingredient ingredient;
-        private final CompoundTag ingredientTag;
-        private final int ingredientCount;
+        private final StrictNBTIngredient ingredient;
         private final ItemStack result;
         private final Advancement.Builder advancement;
         private final ResourceLocation advancementId;
 
-        public Result(ResourceLocation id, String group, Ingredient ingredient, CompoundTag ingredientTag, int ingredientCount, ItemStack result, Advancement.Builder advancement, ResourceLocation advancementId) {
+        public Result(ResourceLocation id, String group, StrictNBTIngredient ingredient, ItemStack result, Advancement.Builder advancement, ResourceLocation advancementId) {
             this.id = id;
             this.group = group;
             this.ingredient = ingredient;
-            this.ingredientTag = ingredientTag;
-            this.ingredientCount = ingredientCount;
             this.result = result;
             this.advancement = advancement;
             this.advancementId = advancementId;
@@ -122,10 +105,7 @@ public class MoneyConversionRecipeBuilder implements RecipeBuilder {
                 json.addProperty("group", this.group);
             }
 
-            var ingredient = (JsonObject)this.ingredient.toJson();
-            ingredient.addProperty("count", this.ingredientCount);
-            ingredient.addProperty("nbtTag", this.ingredientTag.toString());
-            json.add("ingredient", ingredient);
+            json.add("ingredient", this.ingredient.toJson());
 
             JsonObject result = new JsonObject();
             result.addProperty("item", ForgeRegistries.ITEMS.getKey(this.result.getItem()).toString());
@@ -133,7 +113,7 @@ public class MoneyConversionRecipeBuilder implements RecipeBuilder {
                 result.addProperty("count", this.result.getCount());
             }
             if(this.result.hasTag()){
-                result.addProperty("tag", this.result.getTag().toString());
+                result.addProperty("nbt", this.result.getTag().toString());
             }
 
             json.add("result", result);

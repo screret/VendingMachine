@@ -28,12 +28,12 @@
 			"faces": {
 				"north": {
 					"uv": [0, 0, 16, 1],
-					"cullface": "east",
+					"cullface": "north",
 					"texture": 0
 				},
 				"east": {
 					"uv": [0, 0, 16, 1],
-					"cullface": "south",
+					"cullface": "east",
 					"texture": 0
 				},
 				"south": {
@@ -43,7 +43,7 @@
 				},
 				"west": {
 					"uv": [0, 0, 16, 1],
-					"cullface": "north",
+					"cullface": "west",
 					"texture": 0
 				},
 				"up": {
@@ -73,12 +73,12 @@
 			"faces": {
 				"north": {
 					"uv": [0, 0, 16, 1],
-					"cullface": "east",
+					"cullface": "north",
 					"texture": 0
 				},
 				"east": {
 					"uv": [0, 0, 16, 1],
-					"cullface": "south",
+					"cullface": "east",
 					"texture": 0
 				},
 				"south": {
@@ -88,7 +88,7 @@
 				},
 				"west": {
 					"uv": [0, 0, 16, 1],
-					"cullface": "north",
+					"cullface": "west",
 					"texture": 0
 				},
 				"up": {
@@ -118,7 +118,7 @@
 			"faces": {
 				"north": {
 					"uv": [0, 0, 1, 14],
-					"cullface": "east",
+					"cullface": "north",
 					"texture": 0
 				},
 				"east": {
@@ -131,7 +131,7 @@
 				},
 				"west": {
 					"uv": [0, 0, 15, 14],
-					"cullface": "north",
+					"cullface": "west",
 					"texture": 0
 				},
 				"up": {
@@ -200,12 +200,12 @@
 			"faces": {
 				"north": {
 					"uv": [0, 0, 1, 14],
-					"cullface": "east",
+					"cullface": "north",
 					"texture": 0
 				},
 				"east": {
 					"uv": [0, 0, 15, 14],
-					"cullface": "south",
+					"cullface": "east",
 					"texture": 0
 				},
 				"south": {
@@ -246,24 +246,29 @@
 				},
 				"east": {
 					"uv": [0, 0, 1, 16],
+					"cullface": "east",
 					"texture": 0
 				},
 				"south": {
 					"uv": [0, 0, 16, 16],
+					"cullface": "south",
 					"texture": 2
 				},
 				"west": {
 					"uv": [0, 0, 1, 16],
+					"cullface": "west",
 					"texture": 0
 				},
 				"up": {
 					"uv": [0, 0, 1, 16],
 					"rotation": 270,
+					"cullface": "up",
 					"texture": 0
 				},
 				"down": {
 					"uv": [0, 0, 1, 16],
 					"rotation": 90,
+					"cullface": "down",
 					"texture": 0
 				}
 			},
