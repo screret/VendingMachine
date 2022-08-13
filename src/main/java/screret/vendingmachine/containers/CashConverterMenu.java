@@ -13,25 +13,24 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.fml.ModList;
-import net.minecraftforge.fml.ModLoader;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.SlotItemHandler;
 import net.minecraftforge.items.wrapper.InvWrapper;
 import screret.vendingmachine.VendingMachine;
-import screret.vendingmachine.containers.gui.CraftOutputItemHandler;
+import screret.vendingmachine.containers.stackhandlers.CraftOutputItemHandler;
+import screret.vendingmachine.containers.stackhandlers.ConversionResultStackHandler;
 import screret.vendingmachine.init.Registration;
 import screret.vendingmachine.recipes.MoneyConversionRecipe;
 
 import java.util.Optional;
 
-public class CashConverterContainer extends AbstractContainerMenu {
+public class CashConverterMenu extends AbstractContainerMenu {
 
     private final CraftingContainer inputSlot = new CraftingContainer(this, 1,1){
         @Override
         public void setChanged(){
             super.setChanged();
-            CashConverterContainer.this.slotsChanged(this);
+            CashConverterMenu.this.slotsChanged(this);
         }
     };
     private final ConversionResultStackHandler outputSlot = new ConversionResultStackHandler(1);
@@ -45,8 +44,8 @@ public class CashConverterContainer extends AbstractContainerMenu {
     private final Player player;
     private final InvWrapper playerInventory;
 
-    public CashConverterContainer(int containerId, Inventory inventory, ContainerLevelAccess access) {
-        super(Registration.CASH_CONVERTER_CONT.get(), containerId);
+    public CashConverterMenu(int containerId, Inventory inventory, ContainerLevelAccess access) {
+        super(Registration.CASH_CONVERTER_MENU.get(), containerId);
         this.access = access;
         this.player = inventory.player;
         this.playerInventory = new InvWrapper(inventory);

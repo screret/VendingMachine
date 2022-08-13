@@ -1,19 +1,13 @@
 package screret.vendingmachine.integration.polymorph;
 
 import com.illusivesoulworks.polymorph.api.PolymorphApi;
-import com.illusivesoulworks.polymorph.api.common.base.IPolymorphCommon;
-import com.illusivesoulworks.polymorph.common.capability.PlayerRecipeData;
-import com.illusivesoulworks.polymorph.common.capability.StackRecipeData;
 import com.illusivesoulworks.polymorph.common.integration.AbstractCompatibilityModule;
-import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.CraftingContainer;
-import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
-import screret.vendingmachine.containers.CashConverterContainer;
+import screret.vendingmachine.containers.CashConverterMenu;
 import screret.vendingmachine.init.Registration;
 import screret.vendingmachine.recipes.MoneyConversionRecipe;
 
@@ -33,7 +27,7 @@ public class VendingMachinesCompatibilityModule extends AbstractCompatibilityMod
     @Override
     public void clientSetup() {
         PolymorphApi.client().registerWidget(pContainerScreen -> {
-            if (pContainerScreen.getMenu() instanceof CashConverterContainer container) {
+            if (pContainerScreen.getMenu() instanceof CashConverterMenu container) {
                 return new CashConverterWidget(pContainerScreen, container.getSlot(container.slotOutputIndex));
             }
             return null;
@@ -43,7 +37,7 @@ public class VendingMachinesCompatibilityModule extends AbstractCompatibilityMod
     @Override
     public boolean selectRecipe(AbstractContainerMenu container, Recipe<?> recipe) {
         if (recipe instanceof MoneyConversionRecipe realRecipe) {
-            if (container instanceof CashConverterContainer realContainer) {
+            if (container instanceof CashConverterMenu realContainer) {
                 CraftingContainer inputSlot = realContainer.getInputSlot();
                 var outputSlot = realContainer.getOutputSlot();
                 var player = realContainer.getPlayer();
@@ -60,7 +54,7 @@ public class VendingMachinesCompatibilityModule extends AbstractCompatibilityMod
     @Override
     public boolean openContainer(AbstractContainerMenu container, ServerPlayer serverPlayerEntity) {
 
-        if (container instanceof CashConverterContainer converter) {
+        if (container instanceof CashConverterMenu converter) {
             PolymorphApi.common().getRecipeData(serverPlayerEntity)
                     .ifPresent(recipeData -> {
                         CraftingContainer inv = converter.getInputSlot();

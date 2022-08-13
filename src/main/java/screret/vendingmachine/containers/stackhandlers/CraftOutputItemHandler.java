@@ -1,16 +1,15 @@
-package screret.vendingmachine.containers.gui;
+package screret.vendingmachine.containers.stackhandlers;
 
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.inventory.RecipeHolder;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.SlotItemHandler;
 import org.jetbrains.annotations.NotNull;
-import screret.vendingmachine.containers.ConversionResultStackHandler;
+import screret.vendingmachine.containers.stackhandlers.ConversionResultStackHandler;
 import screret.vendingmachine.init.Registration;
 import screret.vendingmachine.recipes.MoneyConversionRecipe;
 

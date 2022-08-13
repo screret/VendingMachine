@@ -1,4 +1,4 @@
-package screret.vendingmachine.containers;
+package screret.vendingmachine.containers.stackhandlers;
 
 import net.minecraft.world.inventory.RecipeHolder;
 import net.minecraft.world.item.ItemStack;

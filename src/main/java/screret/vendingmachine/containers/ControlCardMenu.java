@@ -9,13 +9,13 @@ import screret.vendingmachine.init.Registration;
 
 import java.util.UUID;
 
-public class ContainerControlCard extends AbstractContainerMenu {
+public class ControlCardMenu extends AbstractContainerMenu {
     private final UUID ownerUUID;
     private final Controller controller;
     private final Inventory inv;
 
-    public ContainerControlCard(int windowID, Inventory inv, UUID uuid, Controller controller) {
-        super(Registration.CONTAINER_CONTROL_CARD.get(), windowID);
+    public ControlCardMenu(int windowID, Inventory inv, UUID uuid, Controller controller) {
+        super(Registration.CONTROL_CARD_MENU.get(), windowID);
         this.inv = inv;
         ownerUUID = uuid;
         this.controller = controller;

@@ -12,6 +12,7 @@ import net.minecraftforge.items.SlotItemHandler;
 import net.minecraftforge.items.wrapper.PlayerInvWrapper;
 import org.jetbrains.annotations.NotNull;
 import screret.vendingmachine.configs.VendingMachineConfig;
+import screret.vendingmachine.containers.stackhandlers.LargeStackHandler;
 import screret.vendingmachine.init.Registration;
 import screret.vendingmachine.blockEntities.VendingMachineBlockEntity;
 
@@ -20,7 +21,7 @@ import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.UUID;
 
-public class VenderBlockContainer extends AbstractContainerMenu {
+public class VenderBlockMenu extends AbstractContainerMenu {
 
     private final PlayerInvWrapper playerInventory;
     public final LargeStackHandler inventory;
@@ -36,8 +37,8 @@ public class VenderBlockContainer extends AbstractContainerMenu {
     public static final int INPUT_SLOTS_Y_AMOUNT = 6;
     public static int MONEY_SLOT_INDEX, OUTPUT_SLOT_INDEX, LAST_CONTAINER_SLOT_INDEX;
 
-    public VenderBlockContainer(int windowID, Inventory playerInventory, LargeStackHandler inventory, ItemStackHandler otherSlots, VendingMachineBlockEntity tileEntity) {
-        super(Registration.VENDER_CONT.get(), windowID);
+    public VenderBlockMenu(int windowID, Inventory playerInventory, LargeStackHandler inventory, ItemStackHandler otherSlots, VendingMachineBlockEntity tileEntity) {
+        super(Registration.VENDER_MENU.get(), windowID);
         this.playerInventory = new PlayerInvWrapper(playerInventory);
         this.tile = tileEntity;
         this.inventory = inventory;
@@ -57,10 +58,10 @@ public class VenderBlockContainer extends AbstractContainerMenu {
             currentPlayer = playerInventory.player.getUUID();
             checkPlayerAllowedToChangeInv(currentPlayer);
 
-            for(int x = 0; x < INPUT_SLOTS_X_AMOUNT; x++){
-                for(int y = 0; y < INPUT_SLOTS_Y_AMOUNT; y++) {
-                    int slotNumber = y * (INPUT_SLOTS_Y_AMOUNT - 1) + x;
-                    int index = this.addSlot(MyHandler(this.inventory, slotNumber, INPUT_SLOTS_XPOS + SLOT_X_SPACING * x, INPUT_SLOTS_YPOS + SLOT_Y_SPACING * y, isAllowedToTakeItems)).index;
+            for(int y = 0; y < INPUT_SLOTS_Y_AMOUNT; y++){
+                for(int x = 0; x < INPUT_SLOTS_X_AMOUNT; x++) {
+                    int slotNumber = y + x * INPUT_SLOTS_X_AMOUNT;
+                    int index = this.addSlot(MyHandler(this.inventory, slotNumber, INPUT_SLOTS_XPOS + SLOT_X_SPACING * y, INPUT_SLOTS_YPOS + SLOT_Y_SPACING * x, isAllowedToTakeItems)).index;
                     LAST_CONTAINER_SLOT_INDEX = Math.max(LAST_CONTAINER_SLOT_INDEX, index);
                 }
             }
@@ -551,11 +552,11 @@ public class VenderBlockContainer extends AbstractContainerMenu {
     private SlotAccess createCarriedSlotAccess() {
         return new SlotAccess() {
             public ItemStack get() {
-                return VenderBlockContainer.this.getCarried();
+                return VenderBlockMenu.this.getCarried();
             }
 
             public boolean set(ItemStack stack) {
-                VenderBlockContainer.this.setCarried(stack);
+                VenderBlockMenu.this.setCarried(stack);
                 return true;
             }
         };

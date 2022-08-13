@@ -11,20 +11,20 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.level.Level;
 import screret.vendingmachine.VendingMachine;
 import screret.vendingmachine.capabilities.Controller;
-import screret.vendingmachine.containers.ContainerControlCard;
+import screret.vendingmachine.containers.ControlCardMenu;
 import screret.vendingmachine.events.packets.LoadChunkPacket;
 import screret.vendingmachine.events.packets.OpenVenderGUIPacket;
 
-public class ControlCardScreen extends AbstractContainerScreen<ContainerControlCard> {
+public class ControlCardScreen extends AbstractContainerScreen<ControlCardMenu> {
     private final ResourceLocation textureLocation = new ResourceLocation(VendingMachine.MODID, "textures/gui/controller_gui.png");
-    private final ContainerControlCard backupMenu;
+    private final ControlCardMenu backupMenu;
 
-    public ControlCardScreen(ContainerControlCard container, Inventory playerInventory, Component name) {
+    public ControlCardScreen(ControlCardMenu container, Inventory playerInventory, Component name) {
         super(container, playerInventory, name);
         this.imageWidth = 128;
         this.imageHeight = 53;
-        if(container == null || this.menu == null && playerInventory.player.containerMenu instanceof ContainerControlCard){
-            backupMenu = (ContainerControlCard) playerInventory.player.containerMenu;
+        if(container == null || this.menu == null && playerInventory.player.containerMenu instanceof ControlCardMenu){
+            backupMenu = (ControlCardMenu) playerInventory.player.containerMenu;
         } else {
             backupMenu = null;
         }

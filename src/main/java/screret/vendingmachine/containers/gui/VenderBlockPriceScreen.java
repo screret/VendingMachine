@@ -14,8 +14,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.SlotItemHandler;
 import screret.vendingmachine.VendingMachine;
 import screret.vendingmachine.configs.VendingMachineConfig;
-import screret.vendingmachine.containers.VenderBlockContainer;
-import screret.vendingmachine.containers.VenderPriceEditorContainer;
+import screret.vendingmachine.containers.VenderBlockMenu;
+import screret.vendingmachine.containers.VenderPriceEditorMenu;
 import screret.vendingmachine.events.packets.ChangePricePacket;
 import screret.vendingmachine.events.packets.OpenVenderGUIPacket;
 import screret.vendingmachine.blockEntities.VendingMachineBlockEntity;
@@ -23,7 +23,7 @@ import screret.vendingmachine.items.MoneyItem;
 
 import javax.annotation.Nullable;
 
-public class VenderBlockPriceScreen extends AbstractContainerScreen<VenderPriceEditorContainer> {
+public class VenderBlockPriceScreen extends AbstractContainerScreen<VenderPriceEditorMenu> {
     private int currentPrice = 0;
     private ItemStack selectedItem;
 
@@ -39,7 +39,7 @@ public class VenderBlockPriceScreen extends AbstractContainerScreen<VenderPriceE
 
     private boolean renderPriceMenu = false;
 
-    public VenderBlockPriceScreen(VenderPriceEditorContainer container, Inventory inv, Component name) {
+    public VenderBlockPriceScreen(VenderPriceEditorMenu container, Inventory inv, Component name) {
         super(container, inv, name);
         this.imageWidth = 176;
         this.imageHeight = 222;
@@ -130,7 +130,7 @@ public class VenderBlockPriceScreen extends AbstractContainerScreen<VenderPriceE
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
         SlotItemHandler slot = findSlot(mouseX, mouseY);
-        if(slot != null && (itemPriceInput == null || !itemPriceInput.isActive()) && slot.getSlotIndex() < VenderBlockContainer.LAST_CONTAINER_SLOT_INDEX){
+        if(slot != null && (itemPriceInput == null || !itemPriceInput.isActive()) && slot.getSlotIndex() < VenderBlockMenu.LAST_CONTAINER_SLOT_INDEX){
             selectedItem = slot.getItem();
             if(selectedItem != null && selectedItem != ItemStack.EMPTY){
                 if(mouseButton == 0){

@@ -24,7 +24,7 @@ import screret.vendingmachine.VendingMachineForgeRegistration;
 import screret.vendingmachine.capabilities.ControlCardCapability;
 import screret.vendingmachine.capabilities.Controller;
 import screret.vendingmachine.capabilities.IController;
-import screret.vendingmachine.containers.ContainerControlCard;
+import screret.vendingmachine.containers.ControlCardMenu;
 import screret.vendingmachine.blockEntities.VendingMachineBlockEntity;
 
 import javax.annotation.Nonnull;
@@ -134,8 +134,8 @@ public class ControlCardItem extends Item {
         }
 
         @Override
-        public ContainerControlCard createMenu(int windowID, Inventory playerInventory, Player playerEntity) {
-            return new ContainerControlCard(windowID, playerInventory, controlCardItem.getOwner(), ControlCardItem.getController(controlCardItem, thisStack));
+        public ControlCardMenu createMenu(int windowID, Inventory playerInventory, Player playerEntity) {
+            return new ControlCardMenu(windowID, playerInventory, controlCardItem.getOwner(), ControlCardItem.getController(controlCardItem, thisStack));
         }
 
         private ControlCardItem controlCardItem;

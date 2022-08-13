@@ -32,6 +32,7 @@
   "item.vendingmachine.money": "%1$s Dollar %2$s",
   "item.vendingmachine.money.bill": "Bill",
   "item.vendingmachine.money.coin": "Coin",
+  "item.vendingmachine.wallet": "Wallet",
 
   "itemGroup.vendingmachine": "Vending Machines",
 

@@ -11,18 +11,18 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import screret.vendingmachine.VendingMachine;
 import screret.vendingmachine.configs.VendingMachineConfig;
-import screret.vendingmachine.containers.VenderBlockContainer;
+import screret.vendingmachine.containers.VenderBlockMenu;
 import screret.vendingmachine.events.packets.CashOutPacket;
 import screret.vendingmachine.events.packets.OpenVenderGUIPacket;
 import screret.vendingmachine.events.packets.PacketSendBuy;
 import screret.vendingmachine.blockEntities.VendingMachineBlockEntity;
 import screret.vendingmachine.items.MoneyItem;
 
-public class VenderBlockScreen extends AbstractContainerScreen<VenderBlockContainer> {
+public class VenderBlockScreen extends AbstractContainerScreen<VenderBlockMenu> {
     private ResourceLocation widgets = new ResourceLocation(VendingMachine.MODID, "textures/gui/widgets.png");
     private static final ResourceLocation GUI = new ResourceLocation(VendingMachine.MODID, "textures/gui/vending_machine_gui.png");
 
-    public VenderBlockScreen(VenderBlockContainer container, Inventory inv, Component name) {
+    public VenderBlockScreen(VenderBlockMenu container, Inventory inv, Component name) {
         super(container, inv, name);
         this.imageWidth = 176;
         this.imageHeight = 222;
@@ -63,7 +63,7 @@ public class VenderBlockScreen extends AbstractContainerScreen<VenderBlockContai
     protected void renderBg(PoseStack poseStack, float partialTicks, int mouseX, int mouseY) {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderSystem.setShaderTexture(0, this.GUI);
+        RenderSystem.setShaderTexture(0, GUI);
         this.blit(poseStack, leftPos, topPos, 0, 0, this.getXSize(), this.getYSize());
     }
 
@@ -71,7 +71,7 @@ public class VenderBlockScreen extends AbstractContainerScreen<VenderBlockContai
     protected void renderTooltip(PoseStack matrixStack, ItemStack itemStack, int x, int y) {
         Object price = this.menu.getTile().getPrices().get(itemStack.getItem());
         var tooltip = this.getTooltipFromItem(itemStack);
-        if(this.hoveredSlot.index < VenderBlockContainer.LAST_CONTAINER_SLOT_INDEX) tooltip.add(1, Component.translatable("tooltip.vendingmachine.price", MoneyItem.DECIMAL_FORMAT.format(price == null ? 0 : price), VendingMachineConfig.GENERAL.isStackPrices.get() ? itemStack.getMaxStackSize() : 1));
+        if(this.hoveredSlot.index < VenderBlockMenu.LAST_CONTAINER_SLOT_INDEX) tooltip.add(1, Component.translatable("tooltip.vendingmachine.price", MoneyItem.DECIMAL_FORMAT.format(price == null ? 0 : price), VendingMachineConfig.GENERAL.isStackPrices.get() ? itemStack.getMaxStackSize() : 1));
 
         this.renderTooltip(matrixStack, tooltip, itemStack.getTooltipImage(), x, y, this.font);
     }

@@ -9,14 +9,15 @@ import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.SlotItemHandler;
 import net.minecraftforge.items.wrapper.PlayerInvWrapper;
 import org.jetbrains.annotations.NotNull;
+import screret.vendingmachine.containers.stackhandlers.LargeStackHandler;
 import screret.vendingmachine.init.Registration;
 import screret.vendingmachine.blockEntities.VendingMachineBlockEntity;
 
 import java.util.UUID;
 
-import static screret.vendingmachine.containers.VenderBlockContainer.*;
+import static screret.vendingmachine.containers.VenderBlockMenu.*;
 
-public class VenderPriceEditorContainer extends AbstractContainerMenu {
+public class VenderPriceEditorMenu extends AbstractContainerMenu {
     private final PlayerInvWrapper playerInventory;
     public final LargeStackHandler inputInventory;
     final VendingMachineBlockEntity tile;
@@ -25,8 +26,8 @@ public class VenderPriceEditorContainer extends AbstractContainerMenu {
     public SlotItemHandler selectedSlot;
 
 
-    public VenderPriceEditorContainer(int windowID, Inventory inv, LargeStackHandler inputInv, VendingMachineBlockEntity tileEntity) {
-        super(Registration.VENDER_CONT_PRICES.get(), windowID);
+    public VenderPriceEditorMenu(int windowID, Inventory inv, LargeStackHandler inputInv, VendingMachineBlockEntity tileEntity) {
+        super(Registration.VENDER_PRICES_MENU.get(), windowID);
         this.tile = tileEntity;
         this.playerInventory = new PlayerInvWrapper(inv);
         this.inputInventory = inputInv;
@@ -38,9 +39,9 @@ public class VenderPriceEditorContainer extends AbstractContainerMenu {
             final int INPUT_SLOTS_XPOS = 8;
             final int INPUT_SLOTS_YPOS = 18;
 
-            for(int x = 0; x < INPUT_SLOTS_X_AMOUNT; x++){
-                for(int y = 0; y < INPUT_SLOTS_Y_AMOUNT; y++) {
-                    int slotNumber = y * (INPUT_SLOTS_Y_AMOUNT - 1) + x;
+            for(int y = 0; y < INPUT_SLOTS_Y_AMOUNT; y++){
+                for(int x = 0; x < INPUT_SLOTS_X_AMOUNT; x++) {
+                    int slotNumber = y + x * INPUT_SLOTS_X_AMOUNT;
                     this.addSlot(MyHandler(this.inputInventory, slotNumber, INPUT_SLOTS_XPOS + SLOT_X_SPACING * x, INPUT_SLOTS_YPOS + SLOT_Y_SPACING * y));
                 }
             }

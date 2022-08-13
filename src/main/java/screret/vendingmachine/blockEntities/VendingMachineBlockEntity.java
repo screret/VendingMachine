@@ -4,7 +4,6 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.FloatTag;
-import net.minecraft.nbt.IntTag;
 import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -16,18 +15,16 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.RecordItem;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
-import screret.vendingmachine.VendingMachine;
 import screret.vendingmachine.blocks.VendingMachineBlock;
 import screret.vendingmachine.configs.VendingMachineConfig;
-import screret.vendingmachine.containers.LargeStackHandler;
-import screret.vendingmachine.containers.VenderBlockContainer;
+import screret.vendingmachine.containers.VenderBlockMenu;
+import screret.vendingmachine.containers.stackhandlers.LargeStackHandler;
 import screret.vendingmachine.init.Registration;
 import screret.vendingmachine.items.MoneyItem;
 
@@ -146,12 +143,12 @@ public class VendingMachineBlockEntity extends BlockEntity implements MenuProvid
         return Component.translatable("container.vendingmachine.vendingmachine");
     }
 
-    public VenderBlockContainer container;
+    public VenderBlockMenu container;
 
     @Override
-    public VenderBlockContainer createMenu(int windowID, Inventory playerInventory, Player playerEntity) {
+    public VenderBlockMenu createMenu(int windowID, Inventory playerInventory, Player playerEntity) {
         currentPlayer = playerEntity;
-        this.container = new VenderBlockContainer(windowID, playerInventory, this.inventory, this.otherSlots, this);
+        this.container = new VenderBlockMenu(windowID, playerInventory, this.inventory, this.otherSlots, this);
         return this.container;
     }
 

@@ -18,7 +18,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.network.NetworkHooks;
-import screret.vendingmachine.containers.CashConverterContainer;
+import screret.vendingmachine.containers.CashConverterMenu;
 
 public class CashConverterBlock extends HorizontalDirectionalBlock {
 
@@ -50,6 +50,6 @@ public class CashConverterBlock extends HorizontalDirectionalBlock {
 
     @Override
     public MenuProvider getMenuProvider(BlockState state, Level level, BlockPos pos) {
-        return new SimpleMenuProvider((windowId, playerInventory, player) -> new CashConverterContainer(windowId, playerInventory, ContainerLevelAccess.create(level, pos)), CONTAINER_TITLE);
+        return new SimpleMenuProvider((windowId, playerInventory, player) -> new CashConverterMenu(windowId, playerInventory, ContainerLevelAccess.create(level, pos)), CONTAINER_TITLE);
     }
 }

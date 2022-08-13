@@ -1,4 +1,4 @@
-package screret.vendingmachine.containers;
+package screret.vendingmachine.containers.stackhandlers;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -158,14 +158,21 @@ public class LargeStackHandler extends ItemStackHandler {
         onLoad();
     }
 
-    public CompoundTag saveItem(CompoundTag p_77955_1_, ItemStack stack) {
-        ResourceLocation resourcelocation = ForgeRegistries.ITEMS.getKey(stack.getItem());
-        p_77955_1_.putString("id", resourcelocation.toString());
-        p_77955_1_.putInt("Count", stack.getCount());
+    public CompoundTag saveItem(CompoundTag tag, ItemStack stack) {
+        ResourceLocation itemId = ForgeRegistries.ITEMS.getKey(stack.getItem());
+        tag.putString("id", itemId.toString());
+        tag.putInt("Count", stack.getCount());
         if (stack.getTag() != null) {
-            p_77955_1_.put("tag", stack.getTag().copy());
+            tag.put("tag", stack.getTag().copy());
         }
-        return p_77955_1_;
+
+        CompoundTag itemStackTag = stack.save(new CompoundTag());
+        CompoundTag caps = itemStackTag.getCompound("ForgeCaps");
+        if (!caps.isEmpty()) {
+            tag.put("ForgeCaps", caps);
+        }
+
+        return tag;
     }
 
     public ItemStack loadItem(CompoundTag nbt) {

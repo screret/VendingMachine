@@ -14,7 +14,6 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.data.event.GatherDataEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
@@ -32,10 +31,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import screret.vendingmachine.capabilities.ControlCardCapability;
 import screret.vendingmachine.configs.VendingMachineConfig;
-import screret.vendingmachine.containers.gui.CashConverterScreen;
-import screret.vendingmachine.containers.gui.ControlCardScreen;
-import screret.vendingmachine.containers.gui.VenderBlockPriceScreen;
-import screret.vendingmachine.containers.gui.VenderBlockScreen;
+import screret.vendingmachine.containers.gui.*;
 import screret.vendingmachine.events.packets.*;
 import screret.vendingmachine.init.Registration;
 import screret.vendingmachine.integration.polymorph.VendingMachinesCompatibilityModule;
@@ -119,7 +115,7 @@ public class VendingMachine {
 
         Registration.BLOCKS.register(modEventBus);
         Registration.ITEMS.register(modEventBus);
-        Registration.CONTAINERS.register(modEventBus);
+        Registration.MENU_TYPES.register(modEventBus);
         Registration.TILES.register(modEventBus);
         Registration.RECIPE_SERIALIZERS.register(modEventBus);
         Registration.RECIPE_TYPES.register(modEventBus);
@@ -137,10 +133,11 @@ public class VendingMachine {
     }
 
     private void doClientStuff(final FMLClientSetupEvent event) {
-        event.enqueueWork(() -> MenuScreens.register(Registration.VENDER_CONT.get(), VenderBlockScreen::new));
-        event.enqueueWork(() -> MenuScreens.register(Registration.VENDER_CONT_PRICES.get(), VenderBlockPriceScreen::new));
-        event.enqueueWork(() -> MenuScreens.register(Registration.CONTAINER_CONTROL_CARD.get(), ControlCardScreen::new));
-        event.enqueueWork(() -> MenuScreens.register(Registration.CASH_CONVERTER_CONT.get(), CashConverterScreen::new));
+        event.enqueueWork(() -> MenuScreens.register(Registration.VENDER_MENU.get(), VenderBlockScreen::new));
+        event.enqueueWork(() -> MenuScreens.register(Registration.VENDER_PRICES_MENU.get(), VenderBlockPriceScreen::new));
+        event.enqueueWork(() -> MenuScreens.register(Registration.CONTROL_CARD_MENU.get(), ControlCardScreen::new));
+        event.enqueueWork(() -> MenuScreens.register(Registration.CASH_CONVERTER_MENU.get(), CashConverterScreen::new));
+        event.enqueueWork(() -> MenuScreens.register(Registration.WALLET_MENU.get(), WalletScreen::new));
 
         event.enqueueWork(() -> ItemProperties.register(Registration.MONEY.get(), new ResourceLocation(VendingMachine.MODID, "money_value"), (stack, world, holdingEntity, entityId) -> MoneyItem.getMoneyValue(stack)));
 
