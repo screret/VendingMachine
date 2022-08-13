@@ -1,7 +1,6 @@
 package screret.vendingmachine;
 
 import com.illusivesoulworks.polymorph.common.integration.AbstractCompatibilityModule;
-import com.illusivesoulworks.polymorph.common.integration.PolymorphIntegrations;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.core.NonNullList;
@@ -24,6 +23,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.InterModEnqueueEvent;
 import net.minecraftforge.fml.event.lifecycle.InterModProcessEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fml.loading.FMLLoader;
 import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
@@ -40,7 +40,7 @@ import screret.vendingmachine.events.packets.*;
 import screret.vendingmachine.init.Registration;
 import screret.vendingmachine.integration.polymorph.VendingMachinesCompatibilityModule;
 import screret.vendingmachine.items.MoneyItem;
-import screret.vendingmachine.mixin.AccessorPolymorphIntegrations;
+import screret.vendingmachine.mixin.compat.AccessorPolymorphIntegrations;
 import screret.vendingmachine.recipes.builders.MoneyConversionRecipeProvider;
 
 import java.util.Optional;
@@ -91,7 +91,7 @@ public class VendingMachine {
     );
 
     static {
-        if(ModList.get().isLoaded(POLYMORPH_MODID)){
+        if(FMLLoader.getLoadingModList().getModFileById(POLYMORPH_MODID) != null){
             final Supplier<AbstractCompatibilityModule> sup = VendingMachinesCompatibilityModule::new;
             AccessorPolymorphIntegrations.getConfigActivated().add(MODID);
             AccessorPolymorphIntegrations.getIntegrations().put(MODID, () -> sup);

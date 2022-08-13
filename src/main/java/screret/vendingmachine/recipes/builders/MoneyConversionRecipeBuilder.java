@@ -77,9 +77,9 @@ public class MoneyConversionRecipeBuilder implements RecipeBuilder {
         recipe.accept(new MoneyConversionRecipeBuilder.Result(recipeId, this.group == null ? "" : this.group, this.ingredient, this.result, this.advancement, new ResourceLocation(recipeId.getNamespace(), "recipes/" + this.result.getItem().getItemCategory().getRecipeFolderName() + "/" + recipeId.getPath())));
     }
 
-    private void ensureValid(ResourceLocation p_126330_) {
+    private void ensureValid(ResourceLocation recipeId) {
         if (this.advancement.getCriteria().isEmpty()) {
-            throw new IllegalStateException("No way of obtaining recipe " + p_126330_);
+            throw new IllegalStateException("No way of obtaining recipe " + recipeId);
         }
     }
 

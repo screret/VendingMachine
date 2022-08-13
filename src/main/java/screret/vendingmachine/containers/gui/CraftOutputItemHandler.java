@@ -10,6 +10,7 @@ import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.SlotItemHandler;
 import org.jetbrains.annotations.NotNull;
+import screret.vendingmachine.containers.ConversionResultStackHandler;
 import screret.vendingmachine.init.Registration;
 import screret.vendingmachine.recipes.MoneyConversionRecipe;
 
@@ -84,13 +85,21 @@ public class CraftOutputItemHandler extends SlotItemHandler {
         NonNullList<ItemStack> stacks = player.level.getRecipeManager().getRemainingItemsFor(Registration.MONEY_CONVERSION_RECIPE_TYPE.get(), this.craftSlots, player.level);
         Optional<MoneyConversionRecipe> recipeOptional = player.level.getRecipeManager().getRecipeFor(Registration.MONEY_CONVERSION_RECIPE_TYPE.get(), this.craftSlots, player.level);
         ForgeHooks.setCraftingPlayer(null);
+        var lastUsedRecipe = this.getItemHandler() instanceof ConversionResultStackHandler handler ? handler.getRecipeUsed() : null;
         for(int i = 0; i < stacks.size(); ++i) {
             ItemStack craftStack = this.craftSlots.getItem(i);
             ItemStack slotStack = stacks.get(i);
-            if (!craftStack.isEmpty() && recipeOptional.isPresent()) {
-                this.craftSlots.removeItem(i, recipeOptional.get().getIngredientStack().getCount());
-                craftStack = this.craftSlots.getItem(i);
+
+            if(!craftStack.isEmpty()){
+                if(lastUsedRecipe instanceof MoneyConversionRecipe recipe){
+                    this.craftSlots.removeItem(i, recipe.getIngredientStack().getCount());
+                    craftStack = this.craftSlots.getItem(i);
+                } else if (recipeOptional.isPresent()) {
+                    this.craftSlots.removeItem(i, recipeOptional.get().getIngredientStack().getCount());
+                    craftStack = this.craftSlots.getItem(i);
+                }
             }
+
 
             if (!slotStack.isEmpty()) {
                 if (craftStack.isEmpty()) {

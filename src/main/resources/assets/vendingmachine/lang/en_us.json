@@ -35,8 +35,9 @@
 
   "itemGroup.vendingmachine": "Vending Machines",
 
-  "msg.vendingmachine.notenoughmoney": "§cYou appear to not have inserted enough money to the machine. \n§6You get what you can pay for.",
+  "msg.vendingmachine.not_enough_money": "§cYou appear to not have inserted enough money to the machine. \n§6You get what you can pay for.",
   "msg.vendingmachine.buy": "§6Bought %1$s §6for %2$s %3$s.",
+  "msg.vendingmachine.gave_change": "You got %1$s dollars as change.",
 
   "tooltip.vendingmachine.price": "§6Price: %1$s Per %2$s",
   "tooltip.vendingmachine.leftclickprice": "§eLeft-Click To Change Price",

@@ -57,7 +57,7 @@ public class MoneyConversionRecipe implements Recipe<CraftingContainer> {
 
     @Override
     public ResourceLocation getId() {
-        return TYPE_ID;
+        return this.id;
     }
 
     @Override

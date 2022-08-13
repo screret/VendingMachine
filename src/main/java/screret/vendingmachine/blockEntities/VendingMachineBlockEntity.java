@@ -179,9 +179,10 @@ public class VendingMachineBlockEntity extends BlockEntity implements MenuProvid
                     var _amount = Math.min((int)(collectedMoney / price), amount);
                     stack1 = new ItemStack(stack.getItem(), _amount);
 
-                    currentPlayer.sendSystemMessage(Component.translatable("msg.vendingmachine.notenoughmoney"));
+                    currentPlayer.sendSystemMessage(Component.translatable("msg.vendingmachine.not_enough_money"));
                 }else{
-                    giveChange(_price, currentPlayerInsertedMoney);
+                    var change = giveChange(_price, currentPlayerInsertedMoney);
+                    currentPlayer.sendSystemMessage(Component.translatable("msg.vendingmachine.gave_change", change));
                 }
                 currentPlayerInsertedMoney -= _price;
             } else {
@@ -201,7 +202,7 @@ public class VendingMachineBlockEntity extends BlockEntity implements MenuProvid
         }
     }
 
-    private void giveChange(float price, float insertedMoney){
+    private float giveChange(float price, float insertedMoney){
         float change = insertedMoney - price;
 
         if(!level.isClientSide() && change > 0){
@@ -233,7 +234,7 @@ public class VendingMachineBlockEntity extends BlockEntity implements MenuProvid
 
             for (int i = 0; i < moneyOut.length; ++i) {
                 if(collectedMoney < moneyOut[i])
-                    return;
+                    return change;
 
                 boolean check = moneyOut[i] != 0;
 
@@ -291,6 +292,7 @@ public class VendingMachineBlockEntity extends BlockEntity implements MenuProvid
                 }
             }
         }
+        return change;
     }
 
     public void cashOut(){

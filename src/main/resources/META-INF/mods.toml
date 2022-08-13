@@ -52,14 +52,13 @@ issueTrackerURL="https://github.com/screret/VendingMachine/issues/" #optional
     [[dependencies.vendingmachine]]
         modId="minecraft"
         mandatory=true
-    # This version range dclares a minimum of the current minecraft version up to but not including the next major version
+        # This version range dclares a minimum of the current minecraft version up to but not including the next major version
         versionRange="[1.19.2,1.20)"
         ordering="NONE"
         side="BOTH"
     [[dependencies.vendingmachine]]
         modId="polymorph"
-        mandatory=true
-        # This version range dclares a minimum of the current minecraft version up to but not including the next major version
+        mandatory=false
         versionRange="[0.45.0+1.19.1,)"
         ordering="BEFORE"
         side="BOTH"
