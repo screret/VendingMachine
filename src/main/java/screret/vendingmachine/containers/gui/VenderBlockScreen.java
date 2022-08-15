@@ -2,11 +2,13 @@ package screret.vendingmachine.containers.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import screret.vendingmachine.VendingMachine;
@@ -34,27 +36,44 @@ public class VenderBlockScreen extends AbstractContainerScreen<VenderBlockMenu> 
     public void init(){
         super.init();
 
-        leftPos = (this.width - this.getXSize()) / 2;
-        topPos = (this.height - this.getYSize()) / 2;
+        leftPos = (this.width - this.imageWidth) / 2;
+        topPos = (this.height - this.imageHeight) / 2;
 
-        this.addRenderableWidget(new Button(leftPos + 110, topPos + 108, 53, 18, Component.translatable("gui.vendingmachine.buybutton"), onBuyButtonPress));
+        this.insertedMoneyTextX = leftPos + 136;
+        this.insertedMoneyTextY = topPos + 16;
+
+        this.addRenderableWidget(new Button(leftPos + 109, topPos + 108, 53, 18, Component.translatable("gui.vendingmachine.button_buy"), onBuyButtonPress));
         //this.addRenderableWidget(new Button(leftPos + 133, topPos + 64, 18, 9, new TranslatableComponent("gui.vendingmachine.buytestbutton"), onTestButtonPress));
 
         if(menu.checkPlayerAllowedToChangeInv(menu.currentPlayer)){
-            this.addRenderableWidget(new VenderTabButton(leftPos + this.imageWidth, topPos + 2, 32, 28, Component.translatable("gui.vendingmachine.mainbutton"), onTabButtonPress(true), true, true));
-            this.addRenderableWidget(new VenderTabButton(leftPos + this.imageWidth, topPos + 30, 32, 28, Component.translatable("gui.vendingmachine.tab_price"), onTabButtonPress(false), false, false));
-            this.addRenderableWidget(new Button(leftPos + 134, topPos + 60, 16, 8, Component.empty(), onCashOutButtonPress, onCashOutButtonTooltip));
+            this.addRenderableWidget(new VenderTabButton(leftPos + this.imageWidth, topPos + 2, 32, 28, Component.translatable("gui.vendingmachine.button_tab_main"), onTabButtonPress(true), true, true));
+            this.addRenderableWidget(new VenderTabButton(leftPos + this.imageWidth, topPos + 30, 32, 28, Component.translatable("gui.vendingmachine.button_tab_price"), onTabButtonPress(false), false, false));
+            this.addRenderableWidget(new Button(leftPos + 127, topPos + 60, 16, 8, Component.empty(), onCashOutButtonPress, onCashOutButtonTooltip));
         }
     }
 
+    private int insertedMoneyTextX, insertedMoneyTextY;
+    private boolean oldFullscreenState = true;
+
     @Override
     public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
+        if(oldFullscreenState != this.minecraft.options.fullscreen().get()){
+            oldFullscreenState = this.minecraft.options.fullscreen().get();
+            leftPos = (this.width - this.imageWidth) / 2;
+            topPos = (this.height - this.imageHeight) / 2;
+            this.insertedMoneyTextX = leftPos + 136;
+            this.insertedMoneyTextY = topPos + 16;
+        }
+
         this.renderBackground(poseStack);
         super.render(poseStack, mouseX, mouseY, partialTicks);
 
         if(menu.selectedSlot != null && !menu.isAllowedToTakeItems){
             fillGradient(poseStack, leftPos + menu.selectedSlot.x, topPos + menu.selectedSlot.y, leftPos + menu.selectedSlot.x + 16, topPos + menu.selectedSlot.y + 16, 0x7500FF00, 0x75009900);
         }
+
+        FormattedCharSequence sequence = Component.translatable("gui.vendingmachine.inserted_money", MoneyItem.DECIMAL_FORMAT.format(menu.getTile().currentPlayerInsertedMoney)).getVisualOrderText();
+        this.font.draw(poseStack, sequence, (float)(insertedMoneyTextX - this.font.width(sequence) / 2), (float)insertedMoneyTextY, 0x404040);
 
         this.renderTooltip(poseStack, mouseX, mouseY);
     }

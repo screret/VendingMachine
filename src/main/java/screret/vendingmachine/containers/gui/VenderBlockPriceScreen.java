@@ -60,11 +60,24 @@ public class VenderBlockPriceScreen extends AbstractContainerScreen<VenderPriceE
         this.addRenderableWidget(mainPageButton);
         this.addRenderableWidget(thisPageButton);
     }
+    private boolean oldFullscreenState = true;
 
     @Override
     public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
+        if(oldFullscreenState != this.minecraft.options.fullscreen().get()){
+            oldFullscreenState = this.minecraft.options.fullscreen().get();
+            leftPos = (this.width - this.imageWidth) / 2;
+            topPos = (this.height - this.imageHeight) / 2;
+            if(renderPriceMenu){
+                createAddMenu(itemPriceInput.getValue());
+            }
+        }
+
         this.renderBackground(poseStack);
+        this.itemRenderer.blitOffset = this.itemRenderer.blitOffset - 200f;
         super.render(poseStack, mouseX, mouseY, partialTicks);
+        this.itemRenderer.blitOffset = this.itemRenderer.blitOffset + 200f;
+
 
         if(this.menu.selectedSlot != null && menu.isAllowedToTakeItems){
             fillGradient(poseStack, leftPos + menu.selectedSlot.x, topPos + menu.selectedSlot.y, leftPos + menu.selectedSlot.x + 16, topPos + menu.selectedSlot.y + 16, 0x7500FF00, 0x75009900);
@@ -74,7 +87,7 @@ public class VenderBlockPriceScreen extends AbstractContainerScreen<VenderPriceE
         this.renderTooltip(poseStack, mouseX, mouseY);
     }
 
-    private static final Component addPriceGuiName = Component.translatable("gui.vendingmachine.addprice");
+    private static final Component addPriceGuiName = Component.translatable("gui.vendingmachine.button_add_price");
 
     private void renderButtons(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
         if(renderPriceMenu){
@@ -92,15 +105,15 @@ public class VenderBlockPriceScreen extends AbstractContainerScreen<VenderPriceE
             //this.setBlitOffset(this.getBlitOffset() - 10);
             poseStack.translate(0.0D, 0.0D, -300.0D);
 
-            if(itemPriceInput.getValue().length() > 0 && !itemPriceInput.getValue().equals(""))
+            if(itemPriceInput.getValue().length() > 0 && !itemPriceInput.getValue().matches("\\u0000+|\\ufeff+|\\u200b+|\\u200c+|\\u200d+| +|^$"))
                 addPriceMenuButtonContinue.active = true;
             else
                 addPriceMenuButtonContinue.active = false;
         }
     }
 
-    private static final Component toolTipLeftClickAddPrice = Component.translatable("tooltip.vendingmachine.leftclickprice");
-    private static final Component toolTipRightClickRemovePrice = Component.translatable("tooltip.vendingmachine.rightclickprice");
+    private static final Component toolTipLeftClickAddPrice = Component.translatable("tooltip.vendingmachine.left_click_price");
+    private static final Component toolTipRightClickRemovePrice = Component.translatable("tooltip.vendingmachine.right_click_price");
 
     @Override
     protected void renderTooltip(PoseStack poseStack, ItemStack itemStack, int mouseX, int mouseY) {
@@ -123,8 +136,8 @@ public class VenderBlockPriceScreen extends AbstractContainerScreen<VenderPriceE
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShaderTexture(0, this.gui);
         this.blit(poseStack, leftPos, topPos, 0, 0, this.getXSize(), this.getYSize());
-        this.blit(poseStack, leftPos + 133, topPos + 35, 98, 4, 18, 18);
-        this.blit(poseStack, leftPos + 129, topPos + 76, 98, 4, 26, 26);
+        this.blit(poseStack, leftPos + 126, topPos + 35, 98, 4, 18, 18);
+        this.blit(poseStack, leftPos + 122, topPos + 76, 98, 4, 26, 26);
     }
 
     @Override
@@ -135,7 +148,9 @@ public class VenderBlockPriceScreen extends AbstractContainerScreen<VenderPriceE
             if(selectedItem != null && selectedItem != ItemStack.EMPTY){
                 if(mouseButton == 0){
                     menu.selectedSlot = slot;
-                    createAddMenu();
+                    var val = this.menu.getTile().getPrices().get(selectedItem.getItem());
+                    String selectedItemValueString = MoneyItem.DECIMAL_FORMAT.format(val == null ? 0 : val);
+                    createAddMenu(selectedItemValueString);
                 }else if(mouseButton == 1){
                     VendingMachineBlockEntity tile = menu.getTile();
                     VendingMachine.NETWORK_HANDLER.sendToServer(new ChangePricePacket(tile.getBlockPos(), selectedItem, currentPrice, false));
@@ -160,33 +175,41 @@ public class VenderBlockPriceScreen extends AbstractContainerScreen<VenderPriceE
         itemPriceInput.active = false;
     }
 
-    public void createAddMenu(){
+    public void createAddMenu(String inputVal){
         renderPriceMenu = true;
 
         if(itemPriceInput == null){
             itemPriceInput = new EditBox(this.minecraft.font, leftPos + 32, topPos + 64, 64, 16, Component.empty());
             itemPriceInput.setFilter(text -> text.matches("(^$|[0-9]+)"));
             this.addWidget(itemPriceInput);
+            itemPriceInput.setValue(inputVal);
             itemPriceInput.setMaxLength(8);
         } else {
             itemPriceInput.visible = true;
+            itemPriceInput.setValue(inputVal);
+            itemPriceInput.x = leftPos + 32;
+            itemPriceInput.y = topPos + 64;
         }
         itemPriceInput.active = true;
         itemPriceInput.setEditable(true);
 
         if(addPriceMenuButtonContinue == null){
-            addPriceMenuButtonContinue = new Button(leftPos + 32, topPos + 84, 32, 16, Component.translatable("gui.vendingmachine.continue"), onAddedPress);
+            addPriceMenuButtonContinue = new Button(leftPos + 32, topPos + 84, 32, 16, Component.translatable("gui.vendingmachine.button_continue"), onAddedPress);
             this.addWidget(addPriceMenuButtonContinue);
         } else {
             addPriceMenuButtonContinue.visible = true;
+            addPriceMenuButtonContinue.x = leftPos + 32;
+            addPriceMenuButtonContinue.y = topPos + 84;
         }
         addPriceMenuButtonContinue.active = true;
 
         if(addPriceMenuButtonCancel == null){
-            addPriceMenuButtonCancel = new Button(leftPos + 72, topPos + 84, 32, 16, Component.translatable("gui.vendingmachine.cancel"), hideAddMenu);
+            addPriceMenuButtonCancel = new Button(leftPos + 72, topPos + 84, 32, 16, Component.translatable("gui.vendingmachine.button_cancel"), hideAddMenu);
             this.addWidget(addPriceMenuButtonCancel);
         }else {
             addPriceMenuButtonCancel.visible = true;
+            addPriceMenuButtonCancel.x = leftPos + 72;
+            addPriceMenuButtonCancel.y = topPos + 84;
         }
         addPriceMenuButtonCancel.active = true;
     }

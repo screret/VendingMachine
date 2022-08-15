@@ -6,6 +6,7 @@ buildscript {
     }
     dependencies {
         classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
+        //classpath group: 'gradle.plugin.com.matthewprenger', name: 'CurseGradle', version: '1.4.0'
     }
 }
 plugins {
@@ -15,13 +16,15 @@ plugins {
 }
 
 apply plugin: 'org.spongepowered.mixin'
+//apply plugin: 'com.matthewprenger.cursegradle'
 
-version = '3.0.0'
-group = 'screret.vendingmachine' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
-archivesBaseName = 'vendingmachine'
+version = "${mod_version}"
+group = "${mod_author}.${mod_id}" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
+archivesBaseName = "${mod_id}"
 
 // Mojang ships Java 17 to end users in 1.18+, so your mod should target Java 17.
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+java.withSourcesJar()
 
 println "Java: ${System.getProperty 'java.version'}, JVM: ${System.getProperty 'java.vm.version'} (${System.getProperty 'java.vendor'}), Arch: ${System.getProperty 'os.arch'}"
 minecraft {
@@ -61,10 +64,10 @@ minecraft {
             property 'forge.logging.console.level', 'debug'
 
             // Comma-separated list of namespaces to load gametests from. Empty = all namespaces.
-            property 'forge.enabledGameTestNamespaces', 'examplemod'
+            property 'forge.enabledGameTestNamespaces', "${mod_id}"
 
             mods {
-                examplemod {
+                mod_id {
                     source sourceSets.main
                 }
             }
@@ -77,10 +80,10 @@ minecraft {
 
             property 'forge.logging.console.level', 'debug'
 
-            property 'forge.enabledGameTestNamespaces', 'examplemod'
+            property 'forge.enabledGameTestNamespaces', "${mod_id}"
 
             mods {
-                examplemod {
+                mod_id {
                     source sourceSets.main
                 }
             }
@@ -96,10 +99,10 @@ minecraft {
 
             property 'forge.logging.console.level', 'debug'
 
-            property 'forge.enabledGameTestNamespaces', 'examplemod'
+            property 'forge.enabledGameTestNamespaces', "${mod_id}"
 
             mods {
-                examplemod {
+                mod_id {
                     source sourceSets.main
                 }
             }
@@ -113,10 +116,10 @@ minecraft {
             property 'forge.logging.console.level', 'debug'
 
             // Specify the modid for data generation, where to output the resulting resource, and where to look for existing resources.
-            args '--mod', archivesBaseName, '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
+            args '--mod', "${mod_id}", '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
 
             mods {
-                examplemod {
+                mod_id {
                     source sourceSets.main
                 }
             }
@@ -153,7 +156,7 @@ dependencies {
     // Specify the version of Minecraft to use. If this is any group other than 'net.minecraft', it is assumed
     // that the dep is a ForgeGradle 'patcher' dependency, and its patches will be applied.
     // The userdev artifact is a special name and will get all sorts of transformations applied to it.
-    minecraft 'net.minecraftforge:forge:1.19.2-43.0.8'
+    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
 
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
     // Real mod deobf dependency examples - these get remapped to your current mappings
@@ -175,16 +178,42 @@ dependencies {
 jar {
     manifest {
         attributes([
-                "Specification-Title"     : "vendingmachine",
-                "Specification-Vendor"    : "screret",
-                "Specification-Version"   : "1", // We are version 1 of ourselves
-                "Implementation-Title"    : project.name,
-                "Implementation-Version"  : project.version,
-                "Implementation-Vendor"   : "screret",
+                "Specification-Title"     : mod_name,
+                "Specification-Vendor"    : mod_author,
+                "Specification-Version"   : mod_version, // We are version 1 of ourselves
+                "Implementation-Title"    : mod_name,
+                "Implementation-Version"  : mod_version,
+                "Implementation-Vendor"   : mod_author,
                 "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
         ])
     }
 }
+
+def replaceResources = tasks.register("replaceResources", Copy) {
+    //outputs.upToDateWhen { false }
+
+    from(sourceSets.main.resources) {
+        include "META-INF/mods.toml"
+        expand 'mod_version': mod_version, 'minecraft_version_range': minecraft_version_range, 'forge_version_range': forge_version_range,
+                'mod_id': mod_id, 'mod_author': mod_author, 'mod_name': mod_name
+    }
+    into "$buildDir/resources/main/"
+}
+
+/*processResources {
+    inputs.property 'version', mod_version
+    inputs.property 'minecraft_version_range', minecraft_version_range
+
+    duplicatesStrategy(DuplicatesStrategy.FAIL)
+    exclude('META-INF/mods.toml')
+    from(sourceSets.main.resources) {
+        include 'META-INF/mods.toml'
+        expand 'mod_version': mod_version, 'minecraft_version_range': minecraft_version_range, 'forge_version_range': forge_version_range,
+                'mod_id': mod_id, 'mod_author': mod_author, 'mod_name': mod_name
+        into "$buildDir/resources/main/"
+    }
+    //configure { finalizedBy(replaceResources) }
+}*/
 
 // Example configuration to allow publishing using the maven-publish plugin
 // This is the preferred method to reobfuscate your jar file
@@ -204,6 +233,20 @@ publishing {
         }
     }
 }
+
+/*curseforge {
+    project {
+        apiKey = findProperty('curseKey') ?: 0
+        id = "${cf_id}"
+        releaseType = "${cf_release}"
+        changelogType = 'markdown'
+        changelog = file("../CHANGELOG_LATEST.md")
+        addArtifact(sourcesJar)
+        "${cf_versions}".split(',').each {
+            addGameVersion "${it}"
+        }
+    }
+}*/
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation

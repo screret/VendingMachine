@@ -2,14 +2,13 @@
   "container.vendingmachine.vendingmachine": "Vending Machine",
   "container.vendingmachine.cash_converter": "Cash Converter",
 
-  "gui.vendingmachine.buybutton": "Buy item",
-  "gui.vendingmachine.buytestbutton": "Buy test mode",
-  "gui.vendingmachine.mainbutton": "Main page",
-  "gui.vendingmachine.cancel": "Cancel",
-  "gui.vendingmachine.continue": "Continue",
-  "gui.vendingmachine.addprice": "Set Item Price",
-  "gui.vendingmachine.tab_price": "Prices",
-  "gui.vendingmachine.tab_normal": "Main",
+  "gui.vendingmachine.button_buy": "Buy item",
+  "gui.vendingmachine.button_cancel": "Cancel",
+  "gui.vendingmachine.button_continue": "Continue",
+  "gui.vendingmachine.button_add_price": "Set Item Price",
+  "gui.vendingmachine.button_tab_price": "Prices",
+  "gui.vendingmachine.button_tab_main": "Main",
+  "gui.vendingmachine.inserted_money": "Inserted: %1$s",
 
   "block.vendingmachine.vending_machine_white": "White Vending Machine",
   "block.vendingmachine.vending_machine_orange": "Orange Vending Machine",
@@ -33,15 +32,16 @@
   "item.vendingmachine.money.bill": "Bill",
   "item.vendingmachine.money.coin": "Coin",
   "item.vendingmachine.wallet": "Wallet",
+  "item.vendingmachine.wallet.desc": "§6Contains %1$s dollars",
 
   "itemGroup.vendingmachine": "Vending Machines",
 
   "msg.vendingmachine.not_enough_money": "§cYou appear to not have inserted enough money to the machine. \n§6You get what you can pay for.",
   "msg.vendingmachine.buy": "§6Bought %1$s §6for %2$s %3$s.",
-  "msg.vendingmachine.gave_change": "You got %1$s dollars as change.",
+  "msg.vendingmachine.gave_change": "§6You got %1$s dollars as change.",
 
   "tooltip.vendingmachine.price": "§6Price: %1$s Per %2$s",
-  "tooltip.vendingmachine.leftclickprice": "§eLeft-Click To Change Price",
-  "tooltip.vendingmachine.rightclickprice": "§eRight-Click To Remove Price \n(note: this sets the price to 0)",
+  "tooltip.vendingmachine.left_click_price": "§eLeft-Click To Change Price",
+  "tooltip.vendingmachine.right_click_price": "§eRight-Click To Remove Price \n(note: this sets the price to 0)",
   "tooltip.vendingmachine.cash_out": "Cash Out?"
 }

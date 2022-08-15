@@ -56,8 +56,8 @@ public class MoneyItem extends Item {
     public static float getTotalOfMoney(IItemHandler itemHandler, float moneyType) {
         float totalOfMoney = 0;
 
-        for(int i = 0; i < itemHandler.getSlots(); ++i){
-            ItemStack stack = itemHandler.getStackInSlot(0);
+        for(int index = 0; index < itemHandler.getSlots(); ++index){
+            ItemStack stack = itemHandler.getStackInSlot(index);
             if (!stack.isEmpty()) {
                 if(stack.is(Registration.MONEY.get())) {
                     if (MoneyItem.getMoneyValue(stack) == moneyType) {
@@ -70,14 +70,27 @@ public class MoneyItem extends Item {
         return totalOfMoney;
     }
 
-    private float getTotalOfMoney(ItemStack stack, float moneyType) {
+    public static float getTotalOfMoney(IItemHandler itemHandler) {
+        float totalOfMoney = 0;
+
+        for(int index = 0; index < itemHandler.getSlots(); ++index){
+            ItemStack stack = itemHandler.getStackInSlot(index);
+            if (!stack.isEmpty()) {
+                if(stack.is(Registration.MONEY.get())) {
+                    totalOfMoney += stack.getCount() * getMoneyValue(stack);
+                }
+            }
+        }
+
+        return totalOfMoney;
+    }
+
+    private float getTotalOfMoney(ItemStack stack) {
         float totalOfMoney = 0;
 
         if (stack != null && !stack.isEmpty()) {
             if(stack.is(Registration.MONEY.get())) {
-                if (MoneyItem.getMoneyValue(stack) == moneyType) {
-                    totalOfMoney = totalOfMoney + stack.getCount();
-                }
+                totalOfMoney += stack.getCount() * getMoneyValue(stack);
             }
         }
         return totalOfMoney;

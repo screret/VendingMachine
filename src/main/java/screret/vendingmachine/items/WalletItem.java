@@ -11,14 +11,18 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
+import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.Nullable;
 import screret.vendingmachine.capabilities.WalletCapabilityProvider;
 import screret.vendingmachine.containers.WalletItemMenu;
 
-public class WalletItem extends Item implements MenuProvider {
+import java.util.List;
+
+public class WalletItem extends Item {
 
     public WalletItem(Properties properties) {
         super(properties);
@@ -29,7 +33,7 @@ public class WalletItem extends Item implements MenuProvider {
         ItemStack heldStack = player.getItemInHand(hand);
 
         if (!level.isClientSide && heldStack.is(this)) {
-            NetworkHooks.openScreen((ServerPlayer) player, this);
+            NetworkHooks.openScreen((ServerPlayer) player, new WalletMenuProvider(heldStack));
 
             return InteractionResultHolder.success(heldStack);
         }
@@ -41,18 +45,33 @@ public class WalletItem extends Item implements MenuProvider {
     public ICapabilityProvider initCapabilities(ItemStack stack, @Nullable CompoundTag nbt) {
         if (stack.is(this))
             return new WalletCapabilityProvider();
-        else
-            return super.initCapabilities(stack, nbt);
+        return super.initCapabilities(stack, nbt);
     }
 
     @Override
-    public Component getDisplayName() {
-        return this.getDescription();
+    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipLines, TooltipFlag flag) {
+        super.appendHoverText(stack, level, tooltipLines, flag);
+        tooltipLines.add(Component.translatable(this.getDescriptionId() + ".desc", MoneyItem.DECIMAL_FORMAT.format(MoneyItem.getTotalOfMoney(stack.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).orElseThrow(() -> new IllegalStateException("Wallet doesn't have inventory"))))));
+
     }
 
-    @Nullable
-    @Override
-    public AbstractContainerMenu createMenu(int containerId, Inventory inventory, Player player) {
-        return new WalletItemMenu(containerId, inventory, player.getMainHandItem());
+    protected class WalletMenuProvider implements MenuProvider {
+
+        private ItemStack thisStack;
+
+        public WalletMenuProvider(ItemStack stack){
+            this.thisStack = stack;
+        }
+
+        @Override
+            public Component getDisplayName() {
+                return thisStack.getHoverName();
+        }
+
+        @Nullable
+        @Override
+        public AbstractContainerMenu createMenu(int containerId, Inventory inventory, Player player) {
+            return new WalletItemMenu(containerId, inventory, player.getMainHandItem());
+        }
     }
 }

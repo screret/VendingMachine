@@ -73,6 +73,8 @@ public class Registration {
 
 
     //Items
+    public static final RegistryObject<Item> WALLET = ITEMS.register("wallet", () -> new WalletItem(new Item.Properties().tab(VendingMachine.MOD_TAB)));
+
     public static final RegistryObject<Item> VENDER_ITEM_WHITE = ITEMS.register("vending_machine_white", () -> new BlockItem(Registration.VENDER_WHITE.get(), new Item.Properties().tab(VendingMachine.MOD_TAB)));
     public static final RegistryObject<Item> VENDER_ITEM_ORANGE = ITEMS.register("vending_machine_orange", () -> new BlockItem(Registration.VENDER_ORANGE.get(), new Item.Properties().tab(VendingMachine.MOD_TAB)));
     public static final RegistryObject<Item> VENDER_ITEM_MAGENTA = ITEMS.register("vending_machine_magenta", () -> new BlockItem(Registration.VENDER_MAGENTA.get(), new Item.Properties().tab(VendingMachine.MOD_TAB)));
@@ -94,7 +96,6 @@ public class Registration {
     //public static final RegistryObject<Item> VENDER_CONTROL_CARD = ITEMS.register("vender_controller", () -> new ControlCardItem(new Item.Properties().tab(VendingMachine.MOD_TAB)));
 
     public static final RegistryObject<Item> MONEY = ITEMS.register("money", () -> new MoneyItem(new Item.Properties().tab(VendingMachine.MOD_TAB)));
-    public static final RegistryObject<Item> WALLET = ITEMS.register("wallet", () -> new WalletItem(new Item.Properties().tab(VendingMachine.MOD_TAB)));
 
     //recipe types
     public static final RegistryObject<RecipeType<MoneyConversionRecipe>> MONEY_CONVERSION_RECIPE_TYPE = RECIPE_TYPES.register("money_conversion", MoneyConversionRecipe.RecipeType::new);

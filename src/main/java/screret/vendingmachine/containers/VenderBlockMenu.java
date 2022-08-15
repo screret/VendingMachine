@@ -4,6 +4,7 @@ import net.minecraft.world.entity.SlotAccess;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.*;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
@@ -50,9 +51,9 @@ public class VenderBlockMenu extends AbstractContainerMenu {
         if (tileEntity != null) {
             final int INPUT_SLOTS_XPOS = 8;
             final int INPUT_SLOTS_YPOS = 18;
-            final int MONEY_SLOT_XPOS = 134;
+            final int MONEY_SLOT_XPOS = 127;
             final int MONEY_SLOT_YPOS = 36;
-            final int OUTPUT_SLOTS_XPOS = 134;
+            final int OUTPUT_SLOTS_XPOS = 127;
             final int OUTPUT_SLOTS_YPOS = 81;
 
             currentPlayer = playerInventory.player.getUUID();
@@ -60,8 +61,8 @@ public class VenderBlockMenu extends AbstractContainerMenu {
 
             for(int y = 0; y < INPUT_SLOTS_Y_AMOUNT; y++){
                 for(int x = 0; x < INPUT_SLOTS_X_AMOUNT; x++) {
-                    int slotNumber = y + x * INPUT_SLOTS_X_AMOUNT;
-                    int index = this.addSlot(MyHandler(this.inventory, slotNumber, INPUT_SLOTS_XPOS + SLOT_X_SPACING * y, INPUT_SLOTS_YPOS + SLOT_Y_SPACING * x, isAllowedToTakeItems)).index;
+                    int slotNumber = x + y * INPUT_SLOTS_X_AMOUNT;
+                    int index = this.addSlot(MyHandler(this.inventory, slotNumber, INPUT_SLOTS_XPOS + SLOT_X_SPACING * x, INPUT_SLOTS_YPOS + SLOT_Y_SPACING * y, isAllowedToTakeItems)).index;
                     LAST_CONTAINER_SLOT_INDEX = Math.max(LAST_CONTAINER_SLOT_INDEX, index);
                 }
             }

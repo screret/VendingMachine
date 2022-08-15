@@ -10,12 +10,14 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.SlotItemHandler;
 import net.minecraftforge.items.wrapper.PlayerInvWrapper;
-import screret.vendingmachine.VendingMachine;
+import org.jetbrains.annotations.NotNull;
 import screret.vendingmachine.containers.stackhandlers.WalletStackHandler;
 import screret.vendingmachine.init.Registration;
 
+import javax.annotation.Nonnull;
 import java.util.Optional;
 
 public class WalletItemMenu extends AbstractContainerMenu {
@@ -25,7 +27,7 @@ public class WalletItemMenu extends AbstractContainerMenu {
     private final WalletStackHandler inventory;
 
     private static final int SLOTS_X_AMOUNT = 9, SLOTS_Y_AMOUNT = 2, SLOTS_X_POS = 8, SLOTS_Y_POS = 15, INV_SLOTS_Y_POS = 62, SLOT_X_SPACING = 18, SLOT_Y_SPACING = 18;
-    private static final int LAST_CONTAINER_SLOT_INDEX = SLOTS_X_AMOUNT * SLOTS_Y_AMOUNT;
+    private static final int LAST_CONTAINER_SLOT_INDEX = SLOTS_X_AMOUNT * SLOTS_Y_AMOUNT - 1;
 
     public WalletItemMenu(int containerId, Inventory playerInv, ItemStack heldItem) {
         super(Registration.WALLET_MENU.get(), containerId);
@@ -37,8 +39,7 @@ public class WalletItemMenu extends AbstractContainerMenu {
 
             for (int y = 0; y < SLOTS_Y_AMOUNT; ++y) {
                 for (int x = 0; x < SLOTS_X_AMOUNT; ++x) {
-                    int slotNumber = y + x * SLOTS_X_AMOUNT;
-                    this.addSlot(new SlotItemHandler(this.inventory, slotNumber, SLOTS_X_POS + SLOT_X_SPACING * y, SLOTS_Y_POS + SLOT_Y_SPACING * x));
+                    this.addSlot(MyHandler(this.inventory, x + y * SLOTS_X_AMOUNT, SLOTS_X_POS + SLOT_X_SPACING * x, SLOTS_Y_POS + SLOT_Y_SPACING * y));
                 }
             }
 
@@ -71,6 +72,88 @@ public class WalletItemMenu extends AbstractContainerMenu {
         }
 
         return stack;
+    }
+
+    @Override
+    protected boolean moveItemStackTo(ItemStack stack, int slotIn, int slotOut, boolean simulate) {
+        boolean flag = false;
+        int i = slotIn;
+        if (simulate) {
+            i = slotOut - 1;
+        }
+
+        if (stack.isStackable()) {
+            while(!stack.isEmpty()) {
+                if (simulate) {
+                    if (i < slotIn) {
+                        break;
+                    }
+                } else if (i >= slotOut) {
+                    break;
+                }
+
+                SlotItemHandler slot = (SlotItemHandler) this.slots.get(i);
+                ItemStack itemstack = slot.getItem();
+
+                if (itemstack.isEmpty() && slot.mayPlace(stack)) {
+                    if (stack.getCount() > slot.getMaxStackSize()) {
+                        slot.set(stack.split(slot.getMaxStackSize()));
+                    } else {
+                        slot.set(stack.split(stack.getCount()));
+                    }
+
+                    slot.setChanged();
+                    flag = true;
+                    break;
+                }
+
+                if (simulate) {
+                    --i;
+                } else {
+                    ++i;
+                }
+            }
+        }
+
+        if (!stack.isEmpty()) {
+            if (simulate) {
+                i = slotOut - 1;
+            } else {
+                i = slotIn;
+            }
+
+            while(true) {
+                if (simulate) {
+                    if (i < slotIn) {
+                        break;
+                    }
+                } else if (i >= slotOut) {
+                    break;
+                }
+
+                SlotItemHandler slot1 = (SlotItemHandler) this.slots.get(i);
+                ItemStack itemstack1 = slot1.getItem();
+                if (itemstack1.isEmpty() && slot1.mayPlace(stack)) {
+                    if (stack.getCount() > slot1.getMaxStackSize()) {
+                        slot1.set(stack.split(slot1.getMaxStackSize()));
+                    } else {
+                        slot1.set(stack.split(stack.getCount()));
+                    }
+
+                    slot1.setChanged();
+                    flag = true;
+                    break;
+                }
+
+                if (simulate) {
+                    --i;
+                } else {
+                    ++i;
+                }
+            }
+        }
+
+        return flag;
     }
 
     @Override
@@ -316,6 +399,39 @@ public class WalletItemMenu extends AbstractContainerMenu {
             public boolean set(ItemStack stack) {
                 WalletItemMenu.this.setCarried(stack);
                 return true;
+            }
+        };
+    }
+
+    public SlotItemHandler MyHandler(IItemHandler itemHandler, int index, int xPosition, int yPosition){
+        return new SlotItemHandler(itemHandler, index, xPosition, yPosition){
+            @Override
+            public int getMaxStackSize(@Nonnull ItemStack stack)
+            {
+                ItemStack maxAdd = stack.copy();
+                IItemHandler handler = this.getItemHandler();
+                int maxInput = handler.getSlotLimit(0);
+                maxAdd.setCount(maxInput);
+
+                ItemStack currentStack = handler.getStackInSlot(index);
+                if (handler instanceof IItemHandlerModifiable handlerModifiable) {
+
+                    handlerModifiable.setStackInSlot(index, ItemStack.EMPTY);
+
+                    ItemStack remainder = handlerModifiable.insertItem(index, maxAdd, true);
+
+                    handlerModifiable.setStackInSlot(index, currentStack);
+
+                    return maxInput - remainder.getCount();
+                }
+                else
+                {
+                    ItemStack remainder = handler.insertItem(index, maxAdd, true);
+
+                    int current = currentStack.getCount();
+                    int added = maxInput - remainder.getCount();
+                    return current + added;
+                }
             }
         };
     }

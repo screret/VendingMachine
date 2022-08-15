@@ -16,7 +16,6 @@ public class VendingMachinesCompatibilityModule extends AbstractCompatibilityMod
     @Override
     public void setup() {
         PolymorphApi.common().registerItemStack2RecipeData(pStack -> {
-            Item item = pStack.getItem();
             if (pStack.is(Registration.MONEY.get())) {
                 return new ConversionStackRecipeData(pStack);
             }

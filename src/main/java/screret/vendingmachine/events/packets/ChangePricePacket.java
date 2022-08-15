@@ -19,9 +19,9 @@ public class ChangePricePacket {
 
     public ChangePricePacket(FriendlyByteBuf buf) {
         pos = buf.readBlockPos();
+        add = buf.readBoolean();
         item = buf.readItem();
         price = buf.readInt();
-        add = buf.readBoolean();
     }
 
     public ChangePricePacket(BlockPos pos, ItemStack item, int price, boolean add) {
@@ -33,9 +33,9 @@ public class ChangePricePacket {
 
     public static void encode(ChangePricePacket packet, FriendlyByteBuf buf) {
         buf.writeBlockPos(packet.pos);
+        buf.writeBoolean(packet.add);
         buf.writeItem(packet.item);
         buf.writeInt(packet.price);
-        buf.writeBoolean(packet.add);
     }
 
     public static void handle(final ChangePricePacket packet, Supplier<NetworkEvent.Context> context) {
@@ -46,14 +46,14 @@ public class ChangePricePacket {
             BlockEntity tile = playerEntity.getLevel().getBlockEntity(packet.pos);
 
             if(tile instanceof VendingMachineBlockEntity finalTile){
-                if(packet.add){
-                    if(Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER)
+                if(Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER){
+                    if(packet.add){
                         finalTile.addPrice(packet.item, packet.price);
-                    //DistExecutor.unsafeRunWhenOn(Dist.DEDICATED_SERVER, () -> () -> finalTile.addPrice(packet.item, packet.price));
-                } else {
-                    if(Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER)
+                        //DistExecutor.unsafeRunWhenOn(Dist.DEDICATED_SERVER, () -> () -> finalTile.addPrice(packet.item, packet.price));
+                    } else {
                         finalTile.removePrice(packet.item);
-                    //DistExecutor.unsafeRunWhenOn(Dist.DEDICATED_SERVER, () -> () -> finalTile.removePrice(packet.item));
+                        //DistExecutor.unsafeRunWhenOn(Dist.DEDICATED_SERVER, () -> () -> finalTile.removePrice(packet.item));
+                    }
                 }
             }
         });

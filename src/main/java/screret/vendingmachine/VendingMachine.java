@@ -50,7 +50,7 @@ public class VendingMachine {
     public static final String MODID = "vendingmachine";
     public static final String POLYMORPH_MODID = "polymorph";
 
-    public static final CreativeModeTab MOD_TAB = new CreativeModeTab("vendingmachine") {
+    public static final CreativeModeTab MOD_TAB = new CreativeModeTab(MODID) {
         @Override
         public ItemStack makeIcon() {
             return new ItemStack(Registration.VENDER_ITEM_BLUE.get());

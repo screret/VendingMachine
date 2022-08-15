@@ -41,7 +41,7 @@ public class VenderPriceEditorMenu extends AbstractContainerMenu {
 
             for(int y = 0; y < INPUT_SLOTS_Y_AMOUNT; y++){
                 for(int x = 0; x < INPUT_SLOTS_X_AMOUNT; x++) {
-                    int slotNumber = y + x * INPUT_SLOTS_X_AMOUNT;
+                    int slotNumber = x + y * INPUT_SLOTS_X_AMOUNT;
                     this.addSlot(MyHandler(this.inputInventory, slotNumber, INPUT_SLOTS_XPOS + SLOT_X_SPACING * x, INPUT_SLOTS_YPOS + SLOT_Y_SPACING * y));
                 }
             }
