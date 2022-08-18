@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "ml",
+    "ll"
+  ],
+  "key": {
+    "m": {
+      "type": "forge:nbt",
+      "item": "vendingmachine:money",
+      "nbt": "{money_value:1.0f}"
+    },
+    "l": {
+      "tag": "forge:leather"
+    }
+  },
+  "result": {
+    "item": "vendingmachine:wallet",
+    "count": 1
+  }
+}

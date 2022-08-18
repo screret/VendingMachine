@@ -1,7 +1,7 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "vendingmachine:item/money_1"
+    "layer0": "vendingmachine:item/money"
   },
   "overrides": [
     { "predicate": { "vendingmachine:money_value": 1.0 }, "model": "vendingmachine:item/money_1" },

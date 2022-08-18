@@ -1,0 +1,49 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_money": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "vendingmachine:money"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "vendingmachine:vending_machine_blue"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_money",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "vendingmachine:vending_machine_black",
+      "vendingmachine:vending_machine_blue",
+      "vendingmachine:vending_machine_brown",
+      "vendingmachine:vending_machine_cyan",
+      "vendingmachine:vending_machine_gray",
+      "vendingmachine:vending_machine_green",
+      "vendingmachine:vending_machine_light_blue",
+      "vendingmachine:vending_machine_light_gray",
+      "vendingmachine:vending_machine_lime",
+      "vendingmachine:vending_machine_magenta",
+      "vendingmachine:vending_machine_orange",
+      "vendingmachine:vending_machine_pink",
+      "vendingmachine:vending_machine_purple",
+      "vendingmachine:vending_machine_red",
+      "vendingmachine:vending_machine_white",
+      "vendingmachine:vending_machine_yellow"
+    ]
+  }
+}

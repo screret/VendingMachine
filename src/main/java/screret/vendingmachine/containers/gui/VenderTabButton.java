@@ -3,11 +3,10 @@ package screret.vendingmachine.containers.gui;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.entity.ItemRenderer;
-import net.minecraft.network.chat.BaseComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import screret.vendingmachine.VendingMachine;
@@ -23,11 +22,11 @@ public class VenderTabButton extends Button {
 
     public static final ResourceLocation GUI_LOCATION = new ResourceLocation(VendingMachine.MODID,"textures/gui/vending_machine_gui.png");
 
-    public VenderTabButton(int x, int y, int xSize, int ySize, BaseComponent text, Button.OnPress onPress, boolean isMain, boolean selected) {
+    public VenderTabButton(int x, int y, int xSize, int ySize, Component text, Button.OnPress onPress, boolean isMain, boolean selected) {
         this(x, y, xSize, ySize, text, onPress, NO_TOOLTIP, isMain, selected);
     }
 
-    public VenderTabButton(int x, int y, int xSize, int ySize, BaseComponent text, Button.OnPress onPress, OnTooltip tooltip, boolean isMain, boolean selected) {
+    public VenderTabButton(int x, int y, int xSize, int ySize, Component text, Button.OnPress onPress, OnTooltip tooltip, boolean isMain, boolean selected) {
         super(x, y, xSize, ySize, text, onPress, tooltip);
         this.buttonIsMain = isMain;
         this.xSize = xSize;

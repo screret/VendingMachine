@@ -19,7 +19,7 @@ import screret.vendingmachine.items.ControlCardItem;
 
 import javax.annotation.Nullable;
 
-@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE)
+@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE, modid = VendingMachine.MODID)
 public class VendingMachineForgeRegistration {
 
     public static ICapabilityProvider CONTROL_CARD_CAP_PROVIDER;

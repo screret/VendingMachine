@@ -1,0 +1,334 @@
+{
+	"meta": {
+		"format_version": "4.0",
+		"model_format": "java_block",
+		"box_uv": false
+	},
+	"name": "cash_converter",
+	"parent": "",
+	"ambientocclusion": true,
+	"front_gui_light": false,
+	"visible_box": [1, 1, 0],
+	"variable_placeholders": "",
+	"variable_placeholder_buttons": [],
+	"resolution": {
+		"width": 16,
+		"height": 16
+	},
+	"elements": [
+		{
+			"name": "cube",
+			"rescale": false,
+			"locked": false,
+			"from": [0, 0, 0],
+			"to": [16, 1, 15],
+			"autouv": 0,
+			"color": 4,
+			"origin": [0, 0, 0],
+			"faces": {
+				"north": {
+					"uv": [0, 0, 16, 1],
+					"cullface": "north",
+					"texture": 0
+				},
+				"east": {
+					"uv": [0, 0, 16, 1],
+					"cullface": "east",
+					"texture": 0
+				},
+				"south": {
+					"uv": [0, 0, 16, 1],
+					"cullface": "west",
+					"texture": null
+				},
+				"west": {
+					"uv": [0, 0, 16, 1],
+					"cullface": "west",
+					"texture": 0
+				},
+				"up": {
+					"uv": [0, 0, 16, 16],
+					"rotation": 270,
+					"texture": 0
+				},
+				"down": {
+					"uv": [0, 0, 15, 16],
+					"rotation": 90,
+					"cullface": "down",
+					"texture": 0
+				}
+			},
+			"type": "cube",
+			"uuid": "8bae1c06-a686-5c66-cc66-3fa93afc2bfc"
+		},
+		{
+			"name": "cube",
+			"rescale": false,
+			"locked": false,
+			"from": [0, 15, 0],
+			"to": [16, 16, 15],
+			"autouv": 0,
+			"color": 4,
+			"origin": [0, 0, 0],
+			"faces": {
+				"north": {
+					"uv": [0, 0, 16, 1],
+					"cullface": "north",
+					"texture": 0
+				},
+				"east": {
+					"uv": [0, 0, 16, 1],
+					"cullface": "east",
+					"texture": 0
+				},
+				"south": {
+					"uv": [0, 0, 16, 1],
+					"cullface": "west",
+					"texture": null
+				},
+				"west": {
+					"uv": [0, 0, 16, 1],
+					"cullface": "west",
+					"texture": 0
+				},
+				"up": {
+					"uv": [0, 0, 15, 16],
+					"rotation": 270,
+					"cullface": "up",
+					"texture": 0
+				},
+				"down": {
+					"uv": [0, 0, 16, 16],
+					"rotation": 90,
+					"texture": 0
+				}
+			},
+			"type": "cube",
+			"uuid": "deda7826-79db-539a-ceb9-dbc2090ce869"
+		},
+		{
+			"name": "cube",
+			"rescale": false,
+			"locked": false,
+			"from": [0, 1, 0],
+			"to": [1, 15, 15],
+			"autouv": 0,
+			"color": 4,
+			"origin": [0, 0, 0],
+			"faces": {
+				"north": {
+					"uv": [0, 0, 1, 14],
+					"cullface": "north",
+					"texture": 0
+				},
+				"east": {
+					"uv": [0, 0, 15, 14],
+					"texture": 0
+				},
+				"south": {
+					"uv": [0, 0, 1, 14],
+					"texture": null
+				},
+				"west": {
+					"uv": [0, 0, 15, 14],
+					"cullface": "west",
+					"texture": 0
+				},
+				"up": {
+					"uv": [0, 0, 15, 1],
+					"rotation": 270,
+					"texture": null
+				},
+				"down": {
+					"uv": [0, 0, 15, 1],
+					"rotation": 90,
+					"texture": null
+				}
+			},
+			"type": "cube",
+			"uuid": "c90cd96b-9453-8610-a6d9-ef0363e3b21c"
+		},
+		{
+			"name": "cube",
+			"rescale": false,
+			"locked": false,
+			"from": [1, 1, 1],
+			"to": [15, 15, 15],
+			"autouv": 0,
+			"color": 2,
+			"origin": [0, 0, 0],
+			"faces": {
+				"north": {
+					"uv": [0, 0, 14, 14],
+					"texture": 1
+				},
+				"east": {
+					"uv": [0, 0, 14, 14],
+					"texture": null
+				},
+				"south": {
+					"uv": [0, 0, 14, 14],
+					"texture": null
+				},
+				"west": {
+					"uv": [0, 0, 14, 14],
+					"texture": null
+				},
+				"up": {
+					"uv": [0, 0, 14, 14],
+					"rotation": 270,
+					"texture": null
+				},
+				"down": {
+					"uv": [0, 0, 14, 14],
+					"rotation": 90,
+					"texture": null
+				}
+			},
+			"type": "cube",
+			"uuid": "e86e4193-4710-4f02-a295-ab6b933c3793"
+		},
+		{
+			"name": "cube",
+			"rescale": false,
+			"locked": false,
+			"from": [15, 1, 0],
+			"to": [16, 15, 15],
+			"autouv": 0,
+			"color": 4,
+			"origin": [0, 0, 0],
+			"faces": {
+				"north": {
+					"uv": [0, 0, 1, 14],
+					"cullface": "north",
+					"texture": 0
+				},
+				"east": {
+					"uv": [0, 0, 15, 14],
+					"cullface": "east",
+					"texture": 0
+				},
+				"south": {
+					"uv": [0, 0, 1, 14],
+					"texture": null
+				},
+				"west": {
+					"uv": [0, 0, 15, 14],
+					"texture": 0
+				},
+				"up": {
+					"uv": [0, 0, 15, 1],
+					"rotation": 270,
+					"texture": null
+				},
+				"down": {
+					"uv": [0, 0, 15, 1],
+					"rotation": 90,
+					"texture": null
+				}
+			},
+			"type": "cube",
+			"uuid": "d24aa3c8-724f-3f6c-b2e8-d779f348ff7a"
+		},
+		{
+			"name": "cube",
+			"rescale": false,
+			"locked": false,
+			"from": [0, 0, 15],
+			"to": [16, 16, 16],
+			"autouv": 0,
+			"color": 7,
+			"origin": [0, 0, 0],
+			"faces": {
+				"north": {
+					"uv": [0, 0, 1, 1],
+					"texture": null
+				},
+				"east": {
+					"uv": [0, 0, 1, 16],
+					"cullface": "east",
+					"texture": 0
+				},
+				"south": {
+					"uv": [0, 0, 16, 16],
+					"cullface": "south",
+					"texture": 2
+				},
+				"west": {
+					"uv": [0, 0, 1, 16],
+					"cullface": "west",
+					"texture": 0
+				},
+				"up": {
+					"uv": [0, 0, 1, 16],
+					"rotation": 270,
+					"cullface": "up",
+					"texture": 0
+				},
+				"down": {
+					"uv": [0, 0, 1, 16],
+					"rotation": 90,
+					"cullface": "down",
+					"texture": 0
+				}
+			},
+			"type": "cube",
+			"uuid": "be25df0d-d0e2-33db-5243-31b78af65bd0"
+		}
+	],
+	"outliner": [
+		"8bae1c06-a686-5c66-cc66-3fa93afc2bfc",
+		"deda7826-79db-539a-ceb9-dbc2090ce869",
+		"d24aa3c8-724f-3f6c-b2e8-d779f348ff7a",
+		"c90cd96b-9453-8610-a6d9-ef0363e3b21c",
+		"e86e4193-4710-4f02-a295-ab6b933c3793",
+		"be25df0d-d0e2-33db-5243-31b78af65bd0"
+	],
+	"textures": [
+		{
+			"path": "C:\\Users\\OMISTAJA\\Desktop\\mc modit\\VendingMachineMod 1.19\\src\\main\\resources\\assets\\vendingmachine\\textures\\block\\vending_machine_bottom.png",
+			"name": "vending_machine_bottom.png",
+			"folder": "block",
+			"namespace": "vendingmachine",
+			"id": "0",
+			"particle": true,
+			"render_mode": "default",
+			"visible": true,
+			"mode": "bitmap",
+			"saved": true,
+			"uuid": "97f229a5-d8c5-e0a4-6c60-ad1132898517",
+			"relative_path": "../../../textures/block/vending_machine_bottom.png",
+			"source": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAB5JREFUOE9jDAsL+89AAWAcNYBhNAwYRsOAYViEAQD9HCAh9Qtd3AAAAABJRU5ErkJggg=="
+		},
+		{
+			"path": "C:\\Users\\OMISTAJA\\Desktop\\mc modit\\VendingMachineMod 1.19\\src\\main\\resources\\assets\\vendingmachine\\textures\\block\\cash_converter_front.png",
+			"name": "cash_converter_front.png",
+			"folder": "block",
+			"namespace": "vendingmachine",
+			"id": "1",
+			"particle": false,
+			"render_mode": "default",
+			"visible": true,
+			"mode": "bitmap",
+			"saved": true,
+			"uuid": "c7b39368-fc0e-ac8d-cd75-b188b35ff406",
+			"relative_path": "../../../textures/block/cash_converter_front.png",
+			"source": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAMZJREFUOE9jNDMz+89AAWCkigGnTp3C6wY3D0+w/Id3bzHUgV3wbDI7WOKJ+WEwLXPSFoXf1t7BcODgQfwGgDSDNGKjS8vKGS5eukSaC5ANio1PYHj58iVpLkD2EsEwoCAWGeDR+OTJU7g5MjLSYLajoyOG2fv370cRw5sOQAacv3iJQVxcHBwGhvp6DCQb8OzFS7BmkCFSEuKkG0CUC5D9D/MgKBxAXlgadIxBq56HoefkA4alaX6kuwA9FEkKA2Kil+LcCABGs40hhjxLjAAAAABJRU5ErkJggg=="
+		},
+		{
+			"path": "C:\\Users\\OMISTAJA\\Desktop\\mc modit\\VendingMachineMod 1.19\\src\\main\\resources\\assets\\vendingmachine\\textures\\block\\vending_machine_top_back.png",
+			"name": "vending_machine_top_back.png",
+			"folder": "block",
+			"namespace": "vendingmachine",
+			"id": "2",
+			"particle": false,
+			"render_mode": "default",
+			"visible": true,
+			"mode": "bitmap",
+			"saved": true,
+			"uuid": "e27615a3-289a-bb2c-d925-bb93811fc18f",
+			"relative_path": "../../../textures/block/vending_machine_top_back.png",
+			"source": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAYVJREFUOE+NU79Lw0AUfjUJLQ0dAqF0CLiJk0NcM3XuagYtVKc6OQQXwUUQXEoHl+ikQXRx7p/h4iRCh0ILncxQUpLGNPIe3HGXFOlbcu/X97735a7S6XTy5XIJotXrdcCYaZoU7vV6EAQBxRRFgSzLKI7nSrvdztGpVquQJIkEhADYfPi6Dx8nX+D7vpRHhwCw2XhqQXg2l0AYg3v1Di5+r4hB0TiD1tsu5ebHE2g0GlLdoz6EfuRx6mKy0u12aQW09UCj785lCqqqQhiG5IsAJQ0QIIoi0HVdAon6P3zQ1gxEJpsAWB41YyatUFwFQXA6GmqwNYCox9C75s2GYZAuzWbzfwaYXSwWfLo3vAW20mq1AsuyIE1T0DQNaAVRRHYerG9oysPeC3yfT6TfivcFQdA2aoAJBHg+eKei8XjMAabTKW8mANd1c3bXbduG088jXrwJQKKCAKPRKMe7LhprZDGRQQmgyCCOY6jVarwO/dlsxkVjCS4iPmcWdBynOKCkQbHgD71TyOeiUxJFAAAAAElFTkSuQmCC"
+		}
+	]
+}

@@ -26,6 +26,8 @@ import org.jetbrains.annotations.Nullable;
 import screret.vendingmachine.init.Registration;
 import screret.vendingmachine.blockEntities.VendingMachineBlockEntity;
 
+import java.util.Optional;
+
 public class VendingMachineBlock extends HorizontalDirectionalBlock implements EntityBlock {
     public static final EnumProperty<DoubleBlockHalf> HALF = BlockStateProperties.DOUBLE_BLOCK_HALF;
     private static final EnumProperty<DyeColor> COLOR = EnumProperty.create("color", DyeColor.class);
@@ -55,12 +57,8 @@ public class VendingMachineBlock extends HorizontalDirectionalBlock implements E
             return;
         }
 
-        BlockEntity be = world.getBlockEntity(pos);
-        if(be instanceof VendingMachineBlockEntity venderBe){
-            if(venderBe.owner == null){
-                venderBe.owner = entity.getUUID();
-            }
-        }
+        Optional<VendingMachineBlockEntity> be = world.getBlockEntity(pos, Registration.VENDER_TILE.get());
+        be.ifPresent(vendingMachineBlockEntity -> vendingMachineBlockEntity.owner = entity.getUUID());
 
         world.setBlock(pos.above(), state.setValue(HALF, DoubleBlockHalf.UPPER).setValue(FACING, state.getValue(FACING)), 3);
         world.blockUpdated(pos, this);
@@ -115,12 +113,12 @@ public class VendingMachineBlock extends HorizontalDirectionalBlock implements E
     }
 
     @Override
-    public MenuProvider getMenuProvider(BlockState state, Level world, BlockPos pos) {
-        BlockEntity tileentity = world.getBlockEntity(pos);
-        if(tileentity == null){
-            tileentity = world.getBlockEntity(pos.below());
+    public MenuProvider getMenuProvider(BlockState state, Level level, BlockPos pos) {
+        BlockEntity blockEntity = level.getBlockEntity(pos);
+        if(blockEntity == null){
+            blockEntity = level.getBlockEntity(pos.below());
         }
-        return tileentity instanceof MenuProvider ? (MenuProvider)tileentity : null;
+        return blockEntity instanceof MenuProvider ? (MenuProvider)blockEntity : null;
     }
 
     @Nullable

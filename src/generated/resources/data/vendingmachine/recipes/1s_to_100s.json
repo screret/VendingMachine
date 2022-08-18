@@ -1,0 +1,14 @@
+{
+  "type": "vendingmachine:money_conversion",
+  "group": "money_conversion",
+  "ingredient": {
+    "type": "forge:nbt",
+    "count": 100,
+    "item": "vendingmachine:money",
+    "nbt": "{money_value:1.0f}"
+  },
+  "result": {
+    "item": "vendingmachine:money",
+    "nbt": "{money_value:100.0f}"
+  }
+}
